@@ -145,8 +145,10 @@ def test_unknown_user_and_unsupported_event_are_ignored(impl):
 @pytest.mark.part2
 @pytest.mark.edge
 def test_events_out_of_order_and_same_day_same_user(impl):
+    # events are applied in day order regardless of input order; the day-15 warning sits between them
     out = impl.part2(["u,a,0,30", "CHANGE,u,c,20", "CHANGE,u,b,5"])
-    assert out[1:3] == ["5: [Changed] u - a -> b", "20: [Changed] u - b -> c"]
+    assert out == ["0: u - Welcome to a", "5: [Changed] u - a -> b", "15: u - Upcoming expiry",
+                   "20: [Changed] u - b -> c", "30: u - Subscription expired"]
     out = impl.part2(["u,a,0,30", "CHANGE,u,b,5", "CHANGE,u,c,5"])
     assert out[1:3] == ["5: [Changed] u - a -> b", "5: [Changed] u - b -> c"]
 

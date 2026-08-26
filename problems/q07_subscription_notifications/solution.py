@@ -14,19 +14,22 @@ EVENT_KINDS = {"CHANGE", "RENEW"}
 
 
 class User:
+    __slots__ = ("idx", "name", "plan", "start", "end", "since", "sent", "pending")  # 10^5 users: keep it lean
+
     def __init__(self, idx: int, name: str, plan: str, start: int, end: int):
         self.idx, self.name, self.plan, self.start, self.end = idx, name, plan, start, end
         self.since = start          # emails dated < since are already sent (locked)
-        self.sent: list[tuple] = []  # locked emails: (day, sched_idx, text)
+        self.sent: list[tuple] = []  # locked emails: (day, sched_idx, plan_at_send_time)
         self.pending: list[tuple] = []
 
     def recompute(self, schedule) -> None:
-        """Pending = schedule emails dated >= start_day and >= last recompute day."""
+        """Pending = schedule emails dated >= start_day and >= last recompute day.
+        Only (day, sched_idx, plan) is kept; the text is formatted once at render time."""
         self.pending = []
-        for i, (when, msg) in enumerate(schedule):
+        for i, (when, _msg) in enumerate(schedule):
             day = self.start if when == "start" else self.end if when == "end" else self.end + int(when)
             if day >= self.start and day >= self.since:  # rule: never before start, never in the past
-                self.pending.append((day, i, msg.format(plan=self.plan)))
+                self.pending.append((day, i, self.plan))
 
     def apply_event(self, day: int) -> None:
         """Events take effect at the START of `day`: emails dated < day are locked as sent;
@@ -57,7 +60,7 @@ def _run(lines: list[str], schedule, allow_change: bool, allow_renew: bool) -> l
         u.idx = i
         u.recompute(schedule)
 
-    out: list[tuple] = []  # sort key: (day, user_idx, 0=event/1=email, seq) ; then text
+    out: list[tuple] = []  # sort key: (day, user_idx, 0=event/1=email, seq) ; then payload
     for day, seq, f in sorted(events, key=lambda e: (e[0], e[1])):  # day order, ties by input
         u = users.get(f[1])
         if u is None:
@@ -71,11 +74,14 @@ def _run(lines: list[str], schedule, allow_change: bool, allow_renew: bool) -> l
             old, u.end = u.end, u.end + int(f[2])  # term extends from the OLD end
             u.recompute(schedule)
             out.append((day, u.idx, 0, seq, f"{day}: [Renewed] {u.name} - {old} -> {u.end}"))
+    del events  # 10^5 parsed event rows are no longer needed: free them before the big sort
     for u in users.values():
-        for day, i, text in u.sent + u.pending:
-            out.append((day, u.idx, 1, i, f"{day}: {u.name} - {text}"))
+        for day, i, plan in u.sent + u.pending:
+            out.append((day, u.idx, 1, i, plan))  # email payload = plan at send time (shared str)
     out.sort(key=lambda t: t[:4])
-    return [t[4] for t in out]
+    names = {u.idx: u.name for u in users.values()}
+    return [t[4] if t[2] == 0 else f"{t[0]}: {names[t[1]]} - {schedule[t[3]][1].format(plan=t[4])}"
+            for t in out]
 
 
 def part1(lines: list[str], schedule=DEFAULT_SCHEDULE) -> list[str]:
