@@ -27,6 +27,7 @@ def _load(problem_dir: Path, name: str):
     spec = importlib.util.spec_from_file_location(f"{problem_dir.name}_{name}", path)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
+    sys.modules[spec.name] = mod  # so @dataclass / pickling / typing.get_type_hints can find the module
     spec.loader.exec_module(mod)
     return mod
 

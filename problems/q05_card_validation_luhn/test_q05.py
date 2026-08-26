@@ -47,7 +47,7 @@ def test_luhn_doubling_over_nine_and_check_digit_neighbours(impl):
     # exactly one check digit per body: the ten candidates for the last digit contain one valid card
     body = "400000000000000"
     assert sum(impl.luhn_ok(body + d) for d in "0123456789") == 1
-    assert impl.part1(["4999999999999995", "4999999999999996"]) == ["VISA", "INVALID_CHECKSUM"]
+    assert impl.part1(["4999999999999996", "4999999999999995"]) == ["VISA", "INVALID_CHECKSUM"]
 
 
 @pytest.mark.part1
