@@ -111,6 +111,7 @@ def test_part3_disconnected_unknown(impl):
     assert impl.best_conversion(r, "USD", "XXX") is None
     assert impl.best_conversion(r, "XXX", "USD") is None
     assert impl.best_conversion({}, "A", "B") is None
+    assert impl.best_conversion(r, "USD", "AUD") == (1.4, ["USD", "AUD"])   # still works inside a component
 
 
 @pytest.mark.part3
