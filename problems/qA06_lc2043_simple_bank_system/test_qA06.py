@@ -110,7 +110,7 @@ def test_reversal_example(impl):
     assert b.reverse(6) is False           # id 6 is the reverse record itself
     assert b.reverse(1) is True and b.balances() == [10, 100, 20, 50, 50]
     assert b.reverse(99) is False and b.reverse(0) is False
-    assert len(b.log) == 11
+    assert len(b.log) == 12  # 5 LC calls + 7 reverse attempts, failed ones included
     assert b.log[5].kind == "reverse" and b.log[5].ref == 2 and b.log[5].ok is True
     assert b.reversed_ids == {1, 2}
 

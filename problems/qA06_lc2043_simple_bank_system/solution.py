@@ -25,6 +25,7 @@ class Bank:
     def __init__(self, balance: list[int], reserve: int = 0) -> None:
         self._bal = list(balance)           # index 0 = account 1
         self._debt = [0] * len(balance)
+        self._outstanding = 0                # sum(self._debt), kept incrementally
         self.reserve = reserve
         self.max_outstanding = 0
         self.log: list[TxnRecord] = []
@@ -47,8 +48,9 @@ class Bank:
         if shortfall > 0:
             self.reserve -= shortfall
             self._debt[i] += shortfall
+            self._outstanding += shortfall
             self._bal[i] = 0
-            self.max_outstanding = max(self.max_outstanding, sum(self._debt))
+            self.max_outstanding = max(self.max_outstanding, self._outstanding)
         else:
             self._bal[i] -= money
 
@@ -57,6 +59,7 @@ class Bank:
         i = account - 1
         repay = min(self._debt[i], money)
         self._debt[i] -= repay
+        self._outstanding -= repay
         self.reserve += repay
         self._bal[i] += money - repay
 

@@ -75,7 +75,7 @@ Part 2  after the LC sequence: log ids 1..5 with ok = [T, T, T, F, F]
         reverse(2) -> true  (1: 30 -> 10 ; 5: 30 -> 50) ; reverse(2) -> false (already reversed)
         reverse(4) -> false (was not ok) ; reverse(6) -> false (id 6 is the reverse record itself)
         reverse(1) -> true  (3: 10 -> 20) ; reverse(99) -> false
-        balances -> [10, 100, 20, 50, 50] ; log has 10 records
+        balances -> [10, 100, 20, 50, 50] ; log has 11 records (failed reversals are logged too)
         Bank([5]); deposit(1, 5) -> true ; withdraw(1, 8) -> true (2 left) ; reverse(1) -> false (needs 5, has 2)
 Part 3  Bank([10, 100], reserve=50)
         withdraw(1, 30) -> true  (shortfall 20: reserve 30, debt1 20, bal1 0)
