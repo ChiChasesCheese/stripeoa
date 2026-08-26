@@ -42,6 +42,7 @@ def test_example_part1(impl):
 
 @pytest.mark.part1
 @pytest.mark.edge
+@pytest.mark.fmt
 def test_unknown_merchant_zero_and_negative_balance(impl):
     assert impl.part1(["BAL: merchant=x"]) == ["0"]
     assert impl.part1(["API: amount=-5&merchant=x", "BAL: merchant=x", "API: amount=0&merchant=x", "BAL: merchant=x"]) == ["-5", "-5"]

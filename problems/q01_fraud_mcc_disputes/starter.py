@@ -1,21 +1,53 @@
 """q01 Fraud Detection by MCC — YOUR implementation. Run: python drill.py test q01"""
 from __future__ import annotations
 
+import decimal
 import sys
 
+
+def fields(raw: str) -> list[str]:
+    return [p.strip() for p in raw.split(',')]
+
+def parse_threshold(literal: str) -> tuple[str, int, int]:
+    literal = literal.strip()
+    if "." not in literal:
+        return ["count", int(literal), 1]
+    whole, frac = literal.split(',')
+    den = 10 ** (frac)
+    return ["ratio", int(whole or "0") * den + int(frac or "0"), den]
 
 def part1(lines: list[str]) -> dict:
     """Parse setup lines (MERCHANT / THRESHOLD / FRAUD_CODES / MIN_COUNT / STICKY).
     Return {"merchant_mcc": {acct: mcc}, "thresholds": {mcc: (kind, num, den)},
             "fraud_codes": set, "min_count": int, "sticky": bool}
     kind is "count" (num=value, den=1) or "ratio" (value = num/den, e.g. 0.25 -> (25, 100))."""
-    # TODO
-    return {}
+    setup = {
+        "merchant_mcc": {},
+        "thresholds": {},
+        "fraud_codes": set(),
+        "min_count": 0,
+        "sticky": False
+    }
+    for raw in lines:
+        f = fields(raw)
+        cmd = f[0].upper()
+        if cmd == "MERCHANT":
+            setup["merchant_mcc"][f[1]] = f[2]
+        elif cmd == "THRESHOLDS":
+            setup["thresholds"][f[1]] = parse_threshold(f[2])
+        elif cmd == "FRAUD_CODES":
+            setup["fraud_codes"].update(c for c in f[1:] if c)
+        elif cmd == "MIN_COUNT":
+            setup["min_count"] = int(f[1])
+        elif cmd == "STICKY":
+            setup["sticky"] = True
+    return cmd
 
 
 def part2(lines: list[str]) -> dict[str, tuple[int, int]]:
     """Process CHARGE events in order. Return {account: (fraud_count, total_count)}."""
-    # TODO
+    for raw in lines:
+        f = fields(raw)
     return {}
 
 
