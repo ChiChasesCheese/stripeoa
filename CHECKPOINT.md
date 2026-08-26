@@ -1,6 +1,14 @@
-# Progress checkpoint — ARCHIVED 2026-08-25 (session limit); resume from here
+# Progress checkpoint — updated 2026-08-26 (resume from here)
 
-## Done (committed)
+## Status 2026-08-26
+Green (tests pass, REPORT.md present): q01 q02 q03 q04 q07 q09 q10 q11 q12 q14 q21 q25
+Green, REPORT missing: q13 · 1 failing test + no REPORT: q05
+In flight (3 resumed agents): q05→q06→q08 · q13 REPORT→q16 · q17→q18→q19→q15
+Next batches: q20 q22 q23 q24 · q26 q27 q28 q29(deployment windows) · new finds q30–q36 (Stripe Capital loans,
+wishlist/mutual rank, money transfer rebalancing, analytical DB min_by_key, compress URL, user points FIFO,
+MultiTimeMap) · algo set qA01–qA11 · CATALOG merge agent · OVERALL_REPORT
+
+## Done (committed) — earlier snapshot
 - Skeleton: `conftest.py` (impl / run_script fixtures with time+RSS), `drill.py`, `Makefile`, `pytest.ini`, `CONVENTIONS.md`, `README.md`, `catalog/IMPLEMENTATION_BRIEF.md`
 - Research raw files in `catalog/raw/` (all five; en_forums / github_repos / algo_questions were cut off mid-write and are PARTIAL but usable):
   cn_sources.md (24 OA + 17 phone problems) · process_and_jd.md (format, loop, JD skills, glossary, 24 test targets S01–S24) · en_forums.md · github_repos.md (1005 lines, verbatim repo statements/tests) · algo_questions.md (LC/algo frequency table)
