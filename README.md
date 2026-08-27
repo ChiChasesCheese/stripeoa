@@ -7,6 +7,7 @@ challenge. Everything here is Python 3.11+ / pytest, no third-party deps.
 catalog/            CATALOG.md — every Stripe OA/phone-screen problem found online, deduped,
                     with sources, confidence, frequency and variants
 problems/qNN_slug/  problem.md · starter.py (yours) · solution.py (reference) · test_qNN.py · REPORT.md
+study/              中文题解 + 通用精华（读完能独立做出来的验收路径）→ study/README.md
 skills_matrix.md    test targets / knowledge / experience  ↔  problems  ↔  Stripe JD lines
 reports/            OVERALL_REPORT.md (+ per-problem REPORT.md lives next to each problem)
 drill.py            60-minute drill runner
@@ -15,6 +16,7 @@ conftest.py         shared fixtures (`impl`, `run_script` with time+RSS measurem
 
 ## Start here
 
+- `study/README.md` — **中文**题解 53 篇 + 通用精华（解题框架 · 核心考点 · 语法速查 · 陷阱清单 · 算法模式 · 调试 · 沟通）
 - `reports/OVERALL_REPORT.md` — what the OA is, drill order, quality gates, caveats
 - `catalog/CATALOG.md` — every problem found online with #independent refs + source URLs (Tables A/B/C)
 - `skills_matrix.md` — 24 bespoke + 16 algorithm test targets ↔ problems ↔ JD lines
