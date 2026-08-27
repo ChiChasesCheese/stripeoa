@@ -36,3 +36,14 @@ Findings:
 3. (low, tests) `test_empty_stdin` passes on the empty template (inherently: empty in -> empty out). Not vacuous overall (19/20 fail).
 4. (low, spec) The Rules never say what happens to a user with zero sessions (cannot occur since users only exist via session lines) nor whether `user_id` may contain spaces; both moot for the stated format.
 
+## q04_card_range_obfuscation — verdict: SOUND (two spec ambiguities worth pinning down)
+
+Method: 4000 random tables (`random.Random(1)`; 0-7 intervals over a tiny offset space 0..20 to force touching / nested / identical / same-start / same-end collisions, 3 brands, 10% wide 10^8-scale spans) vs an independent oracle (O(n^2) owner scan per gap, fixed-point merge loop) for Parts 1-4: 0 mismatches. Invariants checked on every case: after Part >= 2 the union of intervals covers `[LO, HI]` with no hole and starts at LO; after Part 4 no two consecutive same-brand touching intervals remain: 0 failures. 18 stdin cases (Examples 1-5 with and without `PART n`, Example 3 under PART 1/2/4, no trailing newline, CRLF, `N = 0`, empty, `PART 2` alone, BIN with leading zero `042424`) match byte-for-byte. Perf: 10^4 intervals 0.035 s, 10^5 0.314 s (9x for 10x; n log n sort, well under 2 s). Template: 23/24 fail. Suite: 24 passed.
+
+Findings:
+1. (medium, spec) Part 4 merges only *consecutive* same-brand intervals in `(start,end,brand)` order. Input `0,4,VISA` / `2,3,AMEX` / `5,9,VISA` yields three lines (`...0000,...0004,VISA` / `...0002,...0003,AMEX` / `...0005,...9999,VISA`) because AMEX sits between the two VISA pieces in sort order, even though the VISA pieces touch. Likewise `0,9,VISA` / `2,3,AMEX` / `4,6,VISA` keeps the contained VISA piece. The literal spec ("consecutive", "repeat until nothing merges") supports the solution, but a grader that merges same-brand touching intervals regardless of what is printed between them would output one VISA line. Suggest the spec state this explicitly (or the Variants section mention the alternative).
+2. (medium, spec) Part 1 tie on the smallest start: `5,10,A` / `5,20,B` -> A (first in sorted order, i.e. the *smaller end*) gets `start = LO`; B keeps start 5. problem.md only gives a tie rule for the largest end (Part 3: smaller start wins). By analogy one could argue the covering interval (B, larger end) should be the one extended to LO. Output differs between the two readings. Suggest stating "ties on the smallest start: the one with the smaller end / first in sorted order".
+3. (low) The `N` line is parsed but not used; extra or missing interval lines are processed as-is (`N=1` with two lines -> both used). Tolerant, but a hidden test relying on N to truncate would differ; out-of-contract.
+4. (low, tests) `test_n_zero_prints_nothing` passes on the empty template (inherent). 23/24 fail, suite not vacuous.
+5. (low) Sorting happens three times (extend_outer, fill_gaps, render); harmless for 10^5 but a cheap tidy-up.
+
