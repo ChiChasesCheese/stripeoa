@@ -106,8 +106,9 @@ def best_rate_path(equations: list[list[str]], values: list[float], src: str, ds
     def dfs(cur: str, product: float) -> None:
         nonlocal best
         if cur == dst:
-            # better rate wins; on an equal rate fewer hops, then the lexicographically smaller path
-            if best is None or (product, -len(path), [-ord(c) for c in "".join(path)]) > (best[0], -len(best[1]), [-ord(c) for c in "".join(best[1])]):
+            # better rate wins; equal rate -> fewer hops; equal hops -> the first found, which is the
+            # lexicographically smaller path because neighbours are visited in sorted order (strict >)
+            if best is None or (product, -len(path)) > (best[0], -len(best[1])):
                 best = (product, path[:])
             return
         for nxt in sorted(adj[cur]):  # sorted -> lexicographically smaller paths are found first
@@ -127,6 +128,8 @@ def find_conflicts(equations: list[list[str]], values: list[float], rel_tol: flo
     uf = _WeightedUF()
     conflicts = []
     for i, ((a, b), v) in enumerate(zip(equations, values)):
+        uf.add(a)
+        uf.add(b)  # register first so x/x = v is checked against the implied 1.0
         implied = uf.ratio(a, b)
         if implied is not None and abs(implied - v) > rel_tol * v:  # relative tolerance, strict >
             conflicts.append(Conflict(i, a, b, v, implied))
