@@ -135,11 +135,16 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
         part = int(lines[0].split()[1])
         out = PARTS[part](lines[1:])
     else:                                                        # HackerRank form: Q, then 'Pk card'
-        if lines and lines[0].isdigit():
+        if lines and lines[0].isdigit() and len(lines[0]) < 13:  # a count, never a card
             lines = lines[1:]
         for ln in lines:
-            tag, card = ln.split()
-            out.extend(PARTS[int(tag[1:])]([card]))
+            if " " in ln:
+                tag, card = ln.split()
+                part = int(tag[1:])
+            else:                                                # bare card: infer the part by shape
+                card = ln
+                part = 4 if "?" in card else 3 if "*" in card else 2
+            out.extend(PARTS[part]([card]))
     stdout.write("\n".join(out) + ("\n" if out else ""))
 
 

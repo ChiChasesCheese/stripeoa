@@ -22,7 +22,7 @@ Both stdin protocols (`PART n` + one card per line; HackerRank `Q` + `Pk card`) 
 3. `count_completions`: DP over positions with state = running Luhn sum mod 10; masked positions
    branch over the allowed digits (prefix positions restricted to the network's digit set:
    AMEX `3`,`47`; MC `5`,`12345`; VISA `4`). O(16·10·10) per network, independent of the number
-   of `*`. Verified against brute force on 60 random masks + a 5-star case.
+   of `*`. Verified against an independent brute-force oracle on 200 random masks + a 5-star case.
 4. `recover`: generate 9·L digit changes + ≤ L−1 adjacent swaps (skip equal digits), drop the
    observed card, keep `network_of` ∧ `luhn_ok`, sort (same length → string order = numeric).
 
@@ -39,8 +39,9 @@ P1/P2 O(L); P3 O(L·100) per network; P4 O(L·10·L). 1 500 five-star P3 + 1 500
 Measured: 0.46s, 18 MB
 
 ## Test inventory
-20 tests — part1: 4 · part2: 4 · part3: 5 · part4: 7 (incl. io ×2, perf ×1 across parts); edge 11 · fmt 2 · io 2 · perf 1.
-`IMPL=starter`: 16 fail / 4 pass (the four that expect empty output).
+21 tests — part1: 4 · part2: 4 · part3: 5 · part4: 8 (incl. io ×3, perf ×1 across parts); edge 11 · fmt 2 · io 3 · perf 1.
+`IMPL=starter`: 18 fail / 3 pass (the three that expect empty output; the DP-vs-brute test now uses
+an independent oracle in the test, so the empty template fails it).
 
 ## Skills exercised
 S02 parsing (two protocols) · S05 order of checks · S08 numeric sort · S09 exact format ·

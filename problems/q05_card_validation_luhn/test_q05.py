@@ -118,6 +118,24 @@ def test_masked_multiple_networks_alphabetical(impl):
 @pytest.mark.part3
 @pytest.mark.edge
 def test_masked_dp_matches_brute_force(impl):
+    # Fully independent oracle: its own Luhn (sum-of-digits-of-2d formulation), its own explicit
+    # prefix table, and plain enumeration of every '*' completion. Nothing here calls impl.*.
+    def oracle_luhn(card):
+        total = 0
+        for i, ch in enumerate(reversed(card)):
+            d = int(ch)
+            total += d if i % 2 == 0 else sum(int(x) for x in str(2 * d))
+        return total % 10 == 0
+
+    def oracle_network(card):
+        if len(card) == 16 and card[0] == "4":
+            return "VISA"
+        if len(card) == 16 and card[:2] in ("51", "52", "53", "54", "55"):
+            return "MASTERCARD"
+        if len(card) == 15 and card[:2] in ("34", "37"):
+            return "AMEX"
+        return None
+
     def brute(m):
         stars = [i for i, c in enumerate(m) if c == "*"]
         out = {}
@@ -126,18 +144,28 @@ def test_masked_dp_matches_brute_force(impl):
             for i, d in zip(stars, combo):
                 l[i] = d
             c = "".join(l)
-            n = impl.network_of(c)
-            if n and impl.luhn_ok(c):
+            n = oracle_network(c)
+            if n and oracle_luhn(c):
                 out[n] = out.get(n, 0) + 1
         return out
-    rng = random.Random(0)
-    for _ in range(60):
+
+    # sanity-check the oracle on known cards so a broken oracle cannot silently agree with impl
+    assert oracle_luhn("4242424242424242") and not oracle_luhn("4242424242424241")
+    assert brute("4242424242424*42") == {"VISA": 1} and brute("5*5555555555444*") == {"MASTERCARD": 5}
+
+    rng = random.Random(5)
+    nonempty = 0
+    for _ in range(200):
         length = rng.choice([15, 16])
-        digits = "".join(rng.choice("0123456789") for _ in range(length))
+        lead = rng.choice(["4", "5", "3", rng.choice("0123456789")])   # bias toward real prefixes
+        digits = lead + "".join(rng.choice("0123456789") for _ in range(length - 1))
         k = rng.randint(1, 4)
         pos = set(rng.sample(range(length), k))
         m = "".join("*" if i in pos else c for i, c in enumerate(digits))
-        assert impl.masked_counts(m) == brute(m), m
+        expected = brute(m)
+        nonempty += bool(expected)
+        assert impl.masked_counts(m) == expected, m
+    assert nonempty >= 50                     # the comparison is not just {} == {}
     assert impl.masked_counts("4242*24*4*42*4*2") == brute("4242*24*4*42*4*2")  # five stars
 
 
@@ -203,6 +231,17 @@ def test_stdin_part_protocol(run_script):
     assert r.returncode == 0 and r.stdout == ""
     r = run_script("PART 2\n4111111111111111\n")
     assert r.stdout == "VISA\n"
+
+
+@pytest.mark.part4
+@pytest.mark.io
+def test_stdin_bare_lines_infer_part_by_shape(run_script):
+    # no PART header, no Pk tag: '?' -> Part 4, '*' -> Part 3, plain 15/16 digits -> Part 2
+    r = run_script("4242424242424242\n4242424242424*42\n4532015112830367?\n")
+    assert r.returncode == 0, r.stderr
+    assert r.stdout == "VISA\nVISA,1\n" + "\n".join(P4_SAMPLE_OUT) + "\n"
+    r = run_script("4242424242424242\n4242424242424241\n")   # the reviewer's crashing input
+    assert r.returncode == 0 and r.stdout == "VISA\nINVALID_CHECKSUM\n"
 
 
 @pytest.mark.part4
