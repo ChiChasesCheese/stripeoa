@@ -72,3 +72,6 @@ S08 deterministic sort · S09 exact formatting · S19 incremental design
 - https://www.1point3acres.com/interview/problems/f8e3ed43 (Chat Billing Calculation, separate allowances)
 - https://www.1point3acres.com/interview/company/stripe/chat-billing-oa (OA · Medium · last asked 2026-04-17)
 - 1024bbs 10992 「Stripe 吐血面经总结」(mention)
+
+## Clarifications (from adversarial review, 2026-08-26)
+- When the prorated allowance is not a multiple of 100 (e.g. r = 1/3 → 13,333 tokens), the leftover over-allowance tokens are floored to 100-blocks again, so 67 excess tokens bill 0 blocks. This double floor is intentional and matches the per-session block rule.

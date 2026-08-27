@@ -170,3 +170,7 @@ S13 interval / inclusive-endpoint logic · S19 incremental design · S20 self-te
 - csoahelp.com 2024-11-04 「Welcome to 2024-25 Stripe University Recruiting HackerRank Challenge — Stripe OA 真题」(4 parts with per-part test counts 4/4/2/3, samples 1 and 2)
 - scribd "Card Range Obfuscation Methodology"
 - 1point3acres thread-1085478 「Stripe OA 2024-2025 University Recruitment」(summary); 1024bbs 10992 「Stripe 吐血面经总结」(mention)
+
+## Clarifications (from adversarial review, 2026-08-26)
+- Part 4 merges only *consecutive* same-brand intervals in start order; `VISA / AMEX (nested) / VISA` stays split.
+- Part 1: when two intervals share the smallest start, the one with the smaller end is the "first" interval that gets extended down.

@@ -152,3 +152,6 @@ reversals · S11 idempotency (double dispute) · S18 validation (unknown ids / M
 - https://programhelp.net/en/oa/stripe-hackerrank-online-assessment-questions-guide/ ("Fraudulent Merchant Detection")
 - 1point3acres thread-1163662 「Stripe Summer 2026 OA 分享」, thread-1147871 「2026 SDE Summer Intern OA」 (paywalled; snippets)
 - leetcode discuss 7344444 (SWE Intern 2026), 7428741 (NG 2025-26 University Recruiting OA) (blocked; snippets)
+
+## Clarifications (from adversarial review, 2026-08-26)
+- A `CHARGE` that re-uses a charge id after that id was disputed is treated as a NEW charge (it counts again); a repeat of a live charge id is ignored.

@@ -183,3 +183,6 @@ S19 incremental design (three passes as three functions)
 - programhelp.net 2026-01-20 「HackerRank OA 真题解析」 (example parameters factor 2 / bonus 1 / threshold 3 / penalty 5)
 - https://medium.com/@program.net/in-depth-breakdown-of-stripe-software-engineer-oa-333c7db9e033 (simplified variant)
 - 1024bbs / 1point3acres summaries mentioning "merchant / customer / 3 次"
+
+## Clarifications (from adversarial review, 2026-08-26)
+- Transactions whose merchant is not declared in the merchants block are silently dropped (they never create a merchant).

@@ -136,3 +136,6 @@ S19 incremental design · S21 stdlib fluency (heapq, dict order)
 - learncswithus.com 2025-10-20 「Stripe SDE NG OA 原题」
 - cscodehelp.com/stripe/stripe-oa-review
 - 1024bbs 5821 (mention)
+
+## Clarifications (from adversarial review, 2026-08-26)
+- A second `SHUTDOWN` re-routes evicted connections in their ORIGINAL `CONNECT` arrival order (global sequence), not in the order they landed on the shut-down target.

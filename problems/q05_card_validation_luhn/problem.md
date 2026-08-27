@@ -161,3 +161,6 @@ masked input / single-edit enumeration · S19 incremental design (P1 ⊂ P2 ⊂ 
 - https://www.codinginterview.com/guide/stripe-interview-questions/ (phone-screen redaction variant)
 - 1point3acres interview/stripe-software-engineer-677770 and 677836 (2021 SDE intern OA summaries); 1024bbs summary
 - https://docs.stripe.com/testing (test card numbers)
+
+## Clarifications (from adversarial review, 2026-08-26)
+- Lines without a `PART n` header or `Pk` tag are interpreted by shape: contains `?` → Part 4, contains `*` → Part 3, 15/16 digits → Part 2.
