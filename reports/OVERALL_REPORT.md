@@ -55,7 +55,7 @@ Reconstruction policy: where a source only gave a part's title (q15 P4–5, q17 
 - Verbatim samples from GitHub repos / candidate posts reproduced byte-for-byte where they exist (q05, q06, q08, q17, q18, q24, q30, q31, q32, q33, q35).
 - Source conflicts resolved explicitly and the alternative kept behind a flag + tests (q01 sticky flag, q02 repeat_mode, q05 output format, q17 tie order, q19 zero-q, q20 rounding, q39 log polarity).
 - Bugs the suites caught during construction: q07 memory (282 MB → 197 MB), q12 rule re-tokenizing (3.98 s → 0.28 s), q26 lock migration, q03 hand-computed expectations, plus several wrong test expectations fixed on the test side.
-- Adversarial review (independent brute-force oracles, ≥ 2000 random cases per problem, io byte-diff, quadratic check) on the top-12 OA problems → `reports/REVIEW_FINDINGS.md`, `REVIEW_FINDINGS_2.md`.
+- Adversarial review (independent brute-force oracles, ≥ 2500 random cases per problem, io byte-diff, quadratic check) on the top-12 OA problems → `reports/REVIEW_FINDINGS.md`, `REVIEW_FINDINGS_2.md`. Result: 11 SOUND / 1 BUG FOUND (q10 `INIT` arity — fixed, regression test added); 1 high, 12 medium spec ambiguities (each now written into the problem.md "Clarifications" section), ~40 low. q05's DP-vs-brute-force test was tautological and was rewritten with an independent oracle.
 
 ## 7. How to drill (60 minutes, the real protocol)
 

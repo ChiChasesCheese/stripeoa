@@ -11,9 +11,12 @@ import sys
 
 REQUIRES_ACTION, PROCESSING, COMPLETED = "REQUIRES_ACTION", "PROCESSING", "COMPLETED"
 
-# command word -> number of arguments it accepts (INIT takes 2, or 3 in Part 4)
-ARITY = {"INIT": (2, 3), "CREATE": (3,), "ATTEMPT": (1,), "SUCCEED": (1,),
+# command word -> number of arguments it accepts. INIT takes exactly 2 in Parts 1-3; only the
+# timestamped Part 4 form adds the optional refund_limit (2 or 3). A 3-argument INIT in Parts 1-3
+# is a wrong argument count and must be ignored (it must NOT install a refund window).
+ARITY = {"INIT": (2,), "CREATE": (3,), "ATTEMPT": (1,), "SUCCEED": (1,),
          "UPDATE": (2,), "FAIL": (1,), "REFUND": (1,)}
+ARITY_TIMESTAMPED = {**ARITY, "INIT": (2, 3)}
 PART_COMMANDS = {
     1: {"INIT", "CREATE", "ATTEMPT", "SUCCEED"},
     2: {"INIT", "CREATE", "ATTEMPT", "SUCCEED", "UPDATE"},
@@ -39,8 +42,9 @@ class Payment:
 
 
 class Ledger:
-    def __init__(self, commands: set[str], immediate_credit: bool = False):
+    def __init__(self, commands: set[str], immediate_credit: bool = False, arity: dict = ARITY):
         self.commands = commands
+        self.arity = arity
         self.immediate_credit = immediate_credit
         self.balances: dict[str, int] = {}
         self.limits: dict[str, int | None] = {}   # None = no refund window (always refundable)
@@ -48,7 +52,7 @@ class Ledger:
 
     # ------------------------------------------------------------------ dispatch
     def apply(self, t: int, cmd: str, args: list[str]) -> None:
-        if cmd not in self.commands or len(args) not in ARITY.get(cmd, ()):
+        if cmd not in self.commands or len(args) not in self.arity.get(cmd, ()):
             return  # unknown word for this part / wrong argument count -> ignore
         getattr(self, "_" + cmd.lower())(t, *args)
 
@@ -109,7 +113,7 @@ class Ledger:
 
 
 def _run(lines: list[str], part: int, timestamped: bool, immediate_credit: bool = False) -> list[str]:
-    ledger = Ledger(PART_COMMANDS[part], immediate_credit)
+    ledger = Ledger(PART_COMMANDS[part], immediate_credit, ARITY_TIMESTAMPED if timestamped else ARITY)
     for raw in lines:
         tokens = raw.split()
         t = 0

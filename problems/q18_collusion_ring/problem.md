@@ -119,3 +119,6 @@ deterministic order · S18 validation · S19 incremental design · A16 union-fin
 - linkjob 2025-12-07 phone screen "User Record Linking" (weights name 0.2 / email 0.5 / company 0.3, threshold 0.5)
 - InterviewDB "Collusion — OA", "Linked User — Phone", "Matching Contacts — Phone"
 - 1point3acres 1154050 (cluster tracking with daily updates, union-find)
+
+## Clarifications (from adversarial review, 2026-08-26)
+- Risk means are printed with Python `.2f` (round-half-even: 1.125 → `1.12`). If a hidden test expects half-up, switch to `Decimal.quantize(ROUND_HALF_UP)`; the source examples do not hit a .xx5 case.

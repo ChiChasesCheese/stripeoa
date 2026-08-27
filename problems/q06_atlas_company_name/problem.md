@@ -168,3 +168,6 @@ punctuation, suffix/article stripping) · S18 validation/ignored requests · S19
 - linkjob.ai 2025-09-16 OA write-up; extrabrain.app 2026-02-10 (identical 3-part rules)
 - programhelp.net 2025-09-21 (low-confidence variant)
 - https://support.stripe.com/questions/choosing-a-name-for-your-stripe-atlas-company ; https://stripe.com/resources/more/is-your-company-name-available-in-delaware-here-is-how-to-find-out
+
+## Clarifications (from adversarial review, 2026-08-26)
+- The word `and` is dropped only as a standalone token (`Salt and-Pepper` keeps the hyphenated `and-pepper` token as is); step 7 (`and` removal) is reconstructed from aggregator descriptions.

@@ -140,3 +140,6 @@ design · S21 stdlib (`math`)
 - PracHub "Register Data Centers and Route to the Nearest Healthy Region" (full spec dated 2026-08-22; JSON-array form, R = 6371 km, `floor(d+0.5)`)
 - 1point3acres 题库 `request-routing-haversine-oa` (OA · 60 min · Medium · last asked 2026-08-11)
 - InterviewDB "Proximity Request Routing — OA" / "Request Router"
+
+## Clarifications (from adversarial review, 2026-08-26)
+- `ROUTE` accepts any numeric lat/lon without range validation (e.g. `ROUTE 100 200` is computed, not rejected) — the sources are silent; hidden tests are unlikely to probe it.

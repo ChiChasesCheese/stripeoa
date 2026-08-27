@@ -76,6 +76,18 @@ def test_later_part_commands_ignored_in_part1(impl):
     assert impl.part1(["INIT m 0", "CREATE p m 50", "UPDATE p 80", "ATTEMPT p", "SUCCEED p", "REFUND p"]) == ["m 50"]
 
 
+@pytest.mark.part1
+@pytest.mark.edge
+def test_init_with_extra_argument_is_ignored_in_parts_1_to_3(impl):
+    # Parts 1-3: INIT takes exactly 2 arguments; a 3rd token (Part 4's refund_limit) is a wrong
+    # argument count and the whole command is ignored
+    assert impl.part1(["INIT m 5 10"]) == []
+    assert impl.part2(["INIT m 5 10", "INIT m 7"]) == ["m 7"]
+    # regression: the stray "0" used to be read as refund_limit 0 and silently blocked the REFUND
+    assert impl.part3(["INIT m 5 0", "INIT m 5", "CREATE p m 10", "ATTEMPT p", "SUCCEED p", "REFUND p"]) == ["m 5"]
+    assert impl.part4(["1 INIT m 5 0", "2 CREATE p m 10", "3 REFUND p"]) == ["m 15"]  # Part 4 keeps the 3-arg form
+
+
 # ---------------------------------------------------------------- Part 2
 @pytest.mark.part2
 def test_example2_verbatim(impl):

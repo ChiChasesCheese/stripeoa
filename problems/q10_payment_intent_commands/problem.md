@@ -191,3 +191,6 @@ reversals · S11 idempotency (duplicate INIT/CREATE/REFUND) · S12 time windows 
 - 1point3acres thread-1091979「Stripe OA 2025 summer intern」; thread-1101931「STRIPE OA，支付系统」; thread-1085478 (16/19); thread-1099687「OA Stripe Interview.」(4 parts, 60 min)
 - medium @azn7u1 「Stripe Intern OA + VO」(INIT/CREATE sample)
 - https://docs.stripe.com/refunds (refund once, only succeeded payments)
+
+## Clarifications (from adversarial review, 2026-08-26)
+- Command arity is checked per part: in Parts 1–3 `INIT` takes exactly `merchant balance`; a third argument makes the line invalid (ignored). Only Part 4 accepts the optional `refund_limit`. (Bug found and fixed by adversarial review 2026-08-26.)
