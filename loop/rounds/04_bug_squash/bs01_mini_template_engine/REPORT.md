@@ -59,9 +59,10 @@ chosen to make the two bugs land in cleanly separable, independently testable fi
   `TemplateLookup.get_template()`) shows the mismatch. Fix: one line, `file.lstrip("/")`.
 
 ## Minimal fix
-`solution/FIX.patch` — 2 files, +7/-6 lines total (one new 4-line method in `compiler.py`; one
-changed line + updated comment in `template.py`). Verified: `git apply solution/FIX.patch` against
-a clean copy → all 17 tests pass.
+`solution/FIX.patch` — 2 files, +8/-3 lines (11 changed lines total; one new 5-line method in
+`compiler.py`; one changed line + updated comment in `template.py`). Verified: `git apply
+solution/FIX.patch` against a clean copy → all 17 tests pass. (Regenerated 2026-09-02 after the
+review below removed giveaway comments from `src/`; the fix itself is unchanged.)
 
 ## Real library correspondence
 - Bug 1 (missing visitor): pattern named in `en_forums.md`'s Exponent Mako grading notes
@@ -116,3 +117,69 @@ S12 tree-walking interpreter / visitor pattern · S13 recursive-descent-over-tok
 S18 path-traversal validation (matching two normalization functions) · S20 root-causing from a
 traceback/failing assertion rather than guess-and-check · S24 real-open-source-bug pattern
 matching (Mako path-handling CVE family)
+
+## Review（2026-09-02）
+
+### What was checked
+`mock.py start bs01` (copies the dir minus `solution/`/`REPORT.md` into `loop/work/bs01/`, runs
+pytest) → 15 passed / 2 failed, both failures exactly the two documented bugs
+(`test_render_template_with_include_inlines_child_template`,
+`test_resolve_include_rejects_path_traversal_payload`), no incidental failures. `mock.py ref bs01`
+(applies `solution/FIX.patch` in a temp copy) → 17/17 passed. `git apply --check` on the patch
+against the problem dir → clean. Patch size, `src/` code quality (module boundaries, docstrings,
+dead code), whether the injected bugs read as real bugs rather than marked TODOs, whether tests
+have real intent (not just `len > 0`) and can't be dodged by editing them, and whether the
+README's issue text reads like a real GitHub issue.
+
+### F — fixed
+**The injected-bug sites leaked the diagnosis through comments/docstrings, defeating the
+"45 minutes to locate and fix" exercise** (review checklist: "检查注入处没有留下提示性注释或命名"):
+- `src/minimako/compiler.py`: module docstring said the missing-visitor `AttributeError` "is
+  exactly what happens today (see the `README.md` issue...)"; a trailing comment at the exact
+  injection site read `# BUG (see README.md "面试官给的 issue"): visit_IncludeNode is missing
+  entirely...` — this told a candidate the method name, the file, and the fact that it's the bug,
+  with no need to read the traceback at all.
+- `src/minimako/template.py`: module docstring stated outright that `resolve_include()`'s
+  normalization "is not the same as `TemplateLookup`'s" — the exact root cause of bug 2, stated
+  before the candidate looks at either function.
+- `src/minimako/lookup.py`: module docstring called itself "intentionally the 'correct' half of
+  the pair" and called `template.py`'s normalization "(buggy)" in so many words; an inline comment
+  read `# strips ALL leading slashes -- the correct behavior`, implying by contrast that the other
+  file's strip is wrong.
+- `tests/test_minimako.py`: the module docstring named both failing tests next to parenthetical
+  bug diagnoses (`(missing visitor -> AttributeError)`, `(path-traversal bypass)`), and two section
+  comments were literally labeled `# ---- known-broken: bug #1 (missing visitor)` /
+  `# ---- known-broken: bug #2 (path traversal)` directly above the two failing tests.
+
+Fix: rewrote all five spots to describe only what the code *does* (accurate, still useful
+docstrings/comments a real repo would carry), with no reference to a bug, a mismatch, "buggy",
+"correct", or which test targets what. A candidate now has to actually run the tests, read the
+traceback, and diff the two normalization functions to find bug 2 — the intended exercise.
+`REPORT.md`/`solution/NOTES.md` (never copied to the candidate's work dir — confirmed via
+`mock.py`'s `_BS_SKIP` set) still carry the full diagnosis for the interviewer, unchanged.
+
+Everything else on the F checklist was already satisfied: `starter`-equivalent (bs has none) N/A;
+tests are non-trivial (exact-string/exact-exception assertions, `pytest.raises`, real tmp-file
+fixtures, not `len() > 0`); no flaky tests (no threads/time/network); patch was and remains far
+under the 15-line budget; lint was already clean.
+
+### S — none needed
+Code was already in good shape for a small library fixture: five files with one clear
+responsibility each (lexer → ast/parser → compiler/visitor, plus lookup/template), one-line
+docstrings on every function that needs one, no dead code, no TODOs. Did not touch the visitor
+dispatch mechanism, the URI-normalization design, or add defense-in-depth beyond what the tests
+require — the README's own "if you're stuck" guidance warns against exactly that scope creep, and
+the fixture is meant to be lint-clean and minimal as shipped.
+
+### Verification after the fix
+- `solution/FIX.patch` regenerated from the cleaned (still-buggy) `src/` files: created a scratch
+  git repo containing only the two touched files, committed the cleaned-but-still-buggy state,
+  applied the intended fix (`visit_IncludeNode` method; `file.lstrip("/")`), and took `git diff` —
+  same two files, same functional fix, new byte-identical-in-spirit patch (2 files, +8/-3, 11
+  changed lines, unchanged from before except the docstring/comment text in context lines).
+- `git apply --check --directory=<problem dir> solution/FIX.patch` → clean.
+- `mock.py start bs01` after the cleanup → same 15 passed / 2 failed (only the two target bugs).
+- `mock.py ref bs01` → 17/17 passed.
+- `loop/lint.sh --fix loop/rounds/04_bug_squash/bs01_mini_template_engine` → black: "8 files would
+  be left unchanged" (no reformatting needed); flake8 (F-class): 0 findings. Re-running without
+  `--fix` confirms a clean check (exit 0).

@@ -2,10 +2,10 @@
 set of search directories. `get_template()` strips *every* leading slash before joining against
 each directory and confirms the result stays inside it (via `os.path.realpath` containment), so a
 top-level `lookup.get_template("//../../etc/passwd")` is always safely rejected or resolved
-within the sandbox -- this file is intentionally the "correct" half of the pair.
+within the sandbox.
 
-Compare `template.py`'s `Template.resolve_include()`, which does its own (buggy) normalization
-for `<%include>` resolution *within* an already-loaded template, instead of reusing this one.
+Compare `template.py`'s `Template.resolve_include()`, which does its own normalization for
+`<%include>` resolution *within* an already-loaded template, instead of reusing this one.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ class TemplateLookup:
         self.directories = [os.path.abspath(d) for d in directories]
 
     def get_template(self, uri: str) -> Template:
-        normalized = uri.lstrip("/")  # strips ALL leading slashes -- the correct behavior
+        normalized = uri.lstrip("/")  # strip leading slashes so a URI can't look filesystem-absolute
         for directory in self.directories:
             candidate = os.path.join(directory, normalized)
             real_candidate = os.path.realpath(candidate)

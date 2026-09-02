@@ -1,7 +1,6 @@
 """Tree-walking renderer for minimako's AST, dispatched by the Visitor pattern: `visit()` looks
 up `visit_<NodeClassName>` and calls it. Every node type defined in `ast.py` needs a matching
-`visit_*` method here -- if one is missing, `visit()` raises `AttributeError`, which is exactly
-what happens today (see the `README.md` issue at the bottom of this repo).
+`visit_*` method here -- if one is missing, `visit()` raises `AttributeError`.
 """
 
 from __future__ import annotations
@@ -10,9 +9,9 @@ from . import ast as astmod
 
 
 class Compiler:
-    """One Compiler per render call (or per nested scope -- see visit_ForNode/visit_IncludeNode,
-    which each construct a child Compiler with its own context so loop variables and an included
-    template's own bindings don't leak into the caller)."""
+    """One Compiler per render call, or per nested scope: a visitor that needs an isolated
+    context (e.g. loop body, included template) constructs its own child Compiler so that
+    scope's bindings don't leak into the caller."""
 
     def __init__(self, context: dict, current_template=None):
         self.context = context
@@ -55,7 +54,3 @@ class Compiler:
             child = Compiler(loop_context, self.current_template)
             out.append("".join(child.visit(n) for n in node.body))
         return "".join(out)
-
-    # BUG (see README.md "面试官给的 issue"): visit_IncludeNode is missing entirely. Rendering
-    # any template that contains a <%include file="..."/> raises AttributeError instead of
-    # inlining the included template's output.

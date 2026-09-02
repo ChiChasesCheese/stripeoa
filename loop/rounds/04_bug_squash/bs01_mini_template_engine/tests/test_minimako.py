@@ -1,11 +1,8 @@
-"""minimako test suite. Most of these pass against the repo as shipped -- they cover the lexer,
-parser, renderer, and the (already-safe) TemplateLookup entry point, and exist so a candidate who
-starts randomly rewriting things notices they broke something that used to work.
+"""minimako test suite: lexer, parser, renderer, TemplateLookup, and Template.resolve_include.
 
-Two tests are expected to FAIL as shipped, each pinned to one of the two bugs described in
-README.md:
-  - test_render_template_with_include_inlines_child_template  (missing visitor -> AttributeError)
-  - test_resolve_include_rejects_path_traversal_payload        (path-traversal bypass)
+Run this before touching anything under src/ -- most of it passes as shipped, which is useful
+context on its own. This file is the spec for the exercise; don't edit it to make a failure
+go away.
 """
 
 import pytest
@@ -107,7 +104,7 @@ def test_resolve_include_relative_and_single_slash_still_work(tmp_path):
     assert main.resolve_include("/partial.html").render() == "PARTIAL"
 
 
-# ---------------------------------------------------------------- known-broken: bug #1 (missing visitor)
+# ---------------------------------------------------------------- Template.render() + <%include>
 def test_render_template_with_include_inlines_child_template(tmp_path):
     (tmp_path / "footer.html").write_text("Footer text")
     (tmp_path / "main.html").write_text('Header\n<%include file="footer.html"/>\nEnd')
@@ -116,7 +113,7 @@ def test_render_template_with_include_inlines_child_template(tmp_path):
     assert tmpl.render() == "Header\nFooter text\nEnd"
 
 
-# ---------------------------------------------------------------- known-broken: bug #2 (path traversal)
+# ---------------------------------------------------------------- Template.resolve_include (traversal guard)
 def test_resolve_include_rejects_path_traversal_payload(tmp_path):
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()

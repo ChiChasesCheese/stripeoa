@@ -4,8 +4,7 @@
 `resolve_include()` is a *separate* code path from `TemplateLookup.get_template()` (see
 `lookup.py`) -- it exists because an include's `file` is resolved relative to the directory the
 *including* template's own source file lives in (`self.source_dir`), not by re-searching every
-directory `TemplateLookup` knows about. That means it has its own copy of the "strip leading
-slashes before joining" normalization, and that copy is not the same as `TemplateLookup`'s.
+directory `TemplateLookup` knows about.
 """
 
 from __future__ import annotations
