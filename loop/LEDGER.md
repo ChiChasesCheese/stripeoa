@@ -22,3 +22,5 @@
 | 2026-09-01 | T10 cd04 | sonnet | loop/rounds/06_coding_onsite/cd04_rate_limiter_4part | 21 | (this) | 4-part 仅 TOC 可读，规则为重建；毫秒；回拨 clamp |
 | 2026-09-01 | T11 cd05 | sonnet | loop/rounds/06_coding_onsite/cd05_business_account_verification | 21 | (this) | 1p3a 原题规格；三处补全已标注 |
 | 2026-09-01 | T11 cd06 | sonnet | loop/rounds/06_coding_onsite/cd06_suspicious_users_window | 19 | (this) | 闭区间 [t-60,t]；perf 1.66s@1e6 |
+| 2026-09-01 | T9 cd01 | sonnet | loop/rounds/06_coding_onsite/cd01_subscription_email_scheduler | 23 | (this) | 日历日期 VO 版，与 q07 区分 |
+| 2026-09-01 | T9 cd02 | sonnet | loop/rounds/06_coding_onsite/cd02_payment_ledger | 21 | (this) | 类 + partN 薄包装（CONVENTIONS 偏离已注） |
