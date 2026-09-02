@@ -160,7 +160,7 @@ def cmd_start(a):
         print("\n" + "=" * 70)
         print(f"已拷贝 {copied} 到 {work}；当前失败用例：\n")
         subprocess.call(
-            [sys.executable, "-m", "pytest", str(work), "-q", "-p", "no:cacheprovider", "--no-header", "-rN"],
+            [sys.executable, "-m", "pytest", str(work), "-p", "no:cacheprovider", "--no-header", "-rN"],
             cwd=str(ROOT),
         )
         note = f"在 {work} 中修复；`python3 loop/mock.py test {a.id}` 会在同一目录重跑"
@@ -192,7 +192,6 @@ def _pytest(d: Path, which: str, extra: list[str]) -> int:
         "-m",
         "pytest",
         str(d),
-        "-q",
         "-p",
         "no:cacheprovider",
         "--no-header",
@@ -219,7 +218,6 @@ def cmd_test(a):
                 "-m",
                 "pytest",
                 str(work),
-                "-q",
                 "-p",
                 "no:cacheprovider",
                 "--no-header",
@@ -262,7 +260,6 @@ def cmd_ref(a):
                     "-m",
                     "pytest",
                     str(tmp_path),
-                    "-q",
                     "-p",
                     "no:cacheprovider",
                     "--no-header",
