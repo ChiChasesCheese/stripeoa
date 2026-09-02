@@ -10,3 +10,5 @@
 | 2026-09-01 | T2 LOOP_GUIDE | fable | loop/LOOP_GUIDE.md | — | (this) | 8 轮 + 总图 + 4 周计划 |
 | 2026-09-01 | T7 ps05 | sonnet | loop/rounds/03_phone_screen/ps05_numeronym_validation | 23 | (this) | Part2/3 契约为重建，已标注 |
 | 2026-09-01 | T7 ps06 | sonnet | loop/rounds/03_phone_screen/ps06_receivables_registration | 21 | (this) | 周末顺延/坏行规则为重建 |
+| 2026-09-01 | T5 ps01 | sonnet | loop/rounds/03_phone_screen/ps01_transaction_stream_levels | 27 | (this) | 滑窗取闭区间 [t-W,t]（来源样例强制） |
+| 2026-09-01 | T5 ps02 | sonnet | loop/rounds/03_phone_screen/ps02_shipping_cost_pricing | 21 | (this) | 3 个定死错误串；incremental gap 仅在跨越时报错 |
