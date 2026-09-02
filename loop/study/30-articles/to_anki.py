@@ -145,19 +145,21 @@ def main() -> int:
         return 0
     for deck in sorted({n["deckName"] for n in notes}):
         anki("createDeck", deck=deck)
-    res = anki("addNotes", notes=notes)
-    added = sum(1 for r in res if r)
-    # 已存在的（按 Front 去重）→ 用最新 Back 覆盖，保证文章更新后卡片同步
-    updated = 0
-    for n, r in zip(notes, res):
-        if r:
-            continue
-        front = n["fields"]["Front"].replace('"', '\\"')
+    # 幂等：先按 (deck, Front) 查找；存在 → 更新 Back；不存在 → 新增
+    to_add, updated = [], 0
+    for n in notes:
+        front = n["fields"]["Front"].replace("\\", "\\\\").replace('"', '\\"')
         ids = anki("findNotes", query=f'"deck:{n["deckName"]}" "Front:{front}"')
-        for nid in ids[:1]:
-            anki("updateNoteFields", note={"id": nid, "fields": {"Back": n["fields"]["Back"]}})
+        if ids:
+            anki("updateNoteFields", note={"id": ids[0], "fields": {"Back": n["fields"]["Back"]}})
             updated += 1
-    print(f"Anki：新增 {added} 张，更新 {updated} 张，未匹配 {len(res) - added - updated} 张")
+        else:
+            to_add.append(n)
+    added = 0
+    if to_add:
+        res = anki("addNotes", notes=to_add)
+        added = sum(1 for r in res if r)
+    print(f"Anki：新增 {added} 张，更新 {updated} 张")
     try:
         anki("sync")
         print("AnkiWeb sync 已触发")
