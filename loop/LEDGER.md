@@ -38,3 +38,4 @@
 | 2026-09-02 | stage: coding review 完成 | fable | cd01–07 | — | (this) | push + obsidian + anki |
 | 2026-09-02 | R6 bs01 | sonnet | 目录 + 文章 | start 2 fail / ref 17 pass | (this) | 清除 5 处泄题注释；FIX.patch 11 行 |
 | 2026-09-02 | R5 int01–03 | sonnet | 3 目录 + 3 篇文章 | 22/30/28 | (this) | int01 NOT_PNG 路径崩溃；int03 Part1→2 反向依赖；int02 _request 收敛 |
+| 2026-09-02 | R7 收口 | fable | 全量 | 499 passed；lint OK；tree 0 err | (this) | 19 篇文章；Obsidian + Anki 已同步；遗留 4 篇骨架略超 40 行 |

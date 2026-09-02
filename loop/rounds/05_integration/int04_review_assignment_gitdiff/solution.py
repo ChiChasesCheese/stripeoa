@@ -18,6 +18,7 @@ Public API (same shape as starter.py / starter_template.py):
 
 Only stdlib: subprocess, csv, argparse.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -35,20 +36,21 @@ class RepoError(Exception):
 
 # --------------------------------------------------------------------------- Part 1
 
+
 def _run_git(repo: str, args: list[str]) -> str:
     try:
         result = subprocess.run(
             ["git", "-C", repo, *args],
-            capture_output=True, text=True, timeout=30,
+            capture_output=True,
+            text=True,
+            timeout=30,
         )
     except FileNotFoundError as e:
         raise RepoError("git executable not found on PATH") from e
     except OSError as e:
         raise RepoError(f"could not run git: {e}") from e
     if result.returncode != 0:
-        raise RepoError(
-            f"git {' '.join(args)} failed in {repo!r}: {result.stderr.strip()}"
-        )
+        raise RepoError(f"git {' '.join(args)} failed in {repo!r}: {result.stderr.strip()}")
     return result.stdout
 
 
@@ -77,6 +79,7 @@ def changed_files(repo: str, base: str, head: str) -> list[str]:
 
 # --------------------------------------------------------------------------- Part 2
 
+
 def load_owners(csv_path: str) -> list[tuple[str, str]]:
     """Read `path,owner` CSV rows (an optional `path,owner` header is skipped; blank
     lines ignored) into an ordered list of (pattern, owner) pairs -- order preserved,
@@ -87,7 +90,12 @@ def load_owners(csv_path: str) -> list[tuple[str, str]]:
         for i, row in enumerate(reader):
             if not row or not "".join(c.strip() for c in row):
                 continue
-            if i == 0 and len(row) >= 2 and row[0].strip().lower() == "path" and row[1].strip().lower() == "owner":
+            if (
+                i == 0
+                and len(row) >= 2
+                and row[0].strip().lower() == "path"
+                and row[1].strip().lower() == "owner"
+            ):
                 continue
             path, owner = row[0].strip(), row[1].strip()
             if path and owner:
@@ -144,6 +152,7 @@ def assign(changed: list[str], owner_rows: list[tuple[str, str]]) -> str:
 
 # --------------------------------------------------------------------------- Part 3
 
+
 def top_owners(changed: list[str], owner_rows: list[tuple[str, str]], k: int) -> list[tuple[str, int]]:
     """Top `k` owners by changed-file count, ordered (count desc, owner name asc);
     fewer than `k` distinct owners -> shorter list, never padded."""
@@ -170,6 +179,7 @@ def main_cli(argv: list[str] | None = None) -> int:
 
 
 # --------------------------------------------------------------------------- PART n stdin driver
+
 
 def _read_nonblank(stdin) -> list[str]:
     return [ln.strip() for ln in stdin.read().splitlines() if ln.strip()]

@@ -13,8 +13,8 @@
 ## 状态
 - [x] Phase 0–2：raw 6/6 · CATALOG · LOOP_GUIDE · tree.yaml + check_tree · mock.py · 电面 ps01–08 · 题图 artifact（`loop/tree/map/`）
 - [x] Phase 3 部分：mockserver · cd01–07 · int01–03 · bs01；**int04 半成品（缺 starter/test/REPORT）、bs02 未开始**
-- [~] Phase R（review + 文章）：ps01–08 ✓ · cd01–03 ✓ · cd04–07（RC 进行中）· int01–03（R5 进行中）· bs01（R6 进行中）
-- [ ] R7 收口：`pytest loop` 全绿、`loop/lint.sh` 全绿、文章全部同步 Obsidian + Anki、CHECKPOINT/LEDGER/todo、commit + push
+- [x] Phase R（review + 文章）：ps01–08 · cd01–07 · int01–03 · bs01 全部 review + 19 篇文章（`loop/study/30-articles/`）
+- [x] R7 收口（2026-09-02）：`pytest loop --ignore=loop/rounds/04_bug_squash` 499 绿；`loop/lint.sh` 绿；文章同步 Obsidian `Inbox/Stripe Loop/`（索引 + `Claude 接力.md`）与 Anki `Stripe::Loop::*`；遗留：4 篇文章骨架 41–46 行略超 40
 - ⏸ BACKLOG（用户指示暂停）：int04 收尾 · bs02–05 · sd01–06 · rc/hm/bq · study/10-rounds · 20-cards · TREE.md · README/INDEX
 
 ## 下一会话怎么接

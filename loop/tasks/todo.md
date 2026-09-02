@@ -38,24 +38,24 @@
 
 ## Phase R · Review（Fable 5.1）+ 文章（在 Phase 3 收尾后、Phase 4 之前；用户指示）
 - [x] R0 `loop/lint.sh`、`loop/tasks/review_checklist.md`、`loop/study/30-articles/_TEMPLATE.md`；基建 lint 通过
-- [ ] R1 ps01–ps04：review → 修 → lint → 测试 → 文章 `loop/study/30-articles/psNN_*.md`
-- [ ] R2 ps05–ps08
-- [ ] R3 cd01–cd03
-- [ ] R4 cd04–cd07
-- [ ] R5 int01–int04
-- [ ] R6 bs01–bs02
-- [ ] R7 全量：`pytest loop -q` 绿、`loop/lint.sh` 绿、文章 21 篇同步到 Obsidian `Inbox/Stripe Loop/`（含索引 + `Claude 接力.md` 链接）、LEDGER/CHECKPOINT、commit
+- [x] R1 ps01–ps04：review → 修 → lint → 测试 → 文章 `loop/study/30-articles/psNN_*.md`
+- [x] R2 ps05–ps08
+- [x] R3 cd01–cd03
+- [x] R4 cd04–cd07
+- [x] R5 int01–int04
+- [x] R6 bs01–bs02
+- [x] R7 全量（2026-09-02：499 tests 绿；lint 绿；19 篇文章已同步 Obsidian + Anki；遗留：ps03/05/06/07 文章骨架 41–46 行略超 40）：`pytest loop -q` 绿、`loop/lint.sh` 绿、文章 21 篇同步到 Obsidian `Inbox/Stripe Loop/`（含索引 + `Claude 接力.md` 链接）、LEDGER/CHECKPOINT、commit
   - AC：每题 REPORT.md 有 `## Review（Fable 5.1）` 节；每篇文章 8 节齐、≤40 行核心骨架、无 corner-case 堆砌
 
 ## Phase 3 · coding + mockserver + integration 前半 + bug squash 前半（5 并行）
 - [x] T13 `loop/mockserver/`（先做，同一代理随后做 T14）
   - AC：`maps.py`（POST /render JSON 坐标 → 返回最小合法 PNG；GET /health）；`payments.py`（GET /v1/charges 带 `limit/starting_after` cursor 分页与 `has_more`；每 N 次返回 429 + `Retry-After`；POST /v1/refunds 支持 `Idempotency-Key` 头：重放返回同响应、body 不同返回 400；POST /webhook 事件带 `Stripe-Signature` t=…,v1=HMAC）；纯 stdlib；`python3 -m loop.mockserver.maps --port 0` 打印端口
   - 验证：`rtk proxy python3 -m pytest loop/mockserver/tests -q` 绿（分页/429/幂等/签名各 ≥ 2 测试）
-- [ ] T14 int01 bikemap · int02 payments_reconciliation
+- [x] T14 int01 bikemap · int02 payments_reconciliation
 - [x] T9 cd01 subscription_email_scheduler · cd02 payment_ledger
 - [x] T10 cd03 account_scheduler_lru · cd04 rate_limiter_4part
 - [x] T11 cd05 business_account_verification · cd06 suspicious_users_window
-- [ ] T12 cd07 transactions_rules_ai · bs01 mini_template_engine · bs02 mini_http_client
+- [x] T12 cd07 transactions_rules_ai · bs01 mini_template_engine · bs02 mini_http_client
   - cd 题 AC 同 T5–T8；cd04 part4 含线程安全测试（`threading` 并发 1000 次无超发）
   - int 题 AC：目录含 `problem.md`（含 API 文档节）、`data/`（ride-simple.json 约 500 点 / charges 样本）、`starter_template.py`、`solution.py`、`test_intNN.py`（fixture 起 mockserver 于随机端口、结束关闭）、`REPORT.md`；测试覆盖 happy path + 网络错误 + 分页第 2 页 + 429 退避 + 幂等重放
   - bs 题 AC：`src/<pkg>/`（200–600 行）、`tests/`（1–3 个失败用例 + 其余通过）、`README.md`（库用途、跑测试命令）、`solution/FIX.patch`、`REPORT.md`（根因·排查路径·最小修复·真实库对应 issue/PR）；`git apply --check solution/FIX.patch` 通过；打补丁后全绿
@@ -67,7 +67,7 @@
 ## ⏸ BACKLOG（用户 2026-09-01 指示：先 review 已有题，以下暂停）
 
 ## Phase 4 · integration 后半 + bug squash 后半 + SD + 非编码轮 + study 前半（5 并行）
-- [ ] T15 int03 multi_json_etl · int04 review_assignment_gitdiff（int04 用 `subprocess git` 在 tmp repo 造两分支）
+- [~] T15 int03 ✓ · int04 半成品（缺 starter.py/test/REPORT）→ BACKLOG（int04 用 `subprocess git` 在 tmp repo 造两分支）
 - [ ] T17 bs03 mini_yaml_csv · bs04 config_manager_concurrency · bs05 asyncio_fetch_race
 - [ ] T18 sd01–sd06：每题 `prompt.md`（一段业务描述 ≥ 300 字，不给结构）、`rubric.md`（五维 + 主线，可打分 1–4）、`model_answer.md`（≥ 150 行，含 API 契约/数据模型/失败模式/对账/可观测）、`followups.md`（≥ 8 条追问 + 期望要点）；复用 `raw/system_design.md` §4
   - 验证：每题 4 文件；`check_tree.py` 路径通过

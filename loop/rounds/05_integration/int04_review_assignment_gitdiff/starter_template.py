@@ -1,6 +1,7 @@
 """int04 Review Assignment via git diff + CSV owners — YOUR implementation.
 Run: pytest loop/rounds/05_integration/int04_review_assignment_gitdiff
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,6 +19,7 @@ class RepoError(Exception):
 
 # --------------------------------------------------------------------------- Part 1
 
+
 def changed_files(repo: str, base: str, head: str) -> list[str]:
     """Files that changed between `base` and `head` (three-dot: against their merge
     base), via `git diff --name-status`. A/M/D contribute one path; a rename (R) or
@@ -28,6 +30,7 @@ def changed_files(repo: str, base: str, head: str) -> list[str]:
 
 
 # --------------------------------------------------------------------------- Part 2
+
 
 def load_owners(csv_path: str) -> list[tuple[str, str]]:
     """Read `path,owner` CSV rows (optional header, blank lines ignored) into an
@@ -57,6 +60,7 @@ def assign(changed: list[str], owner_rows: list[tuple[str, str]]) -> str:
 
 # --------------------------------------------------------------------------- Part 3
 
+
 def top_owners(changed: list[str], owner_rows: list[tuple[str, str]], k: int) -> list[tuple[str, int]]:
     """Top `k` owners by changed-file count, (count desc, owner name asc)."""
     # TODO
@@ -81,6 +85,7 @@ def main_cli(argv: list[str] | None = None) -> int:
 
 
 # --------------------------------------------------------------------------- PART n stdin driver
+
 
 def _read_nonblank(stdin) -> list[str]:
     return [ln.strip() for ln in stdin.read().splitlines() if ln.strip()]
