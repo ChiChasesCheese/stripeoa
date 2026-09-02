@@ -126,13 +126,15 @@ def test_part2_when_present_true_requires_existing_key(impl):
 def test_part2_when_multiple_conditions_all_must_match(impl):
     doc = {
         "account": {"business_type": "company", "legal_name": "Acme"},
-        "rules": [{
-            "when": [
-                {"path": "business_type", "equals": "company"},
-                {"path": "legal_name", "equals": "Other"},
-            ],
-            "requires": ["missing_field"],
-        }],
+        "rules": [
+            {
+                "when": [
+                    {"path": "business_type", "equals": "company"},
+                    {"path": "legal_name", "equals": "Other"},
+                ],
+                "requires": ["missing_field"],
+            }
+        ],
     }
     # second condition fails -> whole rule skipped, even though the first one matched
     assert impl.part2(doc) == ["VERIFIED"]
@@ -204,7 +206,7 @@ def test_stdin_stdout_part1_verified(run_script):
 def test_perf_large_account_and_ruleset(run_script):
     rng = random.Random(0)
     owners = [{"first_name": f"n{i}", "last_name": f"l{i}"} for i in range(3000)]
-    knocked_out = list(range(0, 3000, 7))
+    knocked_out = sorted(rng.sample(range(3000), 429))
     for i in knocked_out:
         owners[i]["first_name"] = ""
     account = {"business_name": "Acme", "business_type": "company", "owners": owners}

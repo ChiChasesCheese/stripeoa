@@ -10,6 +10,7 @@ guarded by one `threading.Lock` for exact correctness under concurrent callers (
 Window convention (matches problems/q23_rate_limiter): a request at `t` counts against the window
 `(t - window_ms, t]` — left-open, right-closed. Denied requests are never recorded.
 """
+
 from __future__ import annotations
 
 import sys
@@ -32,15 +33,17 @@ class RateLimiter:
         return t if last is None or t >= last else last
 
     def allow(self, client_id: str, t: int) -> bool:
+        """True iff client_id has fewer than `limit` allowed requests in (t - window_ms, t];
+        a denied call is never recorded. Backward t is clamped per client (see _effective_t)."""
         with self._lock:
             eff_t = self._effective_t(client_id, t)
             self._last_seen[client_id] = eff_t
             dq = self._log.setdefault(client_id, deque())
             cutoff = eff_t - self.window_ms
-            while dq and dq[0] <= cutoff:      # trim expired entries (Part 2: bounds memory)
+            while dq and dq[0] <= cutoff:  # trim expired entries (Part 2: bounds memory)
                 dq.popleft()
             if self.limit <= 0 or len(dq) >= self.limit:
-                return False                    # denied requests are never recorded
+                return False  # denied requests are never recorded
             dq.append(eff_t)
             return True
 
@@ -82,7 +85,7 @@ def run_commands(lines: list[str]) -> list[str]:
         limiter = RateLimiter(int(head[1]), int(head[2]))
         body = lines[1:]
     else:
-        limiter = RateLimiter(5, 1)   # default: 5 requests / 1 s, mirrors q23's documented default
+        limiter = RateLimiter(5, 1)  # default: 5 requests / 1 s, mirrors q23's documented default
         body = lines
 
     for raw in body:

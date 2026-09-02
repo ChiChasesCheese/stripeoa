@@ -88,7 +88,7 @@ def test_not_suspicious_matches_part1_on_dave(impl):
 @pytest.mark.part2
 @pytest.mark.edge
 def test_duplicate_timestamps_collapse_to_point_window(impl):
-    lines = [f"u,1.00,500" for _ in range(5)]  # 5 transactions, all at t=500
+    lines = ["u,1.00,500" for _ in range(5)]  # 5 transactions, all at t=500
     # first trigger fires as soon as the 4th one is seen -> count 4, not 5
     assert impl.part2(lines) == ["u: 4 in [500, 500]"]
 
@@ -155,7 +155,12 @@ def test_perf_1m_rows(run_script):
         ts = rng.randrange(0, 10_000_000)
         amount = f"{rng.randrange(1, 10000) / 100:.2f}"
         lines.append(f"{user},{amount},{ts}")
+    # a deterministic marker burst mixed into the random noise: proves the scan actually ran and
+    # found the right answer at scale, not just "didn't crash" (a broken always-[] stub would also
+    # pass a timing/memory-only perf check)
+    lines += [f"perf_marker,1.00,{t}" for t in (0, 10, 20, 30)]
     r = run_script("PART 2\n" + "\n".join(lines) + "\n", timeout=30)
     assert r.returncode == 0, r.stderr
+    assert "perf_marker: 4 in [0, 30]" in r.stdout
     assert r.seconds < 2.0, f"too slow: {r.seconds:.2f}s"
     assert r.max_rss_mb < 256, f"too much memory: {r.max_rss_mb:.0f}MB"

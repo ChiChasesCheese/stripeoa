@@ -6,6 +6,7 @@ per-user two-pointer scan finds the first t whose trailing window first reaches 
 Part 1 is allowed to be a naive O(n^2) per-user scan in an interview; the reference solution reuses
 the efficient engine for both parts since it is strictly cheaper and produces identical results.
 """
+
 from __future__ import annotations
 
 import sys
@@ -63,10 +64,7 @@ def part1(lines: list[str]) -> list[str]:
 
 def part2(lines: list[str]) -> list[str]:
     triggers = _first_triggers(lines)
-    return [
-        f"{user}: {count} in [{start}, {end}]"
-        for user, (start, end, count) in sorted(triggers.items())
-    ]
+    return [f"{user}: {count} in [{start}, {end}]" for user, (start, end, count) in sorted(triggers.items())]
 
 
 def main(stdin=sys.stdin, stdout=sys.stdout) -> None:

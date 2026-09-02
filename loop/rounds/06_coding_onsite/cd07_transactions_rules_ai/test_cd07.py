@@ -130,6 +130,8 @@ def test_in_list_empty_single_and_several_items(impl):
     assert impl.part2(lines) == ["t1 BLOCK (rule 1)", "t2 ALLOW", "t3 BLOCK (rule 1)"]
     lines_one = ["RULES", "BLOCK if country in [US]", "TRANSACTIONS", "t1,0,USD,US,visa,acme"]
     assert impl.part2(lines_one) == ["t1 BLOCK (rule 1)"]
+    lines_empty = ["RULES", "BLOCK if country in []", "TRANSACTIONS", "t1,0,USD,US,visa,acme"]
+    assert impl.part2(lines_empty) == ["t1 ALLOW"]  # empty list matches nothing, not an error
 
 
 @pytest.mark.part2

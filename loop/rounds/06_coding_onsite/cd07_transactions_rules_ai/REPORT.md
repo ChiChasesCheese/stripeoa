@@ -68,3 +68,36 @@ S02 tokenizing/parsing condition strings · S06 numeric-vs-string comparison fal
 rule evaluation with first-match-wins · S18 validation (per-rule `ERROR` reporting without crashing
 the batch) · S19 incremental grammar (each part a strict subset of the next) · S24 Radar rule-engine
 vocabulary (shared with q12, at AI-assisted-round scope) · S25 directing/reviewing AI-generated code
+## 电面话术：边写边说什么
+1. **读题时**：先大声确认协议边界——"`RULES` 和 `TRANSACTIONS` 两个 section 靠一行独立的 header
+   区分，行数不定长；一行交易少于 6 列时，缺的列我当空字符串处理，不报错"——把隐含契约说出来。
+2. **写 Part 1 前**：一句话说明分层——"我打算把条件文本的解析和对交易求值分开，这样后面加运算符、
+   加布尔逻辑都只是扩展解析这一层，求值和主循环不用大改"。
+3. **写 Part 2 时**：主动点出数值/字符串双轨比较——"`==`/`!=` 我先看两边是不是都能转成整数，能就按
+   数字比，不能就按去空格后的字符串比，这样 `amount == 0100` 才能匹配 `amount == 100`"。
+4. **写 Part 3 前**：先口头画出优先级——"`not` 最紧，然后 `and`，最后 `or`，我用递归下降实现，
+   `or_expr` 调 `and_expr`、`and_expr` 调 `unary`，优先级天然由函数调用顺序保证，不用额外维护
+   优先级表"。
+5. **写错误处理时**：说明设计选择而不是默认行为——"题面只要求 Part 3 报 `ERROR line k`，Part 1/2
+   我选择静默跳过写错的规则；如果你们希望 Part 1/2 也报错，我现在就能把这个判断放宽一行"。
+6. **收尾**：主动提一句关于 AI 轮的自我审查——"如果是用 AI 生成的版本，我会重点检查三处：`in [...]`
+   是不是被写成了子串匹配、`and`/`or` 优先级有没有被拍平、默认方向是不是写反成了 BLOCK"——呼应
+   problem.md 里"AI 生成代码常见的五个坑"，证明这不是背答案而是真的理解每个坑背后的原因。
+7. **被追问复杂度时**：「规则先编译成 AST 一次，之后对每笔交易只做树遍历，不重新解析文本；最坏情况
+   是每笔交易都要扫到最后一条规则，`O(rules × transactions)`，如果规则以单字段等值判断为主，可以
+   按字段建索引进一步剪枝。」
+## Review（2026-09-02）
+- **发现（F）**：REPORT.md 缺少 CONVENTIONS/checklist 要求的"电面话术/边写边说"节——已补上。检查
+  未发现半成品痕迹（无遗留 TODO/调试 print/未完成分支），LEDGER 里"代理撞 limit 前已完成"这条记录
+  与实际代码状态一致：`solution.py`/tests/starter 三件套完整、lint 干净、23 个测试全绿。
+- **发现（S）**：`test_in_list_empty_single_and_several_items` 的名字承诺测了"empty"（零元素）的
+  `in []` 情况，但原测试体只覆盖了 3 元素和单元素两种，没有真正测零元素——已补一条 `country in []`
+  永不匹配的断言。problem.md 缺少本仓库其它题目都有的"面试官会怎么追问"节——已补 6 条，覆盖 AI 轮
+  评分标准、优先级实现位置、语法扩展性、错误处理的题面 vs. 自选边界、最坏复杂度、字段/字面量判定
+  依据这几个方向。
+- **未改动**：`solution.py` 本身未发现 F 级问题——tokenizer/parser/evaluator 三层分离清晰，
+  worked examples 逐字核对全部通过，lint（black -l 110 + flake8 F 类）一次性通过，无需 `--fix`。
+- **遗留**：无。`_compare` 对 `==`/`!=` 的数值兜底目前对 Part 1/2/3 统一生效，problem.md 的 Part 1
+  措辞（"值按去空格字符串比较"）与 Part 2 措辞（"两边都能转成整数就按数字比"）在字面上略有张力，
+  但两种解释在所有 worked examples 和当前测试上给出相同结果，本次未改动此行为，仅在这里记录供后续
+  如需收紧 Part 1 语义时参考。

@@ -11,17 +11,17 @@ def test_worked_example_basics(impl):
     assert rl.allow("u", 0) is True
     assert rl.allow("u", 100) is True
     assert rl.allow("u", 200) is True
-    assert rl.allow("u", 300) is False           # (-700, 300] holds 0,100,200 -> at limit
-    assert rl.allow("u", 1000) is True           # (0, 1000] excludes t=0 (left-open) -> count 2
+    assert rl.allow("u", 300) is False  # (-700, 300] holds 0,100,200 -> at limit
+    assert rl.allow("u", 1000) is True  # (0, 1000] excludes t=0 (left-open) -> count 2
 
 
 @pytest.mark.part1
 @pytest.mark.edge
 def test_window_boundary_exclusive_start_inclusive_end(impl):
-    rl = impl.RateLimiter(limit=1, window_s=1)   # window_ms = 1000
+    rl = impl.RateLimiter(limit=1, window_s=1)  # window_ms = 1000
     assert rl.allow("u", 0) is True
-    assert rl.allow("u", 999) is False            # (-1, 999] still holds t=0
-    assert rl.allow("u", 1000) is True            # (0, 1000] excludes t=0 exactly at the boundary
+    assert rl.allow("u", 999) is False  # (-1, 999] still holds t=0
+    assert rl.allow("u", 1000) is True  # (0, 1000] excludes t=0 exactly at the boundary
 
 
 @pytest.mark.part1
@@ -31,8 +31,8 @@ def test_denied_requests_are_never_recorded(impl):
     assert rl.allow("u", 0) is True
     assert rl.allow("u", 0) is True
     for _ in range(20):
-        assert rl.allow("u", 0) is False          # a long burst of denials
-    assert rl.allow("u", 1000) is True             # denials never extended the window/lockout
+        assert rl.allow("u", 0) is False  # a long burst of denials
+    assert rl.allow("u", 1000) is True  # denials never extended the window/lockout
 
 
 @pytest.mark.part1
@@ -40,7 +40,7 @@ def test_clients_are_independent(impl):
     rl = impl.RateLimiter(limit=1, window_s=1)
     assert rl.allow("a", 0) is True
     assert rl.allow("a", 0) is False
-    assert rl.allow("b", 0) is True                # b has its own independent budget
+    assert rl.allow("b", 0) is True  # b has its own independent budget
 
 
 # ---------------------------------------------------------------- Part 2: saving memory
@@ -48,19 +48,19 @@ def test_clients_are_independent(impl):
 @pytest.mark.edge
 def test_log_size_never_exceeds_limit(impl):
     rl = impl.RateLimiter(limit=5, window_s=1)
-    for t in range(0, 2000, 10):                   # 200 calls, far more than `limit`
+    for t in range(0, 2000, 10):  # 200 calls, far more than `limit`
         rl.allow("u", t)
     assert rl.log_size("u") <= 5
 
 
 @pytest.mark.part2
 def test_evict_idle_boundary_and_count(impl):
-    rl = impl.RateLimiter(limit=2, window_s=60)     # window_ms = 60000
+    rl = impl.RateLimiter(limit=2, window_s=60)  # window_ms = 60000
     assert rl.evict_idle(0) == 0
     assert rl.allow("a", 0) is True
     assert rl.allow("b", 0) is True
-    assert rl.evict_idle(59999) == 0                # both still inside (0, 59999]
-    assert rl.evict_idle(60000) == 2                # (0, 60000] excludes t=0 -> both idle
+    assert rl.evict_idle(59999) == 0  # both still inside (0, 59999]
+    assert rl.evict_idle(60000) == 2  # (0, 60000] excludes t=0 -> both idle
 
 
 @pytest.mark.part2
@@ -68,10 +68,10 @@ def test_evict_idle_boundary_and_count(impl):
 def test_evicted_client_gets_a_fresh_budget(impl):
     rl = impl.RateLimiter(limit=1, window_s=60)
     assert rl.allow("a", 0) is True
-    assert rl.allow("a", 0) is False                # budget exhausted
-    assert rl.evict_idle(60000) == 1                # a is idle by t=60000, gets dropped
+    assert rl.allow("a", 0) is False  # budget exhausted
+    assert rl.evict_idle(60000) == 1  # a is idle by t=60000, gets dropped
     assert rl.log_size("a") == 0
-    assert rl.allow("a", 60000) is True              # fresh budget, not "remembered" as exhausted
+    assert rl.allow("a", 60000) is True  # fresh budget, not "remembered" as exhausted
 
 
 @pytest.mark.part2
@@ -79,9 +79,9 @@ def test_evicted_client_gets_a_fresh_budget(impl):
 def test_evict_idle_ignores_active_clients(impl):
     rl = impl.RateLimiter(limit=3, window_s=60)
     assert rl.allow("a", 0) is True
-    assert rl.allow("a", 30000) is True              # still active at t=60000's window
+    assert rl.allow("a", 30000) is True  # still active at t=60000's window
     assert rl.evict_idle(60000) == 0
-    assert rl.log_size("a") == 1                     # only the t=0 entry was trimmed away
+    assert rl.log_size("a") == 1  # only the t=0 entry was trimmed away
 
 
 # ---------------------------------------------------------------- Part 3: tricky situations
@@ -90,8 +90,8 @@ def test_evict_idle_ignores_active_clients(impl):
 def test_clock_rollback_is_clamped_not_rejected(impl):
     rl = impl.RateLimiter(limit=1, window_s=1)
     assert rl.allow("c", 500) is True
-    assert rl.allow("c", 300) is False               # clamped to 500 -> window (-500,500] at limit
-    assert rl.allow("c", 1500) is True                # (500, 1500] excludes t=500 -> fresh capacity
+    assert rl.allow("c", 300) is False  # clamped to 500 -> window (-500,500] at limit
+    assert rl.allow("c", 1500) is True  # (500, 1500] excludes t=500 -> fresh capacity
 
 
 @pytest.mark.part3
@@ -99,8 +99,8 @@ def test_clock_rollback_is_clamped_not_rejected(impl):
 def test_clock_rollback_is_per_client(impl):
     rl = impl.RateLimiter(limit=1, window_s=1)
     assert rl.allow("a", 500) is True
-    assert rl.allow("a", 100) is False                # a clamped, denied
-    assert rl.allow("b", 100) is True                  # b's clock is untouched by a's rollback
+    assert rl.allow("a", 100) is False  # a clamped, denied
+    assert rl.allow("b", 100) is True  # b's clock is untouched by a's rollback
 
 
 @pytest.mark.part3
@@ -126,7 +126,7 @@ def test_empty_client_id_is_a_valid_independent_client(impl):
     rl = impl.RateLimiter(limit=1, window_s=1)
     assert rl.allow("", 0) is True
     assert rl.allow("", 0) is False
-    assert rl.allow("nonempty", 0) is True            # "" and a real id don't collide
+    assert rl.allow("nonempty", 0) is True  # "" and a real id don't collide
 
 
 @pytest.mark.part3
@@ -158,7 +158,7 @@ def test_concurrent_allow_yields_exact_count(impl):
     for th in threads:
         th.join()
 
-    assert sum(per_thread) == 100                     # exact, not "approximately"
+    assert sum(per_thread) == 100  # exact, not "approximately"
 
 
 @pytest.mark.part4
@@ -208,13 +208,17 @@ def test_concurrent_allow_and_evict_idle_do_not_corrupt_state(impl):
 @pytest.mark.part3
 @pytest.mark.fmt
 def test_command_stream_output_strings_exact(impl):
-    out = impl.run_commands([
-        "LIMIT 2 1",
-        "ALLOW u 0", "ALLOW u 0", "ALLOW u 0",
-        "CLEANUP 1000",
-        "ALLOW x oops",
-        "FROB x",
-    ])
+    out = impl.run_commands(
+        [
+            "LIMIT 2 1",
+            "ALLOW u 0",
+            "ALLOW u 0",
+            "ALLOW u 0",
+            "CLEANUP 1000",
+            "ALLOW x oops",
+            "FROB x",
+        ]
+    )
     assert out == ["ALLOW", "ALLOW", "DENY", "EVICTED 1", "ERROR", "ERROR"]
 
 

@@ -1,4 +1,5 @@
 """cd05 Business Account Data Verification — YOUR implementation."""
+
 from __future__ import annotations
 
 import json

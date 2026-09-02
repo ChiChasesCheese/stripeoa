@@ -85,3 +85,35 @@ S16 sliding-window log · S17 memory-bound analysis (proved, not just claimed) �
 validation/graceful-degradation policy (clamp vs raise) · S19 incremental design · S21 stdlib
 fluency (`collections.deque`, `threading.Lock`) · A15 thread-safety under contention (exact, not
 approximate, correctness)
+
+## Review（2026-09-02）
+按 `loop/tasks/review_checklist.md` 逐条复核，结论：solution.py 本身在上一轮已经写得很干净，本轮只是
+补齐两处遗漏，没有发现结构性问题。
+
+**改了什么**
+- `solution.py`：`allow()` 方法之前没有 docstring（`_effective_t`/`evict_idle`/`log_size` 都有，唯独
+  这个核心方法没有），补了一句话 docstring 说明窗口规则和"拒绝不入账"的行为，对齐 S 项"docstring
+  一句话说清做什么"以及题面里反复强调的窗口口径。
+- `starter.py` / `starter_template.py`：`loop/lint.sh --fix` 后 flake8 报两个 F401（`threading`、
+  `collections.deque` 未使用——这是 TODO stub 有意预留的 import，供候选人实现时用），按 checklist
+  允许的方式加 `# noqa: F401` 消除，两个文件内容保持逐字一致（diff 确认 identical）。
+- 其余 diff（`test_cd04.py` 里大量的空白改动）是 `loop/lint.sh --fix` 做的 black 110 列重排（注释前
+  多余空格被压成两个空格），没有改动任何断言或逻辑。
+
+**为什么**
+- 这题的 4-part 结构（basics → memory → tricky edges → threads）本身已经把"未定义行为"逐条钉死、把
+  内存上界用 `log_size` 直接可断言、把并发正确性用"恰好等于 limit"而不是模糊断言验证，是这批题里
+  review 负担最小的一个；改动集中在文档完整性和 lint 合规，没有修复任何行为 bug。
+
+**验证**
+- solution 侧：`rtk proxy python3 -m pytest <dir> --tb=short` 连续跑 4 次（含专门为并发测试重复的 3
+  次），21/21 全绿，无 flaky。
+- starter 侧：`IMPL=starter rtk proxy python3 -m pytest <dir> --tb=no`，20 failed / 1 passed（唯一
+  通过的是空输入测试，starter 的 `run_commands` TODO 桩本就返回 `[]`，与空输入的期望输出巧合一致，
+  不是空洞测试）。
+- 三个 worked examples 用 `solution.py` 直接跑了一遍，输出与 problem.md 逐字一致。
+- `loop/lint.sh loop/rounds/06_coding_onsite/cd04_rate_limiter_4part` 通过（0 exit code）。
+
+**遗留**
+- 无功能性遗留项。REPORT.md 里已经讨论过的 per-client-lock 优化、分布式限流等，按原文档定位仍然是
+  "面试追问话术"而非本题范围内要实现的东西，不在本轮改动范围内。

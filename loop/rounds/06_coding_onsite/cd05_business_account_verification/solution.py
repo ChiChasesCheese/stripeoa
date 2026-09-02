@@ -4,6 +4,7 @@ Rule engine over a nested JSON `account` object. See problem.md for the full pat
 ("." nesting, one `owners[]` wildcard segment per path), the "non-empty" definition, and the
 `when` / `requires` / `one_of` semantics. Pure tree-walking, no regex, no external deps.
 """
+
 from __future__ import annotations
 
 import json
@@ -14,6 +15,7 @@ MISSING = object()  # sentinel: a path did not resolve to any value at all
 
 
 def _split(path: str) -> list[str]:
+    """Split a "." path into segments, e.g. "owners[].first_name" -> ["owners[]", "first_name"]."""
     return path.split(".")
 
 
@@ -73,6 +75,7 @@ def _resolve_one(node: Any, path: str) -> tuple[bool, Any]:
 
 
 def _when_matches(account: dict, conditions: list[dict]) -> bool:
+    """AND over `conditions` (empty/omitted -> always matches); see problem.md "when"."""
     for cond in conditions:
         exists, value = _resolve_one(account, cond["path"])
         if "equals" in cond:
@@ -85,6 +88,7 @@ def _when_matches(account: dict, conditions: list[dict]) -> bool:
 
 
 def _missing_for_requires(account: dict, path: str) -> list[str]:
+    """Expand `path` (wildcards included) and return the resolved tokens that are empty/missing."""
     return [
         resolved_path
         for resolved_path, value in _expand(account, _split(path), "")
@@ -93,6 +97,7 @@ def _missing_for_requires(account: dict, path: str) -> list[str]:
 
 
 def _missing_for_one_of(account: dict, paths: list[str]) -> str | None:
+    """None if any path is non-empty, else the "one_of(a|b|...)" token in declaration order."""
     for path in paths:
         exists, value = _resolve_one(account, path)
         if exists and _is_nonempty(value):
@@ -101,6 +106,7 @@ def _missing_for_one_of(account: dict, paths: list[str]) -> str | None:
 
 
 def part1(doc: dict) -> list[str]:
+    """Check every "requires" path across all rules; ["VERIFIED"] if all are non-empty."""
     account = doc.get("account", {})
     missing: set[str] = set()
     for rule in doc.get("rules", []):
@@ -110,6 +116,7 @@ def part1(doc: dict) -> list[str]:
 
 
 def part2(doc: dict) -> list[str]:
+    """Same as part1, gated by "when" and adding "one_of" groups and "[]" wildcard paths."""
     account = doc.get("account", {})
     missing: set[str] = set()
     for rule in doc.get("rules", []):

@@ -4,11 +4,12 @@ See problem.md for the full contract: t is always MILLISECONDS, window is (t-win
 (left-open, right-closed), backward clock is CLAMPED per client (not rejected), limit==0 always
 denies, and allow()/evict_idle() must be exact under concurrent callers.
 """
+
 from __future__ import annotations
 
 import sys
-import threading
-from collections import deque
+import threading  # noqa: F401
+from collections import deque  # noqa: F401
 
 
 class RateLimiter:

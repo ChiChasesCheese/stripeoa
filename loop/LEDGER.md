@@ -34,3 +34,5 @@
 | 2026-09-02 | R2 ps05–07 | fable(review)+写入 | ps05 26 / ps06 23 / ps07 29 tests + ps05/06 文章 | 绿；lint 通过 | (this) | ps07 文章、ps08 未做 → 转 sonnet |
 | 2026-09-02 | RA ps04/07/08 | sonnet | 3 目录 + 3 篇文章 | 17/29/33 | (this) | 无功能 bug；仅格式化 |
 | 2026-09-02 | RB cd01–03 | sonnet | 3 目录 + 3 篇文章 | 23/24/18 | (this) | cd02 Payment dataclass + 逐字样例测试；cd01 handler 拆分；cd03 _lock 复用 |
+| 2026-09-02 | RC cd04–07 | sonnet | 4 目录 + 4 篇文章 | 21/21/18/23 | (this) | 空洞 perf 测试、F541、缺失节补齐；文章骨架修至 40 行 |
+| 2026-09-02 | stage: coding review 完成 | fable | cd01–07 | — | (this) | push + obsidian + anki |

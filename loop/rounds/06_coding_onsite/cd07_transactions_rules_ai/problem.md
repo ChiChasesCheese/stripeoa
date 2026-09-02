@@ -224,6 +224,29 @@ before you accept the diff:
    grader never requested. Both ends of this mistake come from not re-reading the grammar in the
    spec before accepting generated code.
 
+## 面试官会怎么追问
+1. "这是 AI 轮，评分标准是'你怎么指挥 AI'——如果面试官现在问你'你让 AI 生成的第一版代码有什么问题、
+   你怎么发现的'，你会怎么回答?" — 逼你能具体说出一条真实的 review 发现（比如 `in [...]` 被 AI
+   写成了子串匹配），而不是空泛地说"我 review 过了"。
+2. "为什么 `not` 比 `and` 优先级高、`and` 又比 `or` 优先级高？这个优先级关系在你的递归下降解析器里
+   体现在哪一行？" — 期望候选人直接指着 `_or` 调 `_and`、`_and` 调 `_not` 的调用链解释：**优先级
+   越高的运算符，对应的解析函数离"叶子"越近**，而不是背一个优先级表却说不出代码里怎么实现的。
+3. "如果要加一个新的运算符 `xor`，绑定优先级介于 `and` 和 `or` 之间，你会改哪几个函数？" — 检验
+   候选人是否真的理解这个语法糖表结构是可扩展的：只需要在 `_or`/`_and` 之间插入一层新的 `_xor`
+   方法，其余分支不用动。
+4. "为什么 `ERROR line k` 只在 Part 3 出现，Part 1/2 遇到写错的规则就直接静默跳过？这是题面明确要求
+   还是你自己的选择？如果面试官现在说'Part 2 也要报错'，你需要改哪里？" — 检验候选人能不能区分
+   "题面写死的行为"和"没写清楚、自己做的合理选择"，并现场说出只需要把 `_evaluate` 里 `if part == 3`
+   的判断放宽。
+5. "10 万条规则、10 万笔交易，最坏情况下每笔交易都要扫到最后一条规则才 default ALLOW，复杂度是
+   多少？有没有办法优化？" — 期望候选人先诚实指出这是 `O(rules × txns)` 最坏情况、当前实现无法避免
+   （规则是任意布尔表达式，没有通用的索引结构能跳过不相关规则），再提一个受限场景下的优化思路，比如
+   "如果大多数规则只判断单个字段的等值条件，可以按字段建索引、只对该字段值可能命中的规则做全量求值"。
+6. "`country == country` 这种写法你选择让它按字段解析、恒真——为什么不是直接报错？换个角度，如果
+   一个用户传进来的字段值本身就叫 `country`（比如商户名就是 `country`），你的语法怎么区分"这是字段"
+   还是"这是值"？" — 检验候选人是否理解这套语法的核心设计取舍：**字段 vs. 字面量的判定是按 token
+   的拼写、不是按值的语义**，这是省掉引号语法（不像 q12 需要 `:field:` 标记）所必须付出的代价。
+
 ## What this tests
 skills: S02 tokenizing/parsing condition strings · S06 numeric-vs-string comparison fallback ·
 S10 ordered rule evaluation with first-match-wins · S18 validation (Part 3's per-rule `ERROR`

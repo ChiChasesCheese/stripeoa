@@ -1,4 +1,5 @@
 """cd06 Suspicious Users Sliding Window — YOUR implementation."""
+
 from __future__ import annotations
 
 import sys
