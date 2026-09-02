@@ -5,7 +5,7 @@
 > worktree：`/Users/chizhang/Code/ITV/stripe-oa/.claude/worktrees/stripe-loop/`
 
 ## 顺序（用户要求）
-1. 尽调（中英文论坛 + GitHub + 官方）→ `catalog/raw/loop/*.md`
+1. 尽调（中英文论坛 + GitHub + 官方）→ `loop/raw/*.md`
 2. 汇总 → `loop/CATALOG.md`、`loop/LOOP_GUIDE.md`
 3. 知识树 → `loop/tree/interview-loop.yaml` + `loop/tree/TREE.md`
 4. 环境 → `loop/rounds/<round>/<id>/`，`loop/mock.py`
@@ -20,8 +20,9 @@
 ## 状态
 - [x] 目录骨架
 - [x] 尽调 3/6 raw（rewind 后已从会话恢复并入库）
-  - 有：`catalog/raw/loop/en_forums.md`、`hr_hm_behavioral.md`、`system_design.md`
-  - 缺：`cn_forums.md`、`github_repos.md`、`stripe_official_and_api.md`（对应子代理当时撞上 session limit，文件没写成；transcript 还在 `~/.claude/projects/-Users-chizhang-Code-ITV-stripe-oa--claude-worktrees-stripe-loop/`）
+  - 有：`loop/raw/en_forums.md`、`loop/raw/hr_hm_behavioral.md`、`loop/raw/system_design.md`
+  - 缺：`loop/raw/cn_forums.md`、`loop/raw/github_repos.md`、`loop/raw/stripe_official_and_api.md`（对应子代理当时撞上 session limit，文件没写成）
+  - 不要写进 OA 的 `catalog/`（那是 HackerRank 题库）；loop 套件全部在 `loop/` 下
 - [ ] CATALOG / LOOP_GUIDE
 - [ ] 知识树
 - [ ] rounds 环境 + mock.py
@@ -36,5 +37,5 @@
 1. 在 worktree 里开 Claude：  
    `cd /Users/chizhang/Code/ITV/stripe-oa/.claude/worktrees/stripe-loop && claude`
 2. 可选：`/resume` 选 session `bdcd361b-987b-4794-9260-bc3363b3d48b`（jsonl 还在，但 rewind 后模型看到的上下文可能已截断）。更稳的是 **新开会话**，把本 CHECKPOINT 丢给它。
-3. 下一刀（串行，最多 2 个 subagent）：补 3 份缺失 raw → 再写 `loop/CATALOG.md` + `loop/LOOP_GUIDE.md`。不要重写已有的 3 份 raw 和 00-prereq。
+3. 下一刀（串行，最多 2 个 subagent）：补 3 份缺失 `loop/raw/` → 再写 `loop/CATALOG.md` + `loop/LOOP_GUIDE.md`。不要重写已有 raw 和 00-prereq，也不要动 `catalog/CATALOG.md`。
 4. 配额将近时先更新本文件并 commit，再停。
