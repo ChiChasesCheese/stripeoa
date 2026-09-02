@@ -20,3 +20,5 @@
 | 2026-09-01 | 检查点 B | fable | 03_phone_screen 全 8 题 | pytest 03_phone_screen 全绿 | (this) | Phase 2 完成 |
 | 2026-09-01 | T10 cd03 | sonnet | loop/rounds/06_coding_onsite/cd03_account_scheduler_lru | 18 | (this) | LRU tie-break 构造顺序，与 OA q26 区分 |
 | 2026-09-01 | T10 cd04 | sonnet | loop/rounds/06_coding_onsite/cd04_rate_limiter_4part | 21 | (this) | 4-part 仅 TOC 可读，规则为重建；毫秒；回拨 clamp |
+| 2026-09-01 | T11 cd05 | sonnet | loop/rounds/06_coding_onsite/cd05_business_account_verification | 21 | (this) | 1p3a 原题规格；三处补全已标注 |
+| 2026-09-01 | T11 cd06 | sonnet | loop/rounds/06_coding_onsite/cd06_suspicious_users_window | 19 | (this) | 闭区间 [t-60,t]；perf 1.66s@1e6 |
