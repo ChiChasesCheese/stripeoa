@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 .drill.json
 .pytest_cache/
+loop/work/
