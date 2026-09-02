@@ -40,7 +40,7 @@ A word `w` matches numeronym `n` iff:
 
 stdin body: line 1 is the numeronym, remaining lines are dictionary words (one per line, assumed
 lowercase `[a-z]+`; a line that isn't `[a-z]+` is skipped as malformed — it can never be a real
-word). If the numeronym itself is structurally invalid (fails Part 1), there is nothing it could
+word; duplicate lines for the same word count once, as in Part 3). If the numeronym itself is structurally invalid (fails Part 1), there is nothing it could
 validly stand for: output `NONE`. Output every matching word, **sorted lexicographically**, one
 per line; if there are no matches, output exactly one line: `NONE`.
 
@@ -143,6 +143,7 @@ for both) — still colliding, so both fall back to their literal spelling.)
 - Part 2: dictionary word whose length matches but first/last letter doesn't
 - Part 2: dictionary line that isn't `[a-z]+` (digits, punctuation, uppercase) — skipped
 - Part 2: empty dictionary → `NONE`
+- Part 2: the same matching word listed twice → printed once
 - Part 3: word length exactly 3 (minimum length that has a numeronym at all)
 - Part 3: three-way collision (not just pairwise) resolved at the same prefix length
 - Part 3: irreducible collision (differ only in the second-to-last character) → both fall back to

@@ -15,7 +15,8 @@ First line is `PART 1` or `PART 2`. The next line is the CSV header
 `customer_id,merchant_id,payout_date,card_type,amount`. Remaining lines are data rows, one
 transaction per line, same field order. `amount` is a BRL value given as a **two-decimal string**
 (e.g. `150.00`, `-15.50` for a refund) — not integer cents; you convert internally. `payout_date`
-is `YYYY-MM-DD`. Blank lines are ignored.
+is `YYYY-MM-DD`. Blank lines are ignored; spaces around commas are tolerated (fields are
+stripped). Part 1 never rolls dates — a Saturday `payout_date` is a Saturday group.
 
 ## Output
 One line per `(merchant_id, card_type, payout_date)` group:

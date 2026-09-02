@@ -155,6 +155,13 @@ def test_three_level_nesting(impl):
     assert impl.expand_braces_nested("{a,{b,{c,d}}}") == ["a", "b", "c", "d"]
 
 
+@pytest.mark.part3
+@pytest.mark.edge
+def test_stray_close_after_valid_group_and_no_braces_echoed(impl):
+    assert impl.expand_braces_nested("{a,b}}") == ["{a,b}}"]
+    assert impl.expand_braces_nested("no braces here") == ["no braces here"]
+
+
 # ---------------------------------------------------------------- io / perf
 @pytest.mark.part3
 @pytest.mark.io

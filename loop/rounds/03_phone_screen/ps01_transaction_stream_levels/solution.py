@@ -1,138 +1,144 @@
 """ps01 Transaction Stream Levels — reference solution.
 
-Four independent levels over the same input shape (`user_id,amount,timestamp`):
+Four unlock-next-part levels over the same input shape (`user_id,amount,timestamp`):
   Part 1: per-user totals (order-independent grouping).
-  Part 2: "which users ever hit >= T within any 60s window" — one deque per user.
-  Part 3: "top K users by 60s-window sum as of time t" — a single sweep + sort.
+  Part 2: "which users ever hit >= T within a W-second window" — one deque per user.
+  Part 3: "top K users by 60s-window sum as of time t" — Part 1's totals over a filtered stream.
   Part 4: "[small, large, small] pattern" over each user's timestamp-ordered stream.
 
-All amounts/timestamps are plain integers (no currency formatting here — see ps02 for money).
-Every window in this problem is the **closed** interval [t - W, t] (both ends inclusive); see
-problem.md "Rules" for why (it's pinned by the raw worked example, which only matches closed).
+Amounts/timestamps are plain integers (no currency formatting here — see ps02 for money).
+Every window is the **closed** interval [t - W, t] (both ends inclusive); problem.md "Rules"
+explains why (the sourced Part 3 example only reproduces under a closed window).
+
+Layout: parse (`_split_params`, `_parse_tx`) -> group (`_by_user_sorted`) -> one small helper
+per part's core rule (`_totals`, `_first_crossing`, `_pattern_starts`) -> format in `partN`.
 """
+
 from __future__ import annotations
 
 import sys
 from collections import defaultdict, deque
+from typing import Iterable, NamedTuple
 
 WINDOW_P3 = 60  # Part 3's window is fixed at 60s, not a parameter
+DEFAULT_W = 60  # Part 2's window when the params line omits W
+PATTERN = ("small", "large", "small")  # Part 4: the labels a run of consecutive txs must match
 
 
-def _parse_params(line: str) -> dict[str, int]:
-    out: dict[str, int] = {}
-    for tok in line.split():
-        k, _, v = tok.partition("=")
-        out[k] = int(v)
-    return out
+class Tx(NamedTuple):
+    user: str
+    amount: int
+    ts: int
+    order: int  # input index — tie-break for equal timestamps (keep input order)
 
 
-def _pop_params_line(lines: list[str]) -> tuple[dict[str, int], list[str]]:
-    """A params line has no comma and at least one '='; a data line always has exactly two
-    commas. If lines[0] looks like params, consume it and return (params, rest)."""
+# ------------------------------------------------------------------ parsing
+
+
+def _split_params(lines: list[str]) -> tuple[dict[str, int], list[str]]:
+    """Strip blanks; if the first line is a params line (`k=v k=v`, no comma), pop it.
+    A data line always has exactly two commas, a params line none — that's the disambiguator."""
+    lines = [ln.strip() for ln in lines if ln.strip()]
     if lines and "," not in lines[0] and "=" in lines[0]:
-        return _parse_params(lines[0]), lines[1:]
+        params = {k: int(v) for k, _, v in (tok.partition("=") for tok in lines[0].split())}
+        return params, lines[1:]
     return {}, lines
 
 
-def _parse_tx(lines: list[str]) -> list[tuple[str, int, int, int]]:
-    """Return [(user_id, amount, timestamp, input_index), ...], blank lines dropped.
-    input_index is the tie-break for equal timestamps (stable: keep input order)."""
-    out = []
+def _parse_tx(lines: list[str]) -> list[Tx]:
+    """`user_id,amount,timestamp` lines -> Tx records (fields tolerate surrounding spaces)."""
+    out: list[Tx] = []
     for i, raw in enumerate(lines):
-        raw = raw.strip()
-        if not raw:
-            continue
-        user, amt, ts = (p.strip() for p in raw.split(","))
-        out.append((user, int(amt), int(ts), i))
+        user, amount, ts = (p.strip() for p in raw.split(","))
+        out.append(Tx(user, int(amount), int(ts), i))
     return out
 
 
-def _by_user_sorted(tx: list[tuple[str, int, int, int]]) -> dict[str, list[tuple[int, int]]]:
-    """user_id -> [(timestamp, amount), ...] sorted by (timestamp, input_index)."""
-    grouped: dict[str, list[tuple[int, int, int]]] = defaultdict(list)
-    for user, amt, ts, idx in tx:
-        grouped[user].append((ts, amt, idx))
-    out: dict[str, list[tuple[int, int]]] = {}
-    for user, events in grouped.items():
-        events.sort(key=lambda e: (e[0], e[2]))
-        out[user] = [(ts, amt) for ts, amt, _ in events]
-    return out
+def _by_user_sorted(txs: Iterable[Tx]) -> dict[str, list[Tx]]:
+    """user_id -> that user's transactions sorted by (timestamp, input order)."""
+    grouped: dict[str, list[Tx]] = defaultdict(list)
+    for tx in txs:
+        grouped[tx.user].append(tx)
+    for events in grouped.values():
+        events.sort(key=lambda e: (e.ts, e.order))
+    return grouped
+
+
+# ------------------------------------------------------------------ core rules
+
+
+def _totals(txs: Iterable[Tx]) -> dict[str, int]:
+    """Sum of amount per user (Part 1's rule; Part 3 reuses it on a filtered stream)."""
+    totals: dict[str, int] = defaultdict(int)
+    for tx in txs:
+        totals[tx.user] += tx.amount
+    return totals
+
+
+def _first_crossing(events: list[Tx], threshold: int, window: int) -> int | None:
+    """Walk one user's sorted events with a deque; return the window sum at the FIRST moment
+    the closed window [ts - W, ts] reaches >= threshold, or None if it never does."""
+    live: deque[Tx] = deque()
+    total = 0
+    for tx in events:
+        live.append(tx)
+        total += tx.amount
+        while live[0].ts < tx.ts - window:  # evict strictly older than W seconds (closed window)
+            total -= live.popleft().amount
+        if total >= threshold:
+            return total
+    return None
+
+
+def _pattern_starts(events: list[Tx], split: int) -> list[int]:
+    """Start timestamps of every run of consecutive events whose labels equal PATTERN
+    (small := amount < split, large := amount >= split). Overlapping runs all count."""
+    labels = ["small" if tx.amount < split else "large" for tx in events]
+    n = len(PATTERN)
+    return [events[i].ts for i in range(len(events) - n + 1) if tuple(labels[i : i + n]) == PATTERN]
+
+
+# ------------------------------------------------------------------ parts (parse -> rule -> format)
 
 
 def part1(lines: list[str]) -> list[str]:
-    """Sum of amount per user, sorted by user_id (plain string order)."""
-    lines = [ln.strip() for ln in lines if ln.strip()]
-    totals: dict[str, int] = {}
-    for user, amt, _ts, _idx in _parse_tx(lines):
-        totals[user] = totals.get(user, 0) + amt
-    return [f"{u}: {totals[u]}" for u in sorted(totals)]
+    """Sum of amount per user, one 'user_id: total' per user, sorted by user_id (string order)."""
+    _, body = _split_params(lines)
+    totals = _totals(_parse_tx(body))
+    return [f"{user}: {totals[user]}" for user in sorted(totals)]
 
 
 def part2(lines: list[str]) -> list[str]:
-    """Users who ever had a 60s-window (closed, [ts-W, ts]) cumulative sum >= T.
-    Output 'user_id: sum' where sum is the window total the FIRST time (in timestamp order)
-    the threshold was crossed."""
-    lines = [ln.strip() for ln in lines if ln.strip()]
-    params, lines = _pop_params_line(lines)
-    T = params["T"]
-    W = params.get("W", 60)
-    by_user = _by_user_sorted(_parse_tx(lines))
-
-    flagged: dict[str, int] = {}
-    for user, events in by_user.items():
-        window: deque[tuple[int, int]] = deque()
-        total = 0
-        for ts, amt in events:
-            window.append((ts, amt))
-            total += amt
-            while window[0][0] < ts - W:
-                _old_ts, old_amt = window.popleft()
-                total -= old_amt
-            if total >= T:
-                flagged[user] = total
-                break
-    return [f"{u}: {flagged[u]}" for u in sorted(flagged)]
+    """Params 'T=<int> W=<int>' (W defaults to 60). Users whose closed [ts-W, ts] window sum ever
+    reached >= T, as 'user_id: sum' (sum at the first crossing), sorted by user_id."""
+    params, body = _split_params(lines)
+    threshold, window = params["T"], params.get("W", DEFAULT_W)
+    by_user = _by_user_sorted(_parse_tx(body))
+    flagged = {user: _first_crossing(events, threshold, window) for user, events in by_user.items()}
+    return [f"{user}: {total}" for user, total in sorted(flagged.items()) if total is not None]
 
 
 def part3(lines: list[str]) -> list[str]:
-    """Top K users by sum of amounts in [t - 60, t] (closed), ties: sum desc, user_id asc.
-    Users with no transaction in the window are not candidates (never zero-padded)."""
-    lines = [ln.strip() for ln in lines if ln.strip()]
-    params, lines = _pop_params_line(lines)
-    t = params["t"]
-    K = params["K"]
-    lo = t - WINDOW_P3
-
-    sums: dict[str, int] = {}
-    for user, amt, ts, _idx in _parse_tx(lines):
-        if lo <= ts <= t:
-            sums[user] = sums.get(user, 0) + amt
-    ranked = sorted(sums.items(), key=lambda kv: (-kv[1], kv[0]))
-    return [f"{u}: {s}" for u, s in ranked[:K]]
+    """Params 't=<int> K=<int>'. Top K users by sum over the closed window [t-60, t], ranked by
+    sum desc then user_id asc, output in RANKED order. Users with no tx in the window are not
+    candidates; fewer than K candidates -> print them all."""
+    params, body = _split_params(lines)
+    t, k = params["t"], params["K"]
+    in_window = (tx for tx in _parse_tx(body) if t - WINDOW_P3 <= tx.ts <= t)
+    ranked = sorted(_totals(in_window).items(), key=lambda kv: (-kv[1], kv[0]))
+    return [f"{user}: {total}" for user, total in ranked[:k]]
 
 
 def part4(lines: list[str]) -> list[str]:
-    """[small, large, small] pattern over each user's timestamp-ordered stream.
-    small := amount < S, large := amount >= S. Checked over every window of 3 CONSECUTIVE
-    (adjacent, after sorting) transactions per user — overlapping matches all count.
-    Output 'user_id: t1,t2,...' (start timestamp of each match, ascending); users with zero
-    matches are omitted entirely."""
-    lines = [ln.strip() for ln in lines if ln.strip()]
-    params, lines = _pop_params_line(lines)
-    S = params["S"]
-    by_user = _by_user_sorted(_parse_tx(lines))
-
+    """Params 'S=<int>'. For each user (sorted by user_id) with at least one [small, large, small]
+    run in timestamp order: 'user_id: t1,t2,...' (start timestamps ascending)."""
+    params, body = _split_params(lines)
+    by_user = _by_user_sorted(_parse_tx(body))
     out: list[str] = []
     for user in sorted(by_user):
-        events = by_user[user]
-        labels = ["small" if amt < S else "large" for _ts, amt in events]
-        starts = [
-            events[i][0]
-            for i in range(len(events) - 2)
-            if labels[i] == "small" and labels[i + 1] == "large" and labels[i + 2] == "small"
-        ]
+        starts = _pattern_starts(by_user[user], params["S"])
         if starts:
-            out.append(f"{user}: " + ",".join(str(s) for s in starts))
+            out.append(f"{user}: " + ",".join(map(str, starts)))
     return out
 
 

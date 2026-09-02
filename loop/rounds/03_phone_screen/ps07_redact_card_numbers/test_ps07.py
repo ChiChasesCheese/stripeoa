@@ -2,21 +2,18 @@ import random
 
 import pytest
 
+
 # ---------------------------------------------------------------- Part 1: bare digit runs
 @pytest.mark.part1
 def test_example_bare_pan(impl):
-    assert impl.part1(["user 4242424242424242 charged $10"]) == [
-        "user ************4242 charged $10"
-    ]
+    assert impl.part1(["user 4242424242424242 charged $10"]) == ["user ************4242 charged $10"]
 
 
 @pytest.mark.part1
 @pytest.mark.edge
 def test_boundary_lengths(impl):
     # 13 and 19 digits both count; 12 and 20 do not (never partially masked)
-    assert impl.part1(
-        ["4000000000006", "4000000000000000006", "123456789012", "12345678901234567890"]
-    ) == [
+    assert impl.part1(["4000000000006", "4000000000000000006", "123456789012", "12345678901234567890"]) == [
         "*********0006",
         "***************0006",
         "123456789012",
@@ -29,9 +26,7 @@ def test_boundary_lengths(impl):
 def test_over_redaction_timestamp(impl):
     # Part 1 has no Luhn/brand filter yet -- a 13-digit unix-ms timestamp gets wrongly redacted.
     # This is intentional and is exactly what Part 3 fixes.
-    assert impl.part1(['{"ts":1735689600000,"event":"login"}']) == [
-        '{"ts":*********0000,"event":"login"}'
-    ]
+    assert impl.part1(['{"ts":1735689600000,"event":"login"}']) == ['{"ts":*********0000,"event":"login"}']
 
 
 @pytest.mark.part1
@@ -161,9 +156,22 @@ def test_right_length_prefix_wrong_luhn_untouched(impl):
 @pytest.mark.edge
 def test_mixed_line_partial_redaction(impl):
     out = impl.part3(["real 4242424242424242 fake 1234567890123456 real 378282246310005"])
-    assert out == [
-        "real ************4242 fake 1234567890123456 real ***********0005"
-    ]
+    assert out == ["real ************4242 fake 1234567890123456 real ***********0005"]
+
+
+@pytest.mark.part3
+@pytest.mark.edge
+def test_separated_pan_is_validated_on_its_digits(impl):
+    # Luhn/brand run on the concatenated digits, masking still keeps the separators
+    out = impl.part3(["4242 4242 4242 4242 ok", "4242 4242 4242 4241 bad"])
+    assert out == ["**** **** **** 4242 ok", "4242 4242 4242 4241 bad"]
+
+
+@pytest.mark.part3
+@pytest.mark.edge
+def test_pan_chained_to_a_neighbouring_number_is_left_alone_by_design(impl):
+    # "12 4242424242424242" is one 18-digit chain -> no brand -> untouched (maximal-chain contract)
+    assert impl.part3(["ref 12 4242424242424242"]) == ["ref 12 4242424242424242"]
 
 
 @pytest.mark.part3
@@ -180,9 +188,7 @@ def test_direct_luhn_and_brand_helpers(impl):
 # ---------------------------------------------------------------- Part 4: streaming + stats
 @pytest.mark.part4
 def test_example_multi_card_with_stats(impl):
-    assert impl.part4(
-        ["4242424242424242 and 5555555555554444 both charged", "not a card: 42 42"]
-    ) == [
+    assert impl.part4(["4242424242424242 and 5555555555554444 both charged", "not a card: 42 42"]) == [
         "************4242 and ************4444 both charged",
         "not a card: 42 42",
         "REDACTED 2",
@@ -228,9 +234,7 @@ def test_stdin_stdout_part4(run_script):
     r = run_script(stdin)
     assert r.returncode == 0, r.stderr
     assert r.stdout == (
-        "************4242 and ************4444 both charged\n"
-        "not a card: 42 42\n"
-        "REDACTED 2\n"
+        "************4242 and ************4444 both charged\n" "not a card: 42 42\n" "REDACTED 2\n"
     )
 
 

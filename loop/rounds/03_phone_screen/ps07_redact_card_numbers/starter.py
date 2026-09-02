@@ -1,4 +1,5 @@
 """ps07 Redact card numbers from logs — YOUR implementation."""
+
 from __future__ import annotations
 
 import sys
@@ -63,16 +64,10 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
     if not raw:
         return
     header, body = raw[0].strip(), raw[1:]
-    if header == "PART 1":
-        out = part1(body)
-    elif header == "PART 2":
-        out = part2(body)
-    elif header == "PART 3":
-        out = part3(body)
-    elif header == "PART 4":
-        out = part4(body)
-    else:
+    parts = {"PART 1": part1, "PART 2": part2, "PART 3": part3, "PART 4": part4}
+    if header not in parts:
         raise ValueError(f"unknown header: {header!r}")
+    out = parts[header](body)
     stdout.write("\n".join(out) + ("\n" if out else ""))
 
 

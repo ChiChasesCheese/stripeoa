@@ -3,6 +3,7 @@
 Input shape (see problem.md): stdin is `PART n`, then (for Part 2/3/4 only) a params line
 `key=value key=value ...` with no comma, then data lines `user_id,amount,timestamp`.
 """
+
 from __future__ import annotations
 
 import sys

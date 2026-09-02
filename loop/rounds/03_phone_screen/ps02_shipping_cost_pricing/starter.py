@@ -3,6 +3,7 @@
 Input shape (see problem.md): stdin is `PART n`, then a `RATES` section (rate rows, schema
 depends on n), then an `ORDERS` section (`order_id,country,product,quantity` rows).
 """
+
 from __future__ import annotations
 
 import sys

@@ -87,3 +87,21 @@ validation and error paths (skip + count, never crash on bad input)
   回来核对本文件的规则定义是否需要调整。
 - 未确认真实面试是否要求处理带引号/嵌入逗号的 CSV 字段（本题假设简单 split(",") 足够，字段本身不含
   逗号），如果拿到反例应补充 RFC4180 引号解析。
+
+## Review（Fable 5.1，2026-09-01）
+**改了什么**
+- `solution.py` 重构为同一条流水线 `_data_lines → 解析成 Row → _aggregate → _render`：Part 1 用
+  `_parse_row_trusted`，Part 2 用 `_parse_row_checked`（返回 `None` 即坏行）+ `_roll_weekend(row)`，两个
+  part 共用 `_aggregate/_render`，不再各自维护一份聚合循环（原来 Part 2 是 Part 1 的复制粘贴版）。
+- 规则集中为常量：`FIELD_COUNT`、`AMOUNT_RE`、`DATE_RE`、`ROLL_FORWARD_DAYS = {SAT: 2, SUN: 1}`；`Row`
+  用 `NamedTuple` 命名字段；日期合法性改用 `date.fromisoformat`（正则先定形状）；`AMOUNT_RE.match` →
+  `fullmatch`；`main` 用 `PARTS` 表分发（starter_template/starter 同步）。
+- problem.md 补两句定死：字段两侧空格容忍（实现一直如此，题面没写）；Part 1 不做周末顺延。
+- 测试 +2：Part 1 周六日期不顺延（区分两个 part）；格式化 `1234567.89` 无千分位、`-0.05` 保留前导 0。
+  21 → 23。lint：black 110 + flake8 通过（此前 4 个文件 black 未格式化）。
+
+**为什么**：checklist S 项"后 part 复用前 part / 规则用表不用散 if / 解析-逻辑-格式化分离"；原实现
+Part 2 里"归一化在入 key 之前"这条关键规则埋在 12 行循环中间，现在是 `rows.append(_roll_weekend(row))`
+一行加注释，面试官 60 秒能看到。
+
+**遗留**：Part 2 规则仍是重建（见 Open points）；带引号/嵌入逗号的 CSV 未处理（题面明确假设简单 split）。

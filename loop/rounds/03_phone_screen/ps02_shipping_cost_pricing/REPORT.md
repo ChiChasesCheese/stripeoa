@@ -86,3 +86,17 @@ incremental design (Part 2's lookup reused unmodified as Part 3's `fixed` branch
    qty=20 的对比现场证明。
 7. **收尾**：主动提"如果一个订单要买多个 product,现在的单行 order protocol 怎么扩展"——展示对
    协议可扩展性的思考,呼应面经里"没有自动测例,面试官看代码结构"的评分导向。
+
+## Review（Fable 5.1，2026-09-01）
+**改了什么**
+- `solution.py` 重构为范本（`part1/2/3` 与 `main` 签名不变）：`Band` 由 4 元组改为 NamedTuple 并带 `contains(qty)`
+  （闭区间只写一次）；定价函数改为"返回整数分，算不出就 `raise PricingError`"，取代原来贯穿各层的 `(cost, err)`
+  tuple；三种错误文案只在 `_price_orders` 的 `try/except` 一处变成 `ERROR ...` 字符串。`_price_tiered` 30 行拆为
+  "找档位 + fixed"与 `_price_incremental`；`_split_sections` 的 `assert` 改为 `ValueError`；`parse_money_to_cents`
+  去掉题面未定义的负数分支并用 `partition` 简化；`TIER_TYPES` 常量。
+- `test_ps02.py` 新增 2 个：`part1 edge` 零数量 + 未知商品仍报错（题面明文，原未测）；`part3 edge` incremental 走到
+  `inf` 顶档（`$215.00`，原来 `inf` 分支只在报错路径被触及）。现在 23 tests：part1 9 · part2 6 · part3 8；
+  edge 11 · fmt 1 · io 3 · perf 1。`IMPL=starter` 22 failed / 1 passed。
+- black 格式化（4 文件），`loop/lint.sh` 通过。
+**为什么**：无 F 级 bug；全部是 S 级可读性/复用/错误处理约定。4 组 worked examples 已用 `python3 solution.py` 逐字核对。
+**遗留**：无。`bisect` 版档位查找仍作为追问讨论不实现。

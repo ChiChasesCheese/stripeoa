@@ -26,3 +26,9 @@
 | 2026-09-01 | T9 cd02 | sonnet | loop/rounds/06_coding_onsite/cd02_payment_ledger | 21 | (this) | 类 + partN 薄包装（CONVENTIONS 偏离已注） |
 | 2026-09-01 | T14 int01 | sonnet | loop/rounds/05_integration/int01_bikemap | 20 | (this) | 5 part；data 为重建；Part5 CLI 直接 print |
 | 2026-09-01 | T14 int02 | sonnet | loop/rounds/05_integration/int02_payments_reconciliation | 29 | (this) | with_retry 只重试 HTTPError（设计选择） |
+| 2026-09-02 | T12 cd07 | sonnet | loop/rounds/06_coding_onsite/cd07_transactions_rules_ai | 23 | (this) | AI 轮版规则引擎；代理撞 limit 前已完成 |
+| 2026-09-02 | T12 bs01 | sonnet | loop/rounds/04_bug_squash/bs01_mini_template_engine | start: 2 失败 / ref: 17 绿 | (this) | 两个注入 bug（visitor 缺节点、URI 目录穿越）；bs02 未开始 → backlog |
+| 2026-09-02 | T15 int03 | sonnet | loop/rounds/05_integration/int03_multi_json_etl | 26 | (this) | 代理撞 limit 前完成 |
+| 2026-09-02 | T15 int04 WIP | sonnet | loop/rounds/05_integration/int04_review_assignment_gitdiff | 无测试（缺 starter.py/test/REPORT） | (this) | 半成品，backlog 收尾 |
+| 2026-09-02 | R1 ps01–03 | fable(review)+写入 | ps01 29 / ps02 23 / ps03 20 tests + 3 篇文章 | 绿；lint 通过 | (this) | ps04 未做 → 转 sonnet |
+| 2026-09-02 | R2 ps05–07 | fable(review)+写入 | ps05 26 / ps06 23 / ps07 29 tests + ps05/06 文章 | 绿；lint 通过 | (this) | ps07 文章、ps08 未做 → 转 sonnet |

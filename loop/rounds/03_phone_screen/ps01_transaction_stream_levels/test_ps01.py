@@ -69,7 +69,7 @@ def test_example_threshold_flag(impl):
 
 @pytest.mark.part2
 @pytest.mark.edge
-def test_window_boundary_closed_inclusive(impl):
+def test_p2_window_boundary_closed_inclusive(impl):
     # exactly W seconds old is still inside the window
     assert impl.part2(["T=10 W=60", "u,5,0", "u,5,60"]) == ["u: 10"]
     # one second older falls outside
@@ -109,9 +109,9 @@ def test_example_topk(impl):
 
 @pytest.mark.part3
 @pytest.mark.edge
-def test_window_boundary_closed_inclusive(impl):
+def test_p3_window_boundary_closed_inclusive(impl):
     assert impl.part3(["t=100 K=5", "u,5,40"]) == ["u: 5"]  # 40 == t-60, included
-    assert impl.part3(["t=100 K=5", "u,5,39"]) == []          # 39 < t-60, excluded
+    assert impl.part3(["t=100 K=5", "u,5,39"]) == []  # 39 < t-60, excluded
 
 
 @pytest.mark.part3
@@ -193,6 +193,14 @@ def test_stdin_stdout_exact_part3(run_script):
     r = run_script("PART 3\n" + P3_PARAMS + "\n" + "\n".join(P3_LINES) + "\n")
     assert r.returncode == 0, r.stderr
     assert r.stdout == "\n".join(P3_OUT) + "\n"
+
+
+@pytest.mark.part4
+@pytest.mark.io
+def test_stdin_stdout_exact_part4_with_params_line(run_script):
+    r = run_script("PART 4\n" + P4_PARAMS + "\n" + "\n".join(P4_LINES) + "\n")
+    assert r.returncode == 0, r.stderr
+    assert r.stdout == "\n".join(P4_OUT) + "\n"
 
 
 @pytest.mark.part1

@@ -1,16 +1,19 @@
 """ps07 Redact card numbers from logs — reference solution.
 
-Single-pass, no-backtracking scanner: `_scan_candidates` walks each log line once, producing
-maximal (start, end, digit_count) spans -- a span always starts and ends on a digit; when
-`allow_separators` is True a single ' ' or '-' between two digit groups is absorbed into the
-span too, but never a leading/trailing/doubled separator. Parts only differ in two booleans
-(`allow_separators`, `check_luhn_brand`) fed into one shared `_redact_line` engine -- this is
-the incremental design the problem asks for (Part 1 subset of Part 2 subset of Part 3/4).
+One engine, four parts. `_scan_candidates` walks a log line once (no backtracking) and yields
+`Span(start, end, digit_count)` for every maximal digit run -- when `allow_separators` is on, a
+single ' ' or '-' sitting between two digits is absorbed into the run, but never a leading,
+trailing or doubled one. `_redact_line` then keeps the spans that qualify (length window, and for
+Parts 3/4 also Luhn + brand) and masks them in place, digits only, last 4 digits kept. The parts
+differ solely in the two policy flags they pass in: Part 1 ⊂ Part 2 ⊂ Part 3 = Part 4 + stats.
 """
+
 from __future__ import annotations
 
 import sys
+from typing import NamedTuple
 
+# ------------------------------------------------------------------ rules (constants, one place)
 # (network, length, prefix_len, prefix_min, prefix_max) -- a candidate matches a network iff its
 # digit length equals `length` and its first `prefix_len` digits, read as an int, fall in
 # [prefix_min, prefix_max]. Multiple rows per network cover disjoint prefix ranges/lengths.
@@ -26,9 +29,18 @@ NETWORK_RULES: tuple[tuple[str, int, int, int, int], ...] = (
     ("DISCOVER", 16, 2, 65, 65),
 )
 
-MIN_PAN_DIGITS = 13
-MAX_PAN_DIGITS = 19
-KEEP_LAST = 4
+MIN_PAN_DIGITS, MAX_PAN_DIGITS = 13, 19  # real-world PAN length window (inclusive)
+KEEP_LAST = 4  # digits left visible at the end of a masked span
+SEPARATORS = " -"  # Part 2+: may join two digit groups, one at a time
+
+
+class Span(NamedTuple):
+    start: int  # index of the first digit
+    end: int  # index one past the last digit
+    digit_count: int  # digits only, separators excluded
+
+
+# ------------------------------------------------------------------ PAN validation (reused from q05)
 
 
 def luhn_ok(digits: str) -> bool:
@@ -59,33 +71,26 @@ def is_card_number(digits: str) -> bool:
     return brand_of(digits) is not None and luhn_ok(digits)
 
 
-def _scan_candidates(line: str, allow_separators: bool) -> list[tuple[int, int, int]]:
-    """Single pass over `line`. Returns (start, end, digit_count) for every maximal run of
-    digits (optionally chained through single ' '/'-' separators between two digit groups).
-    `line[start:end]` always starts and ends on a digit. O(len(line)) total: `i` only ever
-    advances, so the outer while touches each character a bounded number of times."""
-    n = len(line)
-    spans: list[tuple[int, int, int]] = []
-    i = 0
+# ------------------------------------------------------------------ scanning + masking
+def _scan_candidates(line: str, allow_separators: bool) -> list[Span]:
+    """Single pass: every maximal run of digits, optionally chained through single ' '/'-'
+    separators that sit between two digits. A span always starts and ends on a digit. O(len(line)):
+    `i` only ever moves forward."""
+    spans: list[Span] = []
+    n, i = len(line), 0
     while i < n:
-        if line[i].isdigit():
-            start = i
-            j = i
-            count = 0
-            last_digit_end = i
-            while j < n:
-                if line[j].isdigit():
-                    j += 1
-                    count += 1
-                    last_digit_end = j
-                elif allow_separators and line[j] in " -" and j + 1 < n and line[j + 1].isdigit():
-                    j += 1  # absorb a single separator only if another digit follows
-                else:
-                    break
-            spans.append((start, last_digit_end, count))
-            i = last_digit_end
-        else:
+        if not line[i].isdigit():
             i += 1
+            continue
+        start, count = i, 0
+        while i < n:
+            if line[i].isdigit():
+                i, count = i + 1, count + 1
+            elif allow_separators and line[i] in SEPARATORS and i + 1 < n and line[i + 1].isdigit():
+                i += 1  # absorb one separator, only because a digit follows it
+            else:
+                break
+        spans.append(Span(start, i, count))  # the loop above always stops right after a digit
     return spans
 
 
@@ -104,29 +109,31 @@ def _mask_span(text: str, count: int) -> str:
     return "".join(out)
 
 
+def _qualifies(line: str, span: Span, check_luhn_brand: bool) -> bool:
+    """Length window always; Luhn + brand only when the part asks for it."""
+    if not MIN_PAN_DIGITS <= span.digit_count <= MAX_PAN_DIGITS:
+        return False
+    if not check_luhn_brand:
+        return True
+    digits = "".join(ch for ch in line[span.start : span.end] if ch.isdigit())
+    return is_card_number(digits)
+
+
 def _redact_line(line: str, allow_separators: bool, check_luhn_brand: bool) -> tuple[str, int]:
-    """Redact every qualifying candidate in one line. Returns (new_line, spans_redacted)."""
-    spans = _scan_candidates(line, allow_separators)
-    if not spans:
-        return line, 0
-    parts: list[str] = []
-    cursor = 0
-    redacted = 0
-    for start, end, count in spans:
-        if count < MIN_PAN_DIGITS or count > MAX_PAN_DIGITS:
+    """Mask every qualifying span of one line in place. Returns (new_line, spans_redacted)."""
+    pieces: list[str] = []  # list-append + one join: no quadratic str += rebuilding
+    cursor = redacted = 0
+    for span in _scan_candidates(line, allow_separators):
+        if not _qualifies(line, span, check_luhn_brand):
             continue
-        if check_luhn_brand:
-            digits = "".join(ch for ch in line[start:end] if ch.isdigit())
-            if not is_card_number(digits):
-                continue
-        parts.append(line[cursor:start])
-        parts.append(_mask_span(line[start:end], count))
-        cursor = end
-        redacted += 1
-    parts.append(line[cursor:])
-    return "".join(parts), redacted
+        pieces.append(line[cursor : span.start])
+        pieces.append(_mask_span(line[span.start : span.end], span.digit_count))
+        cursor, redacted = span.end, redacted + 1
+    pieces.append(line[cursor:])
+    return "".join(pieces), redacted
 
 
+# ------------------------------------------------------------------ parts (policy flags only)
 def part1(lines: list[str]) -> list[str]:
     """Bare digit runs only, no Luhn/brand filter. See problem.md Part 1."""
     return [_redact_line(ln, allow_separators=False, check_luhn_brand=False)[0] for ln in lines]
@@ -143,16 +150,18 @@ def part3(lines: list[str]) -> list[str]:
 
 
 def part4(lines: list[str]) -> list[str]:
-    """Same detection as Part 3, streaming-shaped (single pass per line, no re-scans), plus a
-    trailing 'REDACTED n' stats line counting spans actually masked across all input."""
+    """Same detection as Part 3 (already single-pass per line), plus a trailing 'REDACTED n'
+    line counting spans actually masked across the whole input."""
     out: list[str] = []
     total = 0
     for ln in lines:
         new_ln, n = _redact_line(ln, allow_separators=True, check_luhn_brand=True)
         out.append(new_ln)
         total += n
-    out.append(f"REDACTED {total}")
-    return out
+    return out + [f"REDACTED {total}"]
+
+
+PARTS = {"PART 1": part1, "PART 2": part2, "PART 3": part3, "PART 4": part4}
 
 
 def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
@@ -160,16 +169,9 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
     if not raw:
         return
     header, body = raw[0].strip(), raw[1:]
-    if header == "PART 1":
-        out = part1(body)
-    elif header == "PART 2":
-        out = part2(body)
-    elif header == "PART 3":
-        out = part3(body)
-    elif header == "PART 4":
-        out = part4(body)
-    else:
+    if header not in PARTS:
         raise ValueError(f"unknown header: {header!r}")
+    out = PARTS[header](body)
     stdout.write("\n".join(out) + ("\n" if out else ""))
 
 

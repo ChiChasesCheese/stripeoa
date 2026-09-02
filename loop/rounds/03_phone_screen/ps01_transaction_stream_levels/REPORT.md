@@ -78,3 +78,18 @@ shared across levels 2 and 4)
    而不是恰好数据本来就有序。
 7. **收尾**：主动提一句"如果这是无限流,Part 1/Part 2 已经很接近流式处理了,只是被'先读完整个
    stdin'这个 I/O 边界挡住"——展示对生产场景的思考,呼应 Stripe 真实的实时风控场景。
+
+## Review（Fable 5.1，2026-09-01）
+**改了什么**
+- `test_ps01.py`：`test_window_boundary_closed_inclusive` 在 part2 与 part3 各定义一次（flake8 F811），
+  后者覆盖前者，Part 2 的窗口边界测试实际上从未运行。重命名为 `test_p2_…` / `test_p3_…`，两个都跑且通过。
+  新增 1 个 `part4 io` 测试（参数行 + 逗号连接格式走完整脚本）。现在 29 tests：part1 8 · part2 7 ·
+  part3 7 · part4 7；edge 11 · fmt 3 · io 4 · perf 1。`IMPL=starter` 21 failed / 8 passed。
+- `solution.py` 重构为范本（公共 API 不变）：`Tx` NamedTuple 取代 4 元组；`_split_params` 把"去空行 +
+  弹参数行"收拢到一处（原来 4 个 part 各重复一遍 strip）；规则层拆成 `_totals` / `_first_crossing` /
+  `_pattern_starts`，每个只面对一个用户的排好序 list；Part 3 复用 Part 1 的 `_totals`；Part 4 的模式改为
+  常量 `PATTERN`（对应追问 5"模式可配置"）；`DEFAULT_W` 常量。每个 `partN` ≤ 8 行：解析 → 规则 → 格式化。
+- black 格式化（docstring 后空行、注释对齐），`loop/lint.sh` 通过。
+**为什么**：F811 是真 bug（测试被吞）；其余是 S 项可读性/复用。题面语义、worked examples 逐字输出均未变
+（4 个样例已用 `python3 solution.py` 逐个核对）。
+**遗留**：无。堆版 top-K 仍只在 problem.md 作为追问讨论，不实现。

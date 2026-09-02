@@ -74,6 +74,20 @@ def test_sort_by_merchant_then_date_then_card_type(impl):
 
 
 @pytest.mark.part1
+@pytest.mark.edge
+def test_part1_does_not_roll_weekend_dates(impl):
+    rows = [HEADER, "c1,m1,2026-08-08,visa,10.00"]  # Saturday stays Saturday in Part 1
+    assert impl.part1(rows) == ["m1,visa,2026-08-08,10.00"]
+
+
+@pytest.mark.part1
+@pytest.mark.fmt
+def test_totals_have_no_thousands_separator_and_sub_unit_negative_keeps_zero(impl):
+    rows = [HEADER, "c1,m1,2026-08-03,visa,1234567.89", "c2,m2,2026-08-03,visa,-0.05"]
+    assert impl.part1(rows) == ["m1,visa,2026-08-03,1234567.89", "m2,visa,2026-08-03,-0.05"]
+
+
+@pytest.mark.part1
 def test_blank_lines_ignored(impl):
     rows = [HEADER, "", "c1,m1,2026-08-03,visa,10.00", "   "]
     assert impl.part1(rows) == ["m1,visa,2026-08-03,10.00"]
@@ -118,7 +132,7 @@ def test_saturday_and_sunday_both_roll_to_same_monday(impl):
     rows = [
         HEADER,
         "c1,m1,2026-08-08,visa,10.00",  # Saturday -> Monday 08-10
-        "c2,m1,2026-08-09,visa,5.00",   # Sunday -> Monday 08-10
+        "c2,m1,2026-08-09,visa,5.00",  # Sunday -> Monday 08-10
     ]
     assert impl.part2(rows) == ["m1,visa,2026-08-10,15.00", "SKIPPED 0"]
 
@@ -143,10 +157,10 @@ def test_bad_field_count_skipped(impl):
 def test_bad_amount_formats_skipped(impl):
     rows = [
         HEADER,
-        "c1,m1,2026-08-03,visa,150.5",   # one decimal digit
-        "c2,m1,2026-08-03,visa,150",     # no decimal point
-        "c3,m1,2026-08-03,visa,abc",     # not numeric
-        "c4,m1,2026-08-03,visa,",        # empty
+        "c1,m1,2026-08-03,visa,150.5",  # one decimal digit
+        "c2,m1,2026-08-03,visa,150",  # no decimal point
+        "c3,m1,2026-08-03,visa,abc",  # not numeric
+        "c4,m1,2026-08-03,visa,",  # empty
     ]
     assert impl.part2(rows) == ["SKIPPED 4"]
 

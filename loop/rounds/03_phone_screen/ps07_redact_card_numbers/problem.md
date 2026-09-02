@@ -192,6 +192,9 @@ REDACTED 2
 - 10^5 lines / 10^4 chars per line must complete comfortably inside the 2 s perf budget — no
   regex with nested quantifiers over the whole line, no O(line²) rebuilding of the output string
 - `REDACTED n` counts spans actually masked (post-filter), not raw Part-1/2-style candidates
+- Part 3/4 **by design**: a real PAN glued to a short number by one space (`ref 12 4242424242424242`)
+  is scanned as one 18-digit chain that matches no brand, so it is left alone — the maximal-chain
+  rule is the contract; the recall/precision trade-off is follow-up question 1
 
 ## Variants seen in the wild
 - staffengprep's "Valid Credit Card Number (Redaction)" collapses masking + brand check + Luhn
@@ -221,7 +224,7 @@ backtracking regex)
   networks it already covers; this problem's brand table is q05's plus Discover and the
   `2221`–`2720` Mastercard range
 
-## What this tests (面试官会怎么追问)
+## 面试官会怎么追问
 1. "Your Part 2 scanner joined a phone number into one candidate across two spaces — walk me
    through why, and show me the input where that happens before I ask." (worked example 2c —
    answer: greedy space/`-` chaining has no notion of "this looks like a phone number", only

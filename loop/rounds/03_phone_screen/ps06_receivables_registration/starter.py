@@ -1,4 +1,5 @@
 """ps06 Receivables registration — YOUR implementation."""
+
 from __future__ import annotations
 
 import sys
@@ -26,12 +27,10 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
     if not raw:
         return
     header, body = raw[0].strip(), raw[1:]
-    if header == "PART 1":
-        out = part1(body)
-    elif header == "PART 2":
-        out = part2(body)
-    else:
+    parts = {"PART 1": part1, "PART 2": part2}
+    if header not in parts:
         raise ValueError(f"unknown header: {header!r}")
+    out = parts[header](body)
     stdout.write("\n".join(out) + ("\n" if out else ""))
 
 

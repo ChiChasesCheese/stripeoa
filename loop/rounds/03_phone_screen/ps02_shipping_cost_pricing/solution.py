@@ -1,171 +1,179 @@
 """ps02 Shipping Cost Pricing — reference solution.
 
-Three independent pricing engines over the same shape (a rate table + a list of orders):
+Three unlock-next-part levels over the same shape (a RATES table + an ORDERS list):
   Part 1: flat per-unit price lookup.
-  Part 2: quantity tiers, single matched-band rate applied to the whole order
-          (this is exactly what Part 3 calls the 'fixed' tier type).
-  Part 3: same tiers, each band additionally carries type in {incremental, fixed}; the type
-          of the MATCHED band (the one containing the order's quantity) decides whether the
-          whole quantity is billed at that one rate ('fixed') or billed progressively through
-          every band from the first up to the matched one ('incremental' — tax-bracket style).
+  Part 2: quantity tiers — the whole order is billed at the single band containing `quantity`
+          (exactly what Part 3 calls a 'fixed' band).
+  Part 3: each band also carries a type in {incremental, fixed}; the MATCHED band's type decides
+          whether the order pays one rate ('fixed') or walks every band from qty 1 up to the
+          matched one, tax-bracket style ('incremental').
 
-All money is integer cents (see parse_money_to_cents / fmt_cents) — no floats anywhere.
+Money is integer cents end to end (`parse_money_to_cents` / `fmt_cents`) — no floats anywhere.
+Errors are raised as `PricingError` inside the pricing rules and turned into the three verbatim
+`ERROR ...` strings in exactly one place (`_price_orders`), so the rules never touch formatting.
 """
+
 from __future__ import annotations
 
 import sys
+from typing import Callable, NamedTuple
 
-Band = tuple[int, int | None, int, str]  # (min_qty, max_qty_or_None, cost_cents, type)
+TIER_TYPES = ("incremental", "fixed")
+
+
+class Band(NamedTuple):
+    min_qty: int
+    max_qty: int | None  # None == the literal 'inf' (open-ended top band)
+    cost: int  # per-unit rate in cents
+    kind: str  # 'incremental' | 'fixed'
+
+    def contains(self, qty: int) -> bool:
+        """Closed interval [min_qty, max_qty] — both boundaries belong to this band."""
+        return self.min_qty <= qty and (self.max_qty is None or qty <= self.max_qty)
+
+
+class PricingError(Exception):
+    """One of the three pinned messages: unknown product / no tier / incremental gap."""
+
+
+# ------------------------------------------------------------------ money
 
 
 def parse_money_to_cents(raw: str) -> int:
-    """Accepts '5', '5.0', '5.00', '-3.5' (no thousands separators). Exactly 0-2 decimal
-    digits; more than 2 is a ValueError (kept strict — a rate table is not user free-text)."""
-    s = raw.strip()
-    neg = s.startswith("-")
-    if neg:
-        s = s[1:]
-    if "." in s:
-        whole, frac = s.split(".", 1)
-        if len(frac) > 2:
-            raise ValueError(f"too many decimal places: {raw!r}")
-        frac = frac.ljust(2, "0")
-    else:
-        whole, frac = s, "00"
-    cents = int(whole) * 100 + int(frac or "0")
-    return -cents if neg else cents
+    """'5', '5.0', '5.00', '12.50' -> cents. More than 2 decimal digits is a format error
+    (a rate table is not free text — stay strict rather than silently rounding)."""
+    whole, _, frac = raw.strip().partition(".")
+    if len(frac) > 2:
+        raise ValueError(f"too many decimal places: {raw!r}")
+    return int(whole) * 100 + int(frac.ljust(2, "0"))  # '5.5' -> frac '50', not '05'
 
 
 def fmt_cents(cents: int) -> str:
-    sign = "-" if cents < 0 else ""
-    cents = abs(cents)
-    return f"{sign}${cents // 100}.{cents % 100:02d}"
+    """Two decimals, '$' sign, no thousands separator: 1450 -> '$14.50'."""
+    return f"${cents // 100}.{cents % 100:02d}"
 
 
-def parse_max_qty(raw: str) -> int | None:
-    """'inf' (exact, lowercase) means open-ended; anything else must be an int."""
-    raw = raw.strip()
-    return None if raw == "inf" else int(raw)
-
-
-def _nonblank(lines: list[str]) -> list[str]:
-    return [ln.strip() for ln in lines if ln.strip()]
+# ------------------------------------------------------------------ parsing
 
 
 def _split_sections(lines: list[str]) -> tuple[list[str], list[str]]:
-    """lines (already non-blank) = 'RATES', rate rows..., 'ORDERS', order rows...
-    Returns (rate_lines, order_lines)."""
-    lines = _nonblank(lines)
-    assert lines and lines[0] == "RATES", "expected a RATES section"
+    """'RATES', rate rows..., 'ORDERS', order rows... -> (rate_rows, order_rows), blanks dropped."""
+    lines = [ln.strip() for ln in lines if ln.strip()]
+    if not lines or lines[0] != "RATES":
+        raise ValueError("expected a RATES section")
     split = lines.index("ORDERS")
     return lines[1:split], lines[split + 1 :]
 
 
-def _parse_flat_rates(rate_lines: list[str]) -> dict[tuple[str, str], int]:
+def _parse_flat_rates(rate_rows: list[str]) -> dict[tuple[str, str], int]:
+    """'country,product,unit_cost' rows -> {(country, product): unit_cost_cents}."""
     table: dict[tuple[str, str], int] = {}
-    for ln in rate_lines:
-        country, product, unit_cost = (p.strip() for p in ln.split(","))
+    for row in rate_rows:
+        country, product, unit_cost = (p.strip() for p in row.split(","))
         table[(country, product)] = parse_money_to_cents(unit_cost)
     return table
 
 
-def _parse_tiered_rates(rate_lines: list[str], with_type: bool) -> dict[tuple[str, str], list[Band]]:
+def _parse_tiered_rates(rate_rows: list[str], with_type: bool) -> dict[tuple[str, str], list[Band]]:
+    """'country,product,min,max,cost[,type]' rows -> {(country, product): bands sorted by min_qty}.
+    The file order of bands is untrusted; Part 2 rows have no type column and behave as 'fixed'."""
     table: dict[tuple[str, str], list[Band]] = {}
-    for ln in rate_lines:
-        fields = [p.strip() for p in ln.split(",")]
-        if with_type:
-            country, product, mn, mx, cost, typ = fields
-            if typ not in ("incremental", "fixed"):
-                raise ValueError(f"invalid tier type: {typ!r}")
-        else:
-            country, product, mn, mx, cost = fields
-            typ = "fixed"  # Part 2 has no type column: behaves exactly like a 'fixed' band
-        band: Band = (int(mn), parse_max_qty(mx), parse_money_to_cents(cost), typ)
+    for row in rate_rows:
+        fields = [p.strip() for p in row.split(",")]
+        country, product, min_qty, max_qty, cost = fields[:5]
+        kind = fields[5] if with_type else "fixed"
+        if kind not in TIER_TYPES:
+            raise ValueError(f"invalid tier type: {kind!r}")
+        band = Band(
+            int(min_qty), None if max_qty == "inf" else int(max_qty), parse_money_to_cents(cost), kind
+        )
         table.setdefault((country, product), []).append(band)
     for bands in table.values():
-        bands.sort(key=lambda b: b[0])
+        bands.sort(key=lambda b: b.min_qty)
     return table
 
 
-def _find_band(bands: list[Band], qty: int) -> Band | None:
-    for mn, mx, cost, typ in bands:
-        if mn <= qty and (mx is None or qty <= mx):
-            return (mn, mx, cost, typ)
-    return None
+# ------------------------------------------------------------------ pricing rules (cents in, cents out)
 
 
-def _price_flat(table: dict[tuple[str, str], int], country: str, product: str, qty: int) -> tuple[int | None, str | None]:
-    key = (country, product)
-    if key not in table:
-        return None, f"unknown product {country}/{product}"
-    return qty * table[key], None
+def _price_flat(table: dict[tuple[str, str], int], country: str, product: str, qty: int) -> int:
+    """Part 1: unit_cost * qty; the product must exist even when qty == 0."""
+    if (country, product) not in table:
+        raise PricingError(f"unknown product {country}/{product}")
+    return qty * table[(country, product)]
 
 
-def _price_tiered(
-    table: dict[tuple[str, str], list[Band]], country: str, product: str, qty: int
-) -> tuple[int | None, str | None]:
-    key = (country, product)
-    if key not in table:
-        return None, f"unknown product {country}/{product}"
+def _price_incremental(bands: list[Band], qty: int, label: str) -> int:
+    """Graduated billing: walk bands ascending from qty 1, each band charging its own rate for the
+    units inside it, until the band holding `qty`. The chain must be contiguous from 1 up to
+    there — a hole the order actually has to cross is an 'incremental gap' error."""
+    total, expected_start = 0, 1
+    for band in bands:
+        if band.min_qty != expected_start:
+            raise PricingError(f"incremental gap for {label} at qty={qty}")
+        upper = qty if band.max_qty is None else min(qty, band.max_qty)
+        total += (upper - band.min_qty + 1) * band.cost
+        if upper == qty:
+            return total
+        expected_start = band.max_qty + 1
+    raise PricingError(f"no tier for {label} at qty={qty}")  # unreachable once a band matched
+
+
+def _price_tiered(table: dict[tuple[str, str], list[Band]], country: str, product: str, qty: int) -> int:
+    """Parts 2 & 3: find the band containing qty; bill the whole order by that band's type."""
+    label = f"{country}/{product}"
+    if (country, product) not in table:
+        raise PricingError(f"unknown product {label}")
     if qty == 0:
-        return 0, None  # zero items always costs zero, no tier lookup needed
-    bands = table[key]
-    matched = _find_band(bands, qty)
+        return 0  # zero items cost zero; no tier lookup needed (but the product had to exist)
+    bands = table[(country, product)]
+    matched = next((b for b in bands if b.contains(qty)), None)
     if matched is None:
-        return None, f"no tier for {country}/{product} at qty={qty}"
-    _mn, _mx, cost, typ = matched
-    if typ == "fixed":
-        return qty * cost, None
-
-    # incremental: walk bands ascending from qty 1, summing each band's own rate for the
-    # units that fall inside it, stopping once we've covered the matched band.
-    total = 0
-    expected_start = 1
-    for b_mn, b_mx, b_cost, _b_typ in bands:
-        if b_mn > qty:
-            break
-        if b_mn != expected_start:
-            return None, f"incremental gap for {country}/{product} at qty={qty}"
-        upper = qty if b_mx is None else min(qty, b_mx)
-        total += (upper - b_mn + 1) * b_cost
-        if b_mx is None or b_mx >= qty:
-            break
-        expected_start = b_mx + 1
-    return total, None
+        raise PricingError(f"no tier for {label} at qty={qty}")
+    if matched.kind == "fixed":
+        return qty * matched.cost  # Part 2's rule, verbatim
+    return _price_incremental(bands, qty, label)
 
 
-def _price_orders(order_lines: list[str], price_one) -> list[str]:
-    out = []
-    for ln in order_lines:
-        order_id, country, product, qty = (p.strip() for p in ln.split(","))
-        cost, err = price_one(country, product, int(qty))
-        out.append(f"{order_id}: ERROR {err}" if err else f"{order_id}: {fmt_cents(cost)}")
+# ------------------------------------------------------------------ output boundary
+
+
+def _price_orders(order_rows: list[str], price_one: Callable[[str, str, int], int]) -> list[str]:
+    """'order_id,country,product,quantity' rows -> 'order_id: $x.xx' or 'order_id: ERROR <msg>',
+    one per order in input order. The only place errors become strings."""
+    out: list[str] = []
+    for row in order_rows:
+        order_id, country, product, qty = (p.strip() for p in row.split(","))
+        try:
+            out.append(f"{order_id}: {fmt_cents(price_one(country, product, int(qty)))}")
+        except PricingError as err:
+            out.append(f"{order_id}: ERROR {err}")
     return out
 
 
 def part1(lines: list[str]) -> list[str]:
     """Flat per-unit price: RATES rows 'country,product,unit_cost'; ORDERS rows
     'order_id,country,product,quantity'. Output 'order_id: $x.xx' (or ERROR), input order."""
-    rate_lines, order_lines = _split_sections(lines)
-    table = _parse_flat_rates(rate_lines)
-    return _price_orders(order_lines, lambda c, p, q: _price_flat(table, c, p, q))
+    rate_rows, order_rows = _split_sections(lines)
+    table = _parse_flat_rates(rate_rows)
+    return _price_orders(order_rows, lambda c, p, q: _price_flat(table, c, p, q))
 
 
 def part2(lines: list[str]) -> list[str]:
     """Quantity tiers: RATES rows 'country,product,min_qty,max_qty,cost' (closed interval
     [min_qty, max_qty]; max_qty may be the literal 'inf'). The whole order quantity is billed
     at the single matched band's rate (no cumulative summation — see Part 3 for that)."""
-    rate_lines, order_lines = _split_sections(lines)
-    table = _parse_tiered_rates(rate_lines, with_type=False)
-    return _price_orders(order_lines, lambda c, p, q: _price_tiered(table, c, p, q))
+    rate_rows, order_rows = _split_sections(lines)
+    table = _parse_tiered_rates(rate_rows, with_type=False)
+    return _price_orders(order_rows, lambda c, p, q: _price_tiered(table, c, p, q))
 
 
 def part3(lines: list[str]) -> list[str]:
     """Same tiers as Part 2 plus a trailing 'incremental'/'fixed' column per band. The type of
     the band that CONTAINS the order's quantity decides the whole order's pricing mode."""
-    rate_lines, order_lines = _split_sections(lines)
-    table = _parse_tiered_rates(rate_lines, with_type=True)
-    return _price_orders(order_lines, lambda c, p, q: _price_tiered(table, c, p, q))
+    rate_rows, order_rows = _split_sections(lines)
+    table = _parse_tiered_rates(rate_rows, with_type=True)
+    return _price_orders(order_rows, lambda c, p, q: _price_tiered(table, c, p, q))
 
 
 def main(stdin=sys.stdin, stdout=sys.stdout) -> None:

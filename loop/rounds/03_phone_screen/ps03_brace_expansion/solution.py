@@ -5,21 +5,29 @@ endpoint templates):
   Part 1 - one un-nested group, well-formed input assumed.
   Part 2 - same scope (at most one group, no nesting) but malformed input must be handled:
            unmatched braces, more than one group, or a group with < 2 comma-separated tokens ->
-           the pattern is echoed back unchanged (see `_validate_single`).
+           the pattern is echoed back unchanged.
   Part 3 - groups may nest and a pattern may contain several groups (cartesian product); the
-           same malformed -> echo-unchanged contract now covers the richer grammar (`_validate`).
+           same malformed -> echo-unchanged contract now covers the richer grammar.
 
 Order is always preserved (first token first) and duplicates are never deduped or sorted — that
 is the deliberate difference from the sorted/deduped LC 1087 style (see `qA03_lc1087_brace_expansion`
 in `problems/`): this is a phone-screen "glob expansion" question, not the LeetCode one.
+
+Layout: two scanning helpers (`_find_matching`, `_split_top_commas`) -> `_segments` turns a
+pattern into "literal run | group options" pieces -> `_expand` multiplies them (cartesian
+product) -> `_is_well_formed` mirrors the same walk but only answers yes/no. Each part is then
+one line: validate (or not) + expand.
 """
+
 from __future__ import annotations
 
 import sys
 
+# ------------------------------------------------------------------ scanning helpers
+
 
 def _find_matching(s: str, i: int) -> int:
-    """s[i] == '{'. Index of the matching '}' (brace-depth aware), or -1 if unterminated."""
+    """s[i] == '{'. Index of the matching '}' (brace-depth aware); ValueError if unterminated."""
     depth = 0
     for j in range(i, len(s)):
         if s[j] == "{":
@@ -28,14 +36,13 @@ def _find_matching(s: str, i: int) -> int:
             depth -= 1
             if depth == 0:
                 return j
-    return -1  # unterminated
+    raise ValueError(f"unterminated group at {i} in {s!r}")
 
 
 def _split_top_commas(s: str) -> list[str]:
-    """Split s on ',' at brace-depth 0 (depth local to this substring)."""
+    """Split s on ',' at brace-depth 0 (nested groups keep their own commas)."""
     parts: list[str] = []
-    depth = 0
-    start = 0
+    depth, start = 0, 0
     for i, c in enumerate(s):
         if c == "{":
             depth += 1
@@ -48,86 +55,68 @@ def _split_top_commas(s: str) -> list[str]:
     return parts
 
 
-def _expand(s: str) -> list[str]:
-    """Expand a well-formed pattern (balanced braces, every group has >= 2 alternatives; not
-    re-checked here -- callers that need robustness validate first). Segments (literal runs and
-    groups) are expanded left to right; within a group each comma-separated alternative is itself
-    expanded recursively and the results are concatenated in written order (union, no dedup) --
-    so nesting and multiple groups both fall out of one segment/cartesian-product walk."""
+# ------------------------------------------------------------------ expansion (well-formed input)
+
+
+def _segments(s: str) -> list[list[str]]:
+    """Cut a well-formed pattern into segments, left to right: a literal run becomes the
+    single-option segment [literal]; a `{...}` group becomes its alternatives, each expanded
+    recursively and flattened in written order (duplicates kept)."""
     segments: list[list[str]] = []
-    buf: list[str] = []
-    i, n = 0, len(s)
-    while i < n:
-        if s[i] == "{":
-            j = _find_matching(s, i)
-            if j == -1:  # unterminated group -- defensive only, not part of any documented contract
-                j = n - 1
-            if buf:
-                segments.append(["".join(buf)])
-                buf = []
-            options: list[str] = []
-            for alt in _split_top_commas(s[i + 1:j]):
-                options.extend(_expand(alt))  # flatten in written order, duplicates kept
-            segments.append(options)
-            i = j + 1
-        else:
-            buf.append(s[i])
+    i, start = 0, 0
+    while i < len(s):
+        if s[i] != "{":
             i += 1
-    if buf:
-        segments.append(["".join(buf)])
+            continue
+        if start < i:
+            segments.append([s[start:i]])
+        j = _find_matching(s, i)
+        segments.append([out for alt in _split_top_commas(s[i + 1 : j]) for out in _expand(alt)])
+        i = start = j + 1
+    if start < len(s):
+        segments.append([s[start:]])
+    return segments
+
+
+def _expand(s: str) -> list[str]:
+    """Cartesian product of the segments; the leftmost segment is the outer loop (bash order).
+    A pattern with no group has one literal segment -> [s]; '' -> ['']."""
     results = [""]
-    for seg in segments:  # cartesian product; leftmost segment is the outer loop (bash order)
-        results = [r + opt for r in results for opt in seg]
+    for options in _segments(s):
+        results = [r + opt for r in results for opt in options]
     return results
 
 
-def _validate(s: str) -> bool:
-    """General grammar (Part 3): braces balanced and properly nested, every group (at any depth)
-    has >= 2 top-level alternatives, each of which is itself well-formed."""
-    i, n = 0, len(s)
-    while i < n:
-        c = s[i]
-        if c == "{":
-            j = _find_matching(s, i)
-            if j == -1:  # unterminated group
-                return False
-            inner = s[i + 1:j]
-            alts = _split_top_commas(inner)
-            if len(alts) < 2:
-                return False
-            if not all(_validate(alt) for alt in alts):
-                return False
-            i = j + 1
-        elif c == "}":
+# ------------------------------------------------------------------ validation (Parts 2 & 3)
+
+
+def _is_well_formed(s: str) -> bool:
+    """Braces balanced and properly nested; every group at any depth has >= 2 top-level
+    alternatives, each of which is itself well-formed. Same walk as `_segments`, answering yes/no."""
+    i = 0
+    while i < len(s):
+        if s[i] == "}":
             return False  # closing brace with nothing open
-        else:
+        if s[i] != "{":
             i += 1
+            continue
+        try:
+            j = _find_matching(s, i)
+        except ValueError:
+            return False
+        alternatives = _split_top_commas(s[i + 1 : j])
+        if len(alternatives) < 2 or not all(_is_well_formed(alt) for alt in alternatives):
+            return False
+        i = j + 1
     return True
 
 
-def _validate_single(s: str) -> bool:
-    """Part 2's narrower grammar: at most one group in the whole pattern, no nesting inside it,
-    braces balanced, and (if present) the group has >= 2 tokens. Anything richer (a second group,
-    a nested group) is *also* malformed here -- that richer grammar is Part 3's new capability."""
-    depth_seen = False
-    in_group = False
-    alt_count = 0
-    for c in s:
-        if c == "{":
-            if depth_seen:  # a 2nd top-level group, or nesting inside the 1st -- out of scope
-                return False
-            depth_seen = True
-            in_group = True
-            alt_count = 1
-        elif c == "}":
-            if not in_group:
-                return False  # unmatched close
-            in_group = False
-            if alt_count < 2:
-                return False
-        elif c == "," and in_group:
-            alt_count += 1
-    return not in_group  # False if the group was never closed
+def _has_at_most_one_group(s: str) -> bool:
+    """Part 2's scope: a second top-level group and a nested group are both 'a second `{`'."""
+    return s.count("{") <= 1
+
+
+# ------------------------------------------------------------------ public API
 
 
 def expand_braces(pattern: str) -> list[str]:
@@ -139,7 +128,7 @@ def expand_braces(pattern: str) -> list[str]:
 def expand_braces_safe(pattern: str) -> list[str]:
     """Part 2: like expand_braces, but a malformed pattern (unmatched brace, a second/nested
     group, or a group with < 2 tokens) is returned unchanged as the sole result."""
-    if not _validate_single(pattern):
+    if not (_has_at_most_one_group(pattern) and _is_well_formed(pattern)):
         return [pattern]
     return _expand(pattern)
 
@@ -148,7 +137,7 @@ def expand_braces_nested(pattern: str) -> list[str]:
     """Part 3: nested groups (`{a,{b,c}}d`) and multiple groups (`{a,b}{1,2}`, cartesian product,
     leftmost group outermost) are now valid input; malformed patterns (checked recursively at
     every depth) are still echoed back unchanged."""
-    if not _validate(pattern):
+    if not _is_well_formed(pattern):
         return [pattern]
     return _expand(pattern)
 

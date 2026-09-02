@@ -74,3 +74,21 @@ S19 incremental design (Part 3 builds directly on Part 1's `is_valid`)
 - 官方来源没有公开 Part 2/3 的确切 I/O 契约（仅确认"numeronym validation"这个题干存在于 FinalRound 题
   库、Exponent 把它列为 Stripe coding 轮样题）；本题的 Part 2/3 设计是遵循 Stripe 电面一贯的"验证 → 对
   照真实数据 → 处理冲突"三段式模板做的合理重建，如果拿到更精确的原题转录应回来对照修订。
+
+## Review（Fable 5.1，2026-09-01）
+**改了什么**
+- `solution.py` 重构为"规则常量 → 解析 helper → 三个 part → I/O 分发"四段：新增 `_parse_dictionary`
+  （去重 + 过滤坏行，Part 2/3 共用）、`_expands_to`（Part 2 的匹配谓词单独一个函数）、`numeronym_for(word,
+  prefix_len=1)`（prefix 1 就是 base 形式，Part 3 里不再手写两遍公式）；`_resolve_group` 的循环改为
+  `range(2, max_prefix + 1)`，删掉原来"cap 单独再试一次"的重复分支；`main` 用 `PARTS` 表分发。
+- **F（题面歧义）**：Part 2 词典含重复词时原实现会把同一个词打印两遍，题面没定义。现统一为"重复词只算一
+  个"（与 Part 3 规则 5 一致），problem.md Part 2 + Edge cases 已补一句。starter_template/starter 的
+  `part2` docstring 与 `main` 分发同步更新。
+- 测试：`test_output_sorted_by_word_not_input_order` 从"只断言有序"改为精确串；新增 Part 2 去重、Part 3
+  三路冲突需要前缀 3、不可消歧退化是"整组"三个用例。23 → 26。
+- lint：black 110 + flake8 通过（此前 4 个文件 black 未格式化）。
+
+**为什么**：checklist S 项"后 part 复用前 part / 规则集中一处 / 一个函数一件事"；原 `_resolve_group` 的
+cap 分支是可读性负担而非必要；"只断言有序"的测试对 starter 也可能空过。
+
+**遗留**：Part 2/3 的原题 I/O 契约仍是重建（见 Open points）；perf 用例 100k 词约 0.3 s，未做进一步优化。

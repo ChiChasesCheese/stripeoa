@@ -70,3 +70,17 @@ than Part 3's) · S21 recursion / cartesian product
   `{b,c}`——我对每个选项递归调用同一个展开函数，展开完拼接顺序不变。"
 - 如果时间只够做完 Part 2：主动提出"如果还有时间，我会怎么扩展到嵌套"，说出笛卡尔积的思路，即使没时间写代码，
   这在面试官反馈里往往被算作"沟通清晰"的加分项。
+
+## Review（Fable 5.1，2026-09-01）
+**改了什么**
+- `solution.py` 重构为范本（`expand_braces*` / `partN` / `main` 签名不变）：30 行的 `_expand` 拆成 `_segments`（切段）
+  + `_expand`（笛卡尔积）；去掉"defensive only"的 `j = n - 1` 分支（它其实是防死循环的隐藏契约），改为
+  `_find_matching` 对未闭合分组显式 `raise ValueError`，引擎只吃合法输入；Part 2 独立的 3 个标志位状态机
+  `_validate_single` 改为 `_has_at_most_one_group and _is_well_formed`（与原逻辑等价，Part 3 直接复用同一个校验器）；
+  `_validate` 更名 `_is_well_formed`，走法与 `_segments` 镜像。
+- `test_ps03.py` 新增 1 个 `part3 edge`：合法分组后多一个 `}`、以及无括号在 Part 3 下原样返回。现在 20 tests：
+  part1 7 · part2 5 · part3 8；edge 9 · fmt 1 · io 2 · perf 1。`IMPL=starter` 18 failed / 2 passed。
+- black 格式化（3 文件），`loop/lint.sh` 通过。
+**为什么**：无 F 级 bug；S 级"一个函数一件事 / 后 part 复用前 part / 无隐藏契约"。三关 worked examples 已用
+`python3 solution.py` 逐字核对。
+**遗留**：`main` 用 `startswith("PART")` 判首行（与其他三题的 `split()[1]` 略不同），行为正确，未改以免动 starter。

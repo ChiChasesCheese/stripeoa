@@ -5,8 +5,16 @@ import pytest
 
 PART1_EXAMPLE = ["i18n", "a11y", "k8s", "i018n", "I18n", "i18N", "i0n", "in", "i1", "ab12cd"]
 PART1_EXAMPLE_OUT = [
-    "VALID", "VALID", "VALID",
-    "INVALID", "INVALID", "INVALID", "INVALID", "INVALID", "INVALID", "INVALID",
+    "VALID",
+    "VALID",
+    "VALID",
+    "INVALID",
+    "INVALID",
+    "INVALID",
+    "INVALID",
+    "INVALID",
+    "INVALID",
+    "INVALID",
 ]
 
 PART3_EXAMPLE = ["cart", "cost", "cyst", "few", "internationalization"]
@@ -99,6 +107,12 @@ def test_malformed_dictionary_lines_skipped(impl):
     assert out == ["internationalization"]
 
 
+@pytest.mark.part2
+@pytest.mark.edge
+def test_duplicate_dictionary_word_printed_once(impl):
+    assert impl.part2(["a3n", "arban", "arban", "avian"]) == ["arban", "avian"]
+
+
 # ---------------------------------------------------------------- Part 3: generate + collisions
 @pytest.mark.part3
 def test_example_generation_with_collision(impl):
@@ -137,13 +151,28 @@ def test_duplicate_words_collapse_to_one_entry(impl):
 @pytest.mark.fmt
 def test_output_sorted_by_word_not_input_order(impl):
     out = impl.part3(["zebra", "apple", "mango"])
-    words = [line.split(" -> ")[0] for line in out]
-    assert words == sorted(words)
+    assert out == ["apple -> a3e", "mango -> m3o", "zebra -> z3a"]
 
 
 @pytest.mark.part3
 def test_malformed_dictionary_lines_skipped_in_part3(impl):
     assert impl.part3(["few", "F00", "123", ""]) == ["few -> f1w"]
+
+
+@pytest.mark.part3
+@pytest.mark.edge
+def test_three_way_collision_needs_longer_prefix(impl):
+    # all base to s4y; prefix 2 gives st/st/sh -> still clashing; prefix 3 gives sto/sta/sha -> distinct
+    out = impl.part3(["stormy", "starry", "shabby"])
+    assert out == ["shabby -> sha2y", "starry -> sta2y", "stormy -> sto2y"]
+
+
+@pytest.mark.part3
+@pytest.mark.edge
+def test_example_irreducible_collision_is_group_wide(impl):
+    # fnap would be distinct at prefix 2 (fn1p) but flap/flip are not, so the whole group falls back
+    out = impl.part3(["flap", "flip", "fnap"])
+    assert out == ["flap -> flap", "flip -> flip", "fnap -> fnap"]
 
 
 # ---------------------------------------------------------------- io / perf
