@@ -17,6 +17,7 @@ Public API (same shape as starter.py / starter_template.py):
 
 Only stdlib: `urllib.request`/`urllib.error`, `json`, `csv`, `hmac`, `hashlib`, `random`, `time`.
 """
+
 from __future__ import annotations
 
 import csv
@@ -31,6 +32,7 @@ import urllib.request
 
 
 # --------------------------------------------------------------------------- Part 2 (used by Part 1 + 3)
+
 
 def with_retry(fn, max_attempts: int = 5, sleep=time.sleep, rng=random.random):
     """Call `fn()` (a zero-arg callable that performs one HTTP attempt and raises
@@ -67,16 +69,26 @@ def with_retry(fn, max_attempts: int = 5, sleep=time.sleep, rng=random.random):
             raise
 
 
-# --------------------------------------------------------------------------- Part 1
+# --------------------------------------------------------------------------- HTTP transport (shared by
+# Part 1, Part 3 and the PART-n driver — the only place that touches `urllib` directly, so pagination,
+# reconciliation and the refund/idempotency logic never have to know how a request is actually built)
 
-def _get_json(base_url: str, path: str, api_key: str):
-    req = urllib.request.Request(
-        base_url.rstrip("/") + path,
-        method="GET",
-        headers={"Authorization": f"Bearer {api_key}"},
-    )
+
+def _request(
+    base_url: str, method: str, path: str, api_key: str, body: bytes | None = None, extra_headers=None
+):
+    """One HTTP attempt against the payments API. Returns the parsed JSON body; raises
+    `urllib.error.HTTPError` for a non-2xx response (the shape `with_retry`'s `fn` must
+    raise) and `urllib.error.URLError`/`OSError` for connection failures/timeouts (not
+    caught here — those are not retried, see `with_retry`'s docstring)."""
+    headers = {"Authorization": f"Bearer {api_key}"}
+    headers.update(extra_headers or {})
+    req = urllib.request.Request(base_url.rstrip("/") + path, data=body, method=method, headers=headers)
     with urllib.request.urlopen(req, timeout=10) as resp:
         return json.loads(resp.read())
+
+
+# --------------------------------------------------------------------------- Part 1
 
 
 def fetch_all_charges(base_url: str, api_key: str, limit: int = 100, sleep=time.sleep) -> list[dict]:
@@ -90,7 +102,7 @@ def fetch_all_charges(base_url: str, api_key: str, limit: int = 100, sleep=time.
         if starting_after is not None:
             qs += f"&starting_after={starting_after}"
         path = f"/v1/charges?{qs}"
-        page = with_retry(lambda p=path: _get_json(base_url, p, api_key), sleep=sleep)
+        page = with_retry(lambda p=path: _request(base_url, "GET", p, api_key), sleep=sleep)
         charges.extend(page["data"])
         if not page.get("has_more"):
             break
@@ -99,6 +111,7 @@ def fetch_all_charges(base_url: str, api_key: str, limit: int = 100, sleep=time.
 
 
 # --------------------------------------------------------------------------- Part 3
+
 
 def refund(
     base_url: str,
@@ -113,23 +126,12 @@ def refund(
     the de-duplication; this function just has to send the header on every attempt,
     including retries (an idempotency key must survive a retry, or the retry would
     create a second refund)."""
-
-    def _do():
-        body = json.dumps({"charge": charge_id, "amount": amount}).encode("utf-8")
-        req = urllib.request.Request(
-            base_url.rstrip("/") + "/v1/refunds",
-            data=body,
-            method="POST",
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-                "Idempotency-Key": idempotency_key,
-            },
-        )
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            return json.loads(resp.read())
-
-    return with_retry(_do, sleep=sleep)
+    body = json.dumps({"charge": charge_id, "amount": amount}).encode("utf-8")
+    headers = {"Content-Type": "application/json", "Idempotency-Key": idempotency_key}
+    return with_retry(
+        lambda: _request(base_url, "POST", "/v1/refunds", api_key, body=body, extra_headers=headers),
+        sleep=sleep,
+    )
 
 
 def load_ledger(path: str) -> list[dict]:
@@ -138,11 +140,13 @@ def load_ledger(path: str) -> list[dict]:
     rows = []
     with open(path, "r", encoding="utf-8", newline="") as f:
         for row in csv.DictReader(f):
-            rows.append({
-                "charge_id": row["charge_id"].strip(),
-                "amount_cents": int(row["amount_cents"]),
-                "status": row["status"].strip(),
-            })
+            rows.append(
+                {
+                    "charge_id": row["charge_id"].strip(),
+                    "amount_cents": int(row["amount_cents"]),
+                    "status": row["status"].strip(),
+                }
+            )
     return rows
 
 
@@ -164,11 +168,13 @@ def reconcile(local_rows: list[dict], remote_charges: list[dict]) -> dict:
         local_amt = local_by_id[cid]["amount_cents"]
         remote_amt = remote_by_id[cid]["amount"]
         if local_amt != remote_amt:
-            amount_mismatch.append({
-                "charge_id": cid,
-                "local_amount_cents": local_amt,
-                "remote_amount_cents": remote_amt,
-            })
+            amount_mismatch.append(
+                {
+                    "charge_id": cid,
+                    "local_amount_cents": local_amt,
+                    "remote_amount_cents": remote_amt,
+                }
+            )
 
     return {
         "missing_local": missing_local,
@@ -178,6 +184,7 @@ def reconcile(local_rows: list[dict], remote_charges: list[dict]) -> dict:
 
 
 # --------------------------------------------------------------------------- Part 4
+
 
 def verify_webhook(payload: bytes, sig_header: str, secret: str, now: int, tolerance: int = 300) -> bool:
     """Verify a `Stripe-Signature`-shaped header (`t=<unix>,v1=<hex>[,v1=<hex>...]`)
@@ -225,6 +232,7 @@ def handle_event(event: dict, store: set) -> bool:
 
 # --------------------------------------------------------------------------- PART n stdin driver
 
+
 def _read_nonblank(stdin) -> list[str]:
     return [ln.strip() for ln in stdin.read().splitlines() if ln.strip()]
 
@@ -244,7 +252,7 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
 
     elif part == 2:
         server, api_key = args
-        page = with_retry(lambda: _get_json(server, "/v1/charges?limit=100", api_key))
+        page = with_retry(lambda: _request(server, "GET", "/v1/charges?limit=100", api_key))
         out = [f"{len(page['data'])} charges has_more={page['has_more']}"]
 
     elif part == 3:

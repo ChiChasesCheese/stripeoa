@@ -1,5 +1,6 @@
 """Fixtures for int01 (BikeMap) tests: a real `loop.mockserver.maps` HTTP server on a
 random OS-assigned port, started/stopped per test via `start_in_thread()`."""
+
 from __future__ import annotations
 
 import pytest

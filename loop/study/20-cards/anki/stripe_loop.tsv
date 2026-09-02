@@ -2,6 +2,10 @@
 #html:true
 #deck column:3
 #tags column:4
+<b>bs01 · minimako</b><br>这题考的是什么？	这轮考的不是&quot;你会不会写代码&quot;，是&quot;你能不能在没人带你读代码的情况下，把一个陌生仓库的 bug 定位到根因&quot;	Stripe::Loop::Bug Squash	stripe-loop bs01 Bug_Squash
+<b>bs01 · minimako</b><br>三步套路？	跑测试看现象 → 读 traceback/assertion 找&quot;数据在哪一行变错&quot; → 假设 + 断点验证，最小改动，跑回归	Stripe::Loop::Bug Squash	stripe-loop bs01 Bug_Squash
+<b>bs01 · minimako</b><br>最值得带走的一个模式？	最值得带走的一个习惯：<b>永远从失败的那一行网上追，不要从代码第一行网下读</b>——traceback 已经把&quot;从哪开始看&quot;这件事替你做完了	Stripe::Loop::Bug Squash	stripe-loop bs01 Bug_Squash
+<b>bs01 · minimako</b><br>方法层面最常见的 3 个跑偏？	<ul><li><b>改测试让它变绿</b>：把 <code>pytest.raises(LookupError)</code> 删掉或把断言放宽——这题的测试就是 spec，改测试等于</li><li><b>看到&quot;设计不够优雅&quot;就想重写模块</b>：比如把 <code>visit()</code> 的反射分发改成 <code>dict</code> 查表——功能等价，但对一个</li><li><b>只盯着栈顶那一行，不往上追一层</b>：<code>AttributeError</code> 本身告诉你&quot;缺了什么&quot;，但不会告诉你&quot;为什么会缺、</li></ul>	Stripe::Loop::Bug Squash	stripe-loop bs01 Bug_Squash
 <b>cd01 · Subscription Email Scheduler</b><br>这题考的是什么？	把&quot;用户订阅生命周期&quot;建模成一个小状态机（plan / expire / canceled），四种事件	Stripe::Loop::Onsite Coding	stripe-loop cd01 Onsite_Coding
 <b>cd01 · Subscription Email Scheduler</b><br>三步套路？	先抽出 <code>(plan, expire, canceled)</code> 这个状态 → Part 1 只用 <code>subscribe</code> 跑通&quot;生成排程&quot;→	Stripe::Loop::Onsite Coding	stripe-loop cd01 Onsite_Coding
 <b>cd01 · Subscription Email Scheduler</b><br>最值得带走的一个模式？	**先写清楚&quot;谁改状态、谁读状态、公共规则是什么&quot;，再给每种事件写一个独立的	Stripe::Loop::Onsite Coding	stripe-loop cd01 Onsite_Coding
@@ -32,6 +36,11 @@
 <b>cd06 · Suspicious Users Sliding Window</b><br>最值得带走的一个模式？	**任何&quot;窗口计数超阈值&quot;的滑动窗口题，暴力解和优化解本质是同一个循环，	Stripe::Loop::Onsite Coding	stripe-loop cd06 Onsite_Coding
 <b>cd06 · Suspicious Users Sliding Window</b><br>一句话建模？	这是一个 **按用户分组、时间排序后，在每个用户自己的时间线上找&quot;最早满足计数阈值	Stripe::Loop::Onsite Coding	stripe-loop cd06 Onsite_Coding
 <b>cd06 · Suspicious Users Sliding Window</b><br>方法层面最常见的 3 个跑偏？	<ul><li><b>没证明就直接写双指针</b>：双指针正确的前提是&quot;左指针单调不减&quot;这条性质，如果没想清楚就照着模板敲，</li><li><b>混淆&quot;first trigger&quot;和&quot;max window&quot;</b>：找到第一个满足阈值的窗口就该立刻停，很多人会顺手把扫描</li><li><b>暴力版和优化版各写一套解析</b>：Part 1 单独 split 一次逗号，Part 2 又写一次分组排序，两份实现容易</li></ul>	Stripe::Loop::Onsite Coding	stripe-loop cd06 Onsite_Coding
+<b>cd07 · Transactions + Rules（AI Programming Exercise）</b><br>这题考的是什么？	把 <code>ALLOW|BLOCK if &lt;condition&gt;</code> 这种规则语言解析成可执行的判断，三个 Part 依次加	Stripe::Loop::Onsite Coding	stripe-loop cd07 Onsite_Coding
+<b>cd07 · Transactions + Rules（AI Programming Exercise）</b><br>三步套路？	<b>tokenize（切词）→ parse（按优先级建树）→ eval（对着一条数据求值）</b>，三层各管各的，	Stripe::Loop::Onsite Coding	stripe-loop cd07 Onsite_Coding
+<b>cd07 · Transactions + Rules（AI Programming Exercise）</b><br>最值得带走的一个模式？	递归下降解析器的优先级不是写在表里的，是<b>函数调用顺序</b>——优先级越高的	Stripe::Loop::Onsite Coding	stripe-loop cd07 Onsite_Coding
+<b>cd07 · Transactions + Rules（AI Programming Exercise）</b><br>一句话建模？	这是一个 <b>&quot;文本 → 语法树 → 对每条数据求值&quot;</b> 的 mini 解释器问题，三个 Part 只是	Stripe::Loop::Onsite Coding	stripe-loop cd07 Onsite_Coding
+<b>cd07 · Transactions + Rules（AI Programming Exercise）</b><br>方法层面最常见的 3 个跑偏？	<ul><li><b>一上来就想着写一个通用表达式引擎</b>：支持任意运算符、任意嵌套、可扩展插件——题面只要三层语法</li><li><b>把 tokenize 和 parse 揉在一起</b>：一边扫字符一边判断语法结构，Part 2 加运算符还能改，Part 3 加</li><li><b>优先级写成 if-else 拍平判断</b>：<code>a and b or c</code> 用字符串里找 <code>and</code>/<code>or</code> 位置来决定结合顺序，这种</li></ul>	Stripe::Loop::Onsite Coding	stripe-loop cd07 Onsite_Coding
 <b>ps01 · Transaction Stream Levels</b><br>这题考的是什么？	把一条乱序的交易流整理成&quot;每个用户一条按时间排好的序列&quot;，然后在这个序列上依次回答四个问题（总额 / 窗口超阈值 / 某时刻的 top-K / 小大小模式）	Stripe::Loop::电面	stripe-loop ps01 电面
 <b>ps01 · Transaction Stream Levels</b><br>三步套路？	读题抽出 <code>Tx(user, amount, ts)</code> 这个记录 → 先跑通 Part 1 的&quot;解析 + dict 累加 + 排序输出&quot; → 后面每个 Part 只加一个 helper，解析和分组原样复用	Stripe::Loop::电面	stripe-loop ps01 电面
 <b>ps01 · Transaction Stream Levels</b><br>最值得带走的一个模式？	<b>先 group-by-user 再 sort-by-time</b>，之后所有&quot;每个用户各自看时间线&quot;的问题都变成对一个 list 的顺序扫描	Stripe::Loop::电面	stripe-loop ps01 电面

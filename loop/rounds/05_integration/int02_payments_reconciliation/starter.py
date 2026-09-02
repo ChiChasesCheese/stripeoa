@@ -1,11 +1,12 @@
 """int02 Payments reconciliation client — YOUR implementation.
 Run: pytest loop/rounds/05_integration/int02_payments_reconciliation
 Mockserver: `python3 loop/mock.py serve int02 --port 0` (see problem.md's API doc)."""
+
 from __future__ import annotations
 
-import csv
-import hashlib
-import hmac
+import csv  # noqa: F401 (used once you implement load_ledger)
+import hashlib  # noqa: F401 (used once you implement verify_webhook)
+import hmac  # noqa: F401 (used once you implement verify_webhook)
 import json
 import random
 import sys
@@ -15,6 +16,7 @@ import urllib.request
 
 
 # --------------------------------------------------------------------------- Part 2 (used by Part 1 + 3)
+
 
 def with_retry(fn, max_attempts: int = 5, sleep=time.sleep, rng=random.random):
     """Call `fn()` (a zero-arg callable that performs one HTTP attempt and raises
@@ -28,6 +30,7 @@ def with_retry(fn, max_attempts: int = 5, sleep=time.sleep, rng=random.random):
 
 # --------------------------------------------------------------------------- Part 1
 
+
 def fetch_all_charges(base_url: str, api_key: str, limit: int = 100, sleep=time.sleep) -> list[dict]:
     """Page through GET /v1/charges (cursor pagination: `limit` + `starting_after`)
     until `has_more` is false, retrying transient failures via `with_retry`."""
@@ -36,6 +39,7 @@ def fetch_all_charges(base_url: str, api_key: str, limit: int = 100, sleep=time.
 
 
 # --------------------------------------------------------------------------- Part 3
+
 
 def refund(
     base_url: str,
@@ -70,6 +74,7 @@ def reconcile(local_rows: list[dict], remote_charges: list[dict]) -> dict:
 
 # --------------------------------------------------------------------------- Part 4
 
+
 def verify_webhook(payload: bytes, sig_header: str, secret: str, now: int, tolerance: int = 300) -> bool:
     """Verify a `Stripe-Signature`-shaped header (`t=<unix>,v1=<hex>[,v1=<hex>...]`)
     against `payload` from scratch (HMAC-SHA256 over `f"{t}.{payload}"`, constant-time
@@ -88,6 +93,7 @@ def handle_event(event: dict, store: set) -> bool:
 
 
 # --------------------------------------------------------------------------- PART n stdin driver
+
 
 def _get_json(base_url: str, path: str, api_key: str):
     req = urllib.request.Request(

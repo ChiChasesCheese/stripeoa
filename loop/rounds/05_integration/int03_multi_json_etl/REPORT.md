@@ -89,3 +89,56 @@ S02 防御性 JSON 解析 · S04 多源数据按 key 合并去重 · S06 整数�
 - Part 3 时间紧的话，优先保证 `build_report`/`write_outputs` 的正确性，`main_cli` 的参数校验（比如 `--in-dir`
   不存在时的报错文案）可以口头说明设计但先不做防御性增强——多份 Stripe Integration 面经强调"前几步的质量
   比做完所有 part 更重要"。
+
+## Review（2026-09-02）
+
+跑通验证：worked examples（`load_all`/`unify_customers` 异常列表、`join_orders` 异常、`build_report`、
+`to_legacy`/`from_legacy` 往返）逐条用 problem.md 原文数据手动核对，与 solution.py 实际输出逐字一致。
+`rtk proxy python3 -m pytest loop/rounds/05_integration/int03_multi_json_etl` 连跑 2 次均全绿；
+`IMPL=starter` 同命令 26 failed / 2 passed（那 2 个是 `test_io_part2_not_found` 与 `test_io_empty_stdin`，
+恰好是"什么都不做"的边界，starter 的空实现本来就该让它们通过，不算空洞）。
+
+### F（必须修）—— 1 处
+- **Part 1 反向依赖 Part 2**：`parse_legacy`（Part 1 API）原实现直接调用 `from_legacy`（Part 2 API）来做
+  字段映射（`{"legacy_id":..,"cust":..}` → Customer）。这违反 CONVENTIONS/checklist 里"后一 part 建立在
+  前一 part 上"的方向性——候选人只写完 Part 1 时，`parse_legacy` 会因为 `from_legacy` 还是 TODO 桩函数而
+  拿不到正确结果，等于 Part 1 的正确性被 Part 2 卡住。修法：把字段映射抽成 Part 1 里的私有 helper
+  `_legacy_cust_to_customer(legacy_id, cust)`，`parse_legacy` 和 `from_legacy` 都调用它——保留了原来
+  "解析和序列化回旧格式共用一份映射逻辑"的 DRY 意图，但依赖方向改成了 Part 2 复用 Part 1（正确方向）。
+  新增测试 `test_parse_legacy_missing_and_blank_mail` / `test_parse_legacy_field_mapping_and_missing_defaults`
+  直接单测 `parse_legacy`（此前它只被 `load_all` 间接跑到，没有独立的单元测试，和 `parse_customers`
+  的覆盖不对称），顺带把这个"Part 1 不依赖 Part 2 也能正确工作"的性质钉死在测试里。
+
+### S（建议修，已做）
+- `join_orders` 原本 58 行（超过 CONVENTIONS 的 ≤40 行建议），拆出两个 helper：`_order_total_cents(order)`
+  （Σ qty×unit_cents）、`_duplicate_order_anomalies(seen_ids)`（重复 order_id 只报一条）。拆后
+  `join_orders` 降到 31 行。
+- 新增 `_anomaly(kind, source, ref, detail) -> dict` 统一构造四类异常行的字典，替换掉
+  `parse_customers`/`parse_legacy`/`unify_customers`/`join_orders`/`_duplicate_order_anomalies` 里
+  6 处手写的 `{"type":..,"source":..,"ref":..,"detail":..}` 字面量。既省重复代码，也让"anomalies.csv 的
+  四列"这个约定只在一个地方定义。
+- `unify_customers` 的赢家/输家分支原来是两段几乎重复的 `anomalies.append({...})`（只是 dropped/kept 的
+  id 互换），合并成 `winner, loser = (c, existing) if ... else (existing, c)` 一次构造，逻辑不变（用
+  worked example 和已有的 tie/missing-created 边界测试验证过），少了一半重复代码。
+- `parse_customers` 里原来的 `ref = str(rec.get("id", idx))`（用 `enumerate` 下标兜底）和随后无条件的
+  `rec["id"]` 互相矛盾——problem.md 明确"`id` 保证总是存在"，兜底暗示"id 可能缺失"但下面又假设它必然存在。
+  简化成统一信任契约：直接 `str(rec["id"])`，去掉不再需要的 `enumerate`/`idx`。
+- 函数级 docstring、类型标注在原实现里已经比较到位，未做改动；`main_cli`/`run_etl`/`write_outputs` 等
+  Part 3 函数本来就 ≤ 15 行，未拆分。
+
+### 测试改动
+新增 2 个 part1/edge 测试（见上），全部合入现有 `pytest.mark.part1` 分组，不引入新 marker。未发现需要补的
+异常路径测试缺口——`missing_email`（三个来源）、`duplicate_customer`（双向 tie-break）、`orphan_order`、
+`duplicate_order`、`EtlError`（文件不存在/语法错误/顶层类型错误）都已经有 worked-example 级和独立单测
+覆盖。
+
+### 遗留问题
+无。函数长度、公共 API、money（整数分）、排序 key、`starter.py`/`starter_template.py` 一致性、
+flake8 F 类计数均已核实通过。problem.md 第 7 条面试官追问已经明确写出"按 email 做 key、id 换 email 会被
+当成两个不同客户"是当前实现的已知局限，不在本次 review 范围内修复（题面本身要求保留这个讨论点）。
+
+### 回归结果
+- `loop/lint.sh --fix` + `loop/lint.sh` 通过（black -l 110 + flake8，F 类 0）。
+- solution 侧：28 passed（连跑 2 次，无 flaky）。
+- starter 侧：26 failed / 2 passed（预期内的边界 no-op）。
+- `git diff --stat`：`solution.py` 129 行改动（重构，无行为变化）、`test_int03.py` +30 行（2 个新测试）。

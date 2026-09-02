@@ -37,3 +37,4 @@
 | 2026-09-02 | RC cd04–07 | sonnet | 4 目录 + 4 篇文章 | 21/21/18/23 | (this) | 空洞 perf 测试、F541、缺失节补齐；文章骨架修至 40 行 |
 | 2026-09-02 | stage: coding review 完成 | fable | cd01–07 | — | (this) | push + obsidian + anki |
 | 2026-09-02 | R6 bs01 | sonnet | 目录 + 文章 | start 2 fail / ref 17 pass | (this) | 清除 5 处泄题注释；FIX.patch 11 行 |
+| 2026-09-02 | R5 int01–03 | sonnet | 3 目录 + 3 篇文章 | 22/30/28 | (this) | int01 NOT_PNG 路径崩溃；int03 Part1→2 反向依赖；int02 _request 收敛 |

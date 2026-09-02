@@ -86,3 +86,64 @@ Retry-After + 5xx 指数退避+抖动）· S18 错误路径分类（可重试 vs
 - 时间紧张时优先保证 Part 1-3（拉数据、重试、对账）逻辑正确、错误处理完整，Part 4 如果来不及写完整实现，
   先把 `verify_webhook` 的四个步骤讲清楚（哪一步防篡改、哪一步防重放、哪一步防时序攻击），比匆忙写一个
   有漏洞的实现更能拿到部分分。
+
+## Review（2026-09-02）
+
+**方法**：按 `loop/tasks/review_checklist.md` 逐条过一遍，实际跑 `rtk proxy python3 -m pytest`（solution
+全绿 × 2 次、`IMPL=starter` 一次）、`python3 loop/mock.py serve int02 --port 0`（子进程方式验证能起停干
+净）、手动用 `fetch_all_charges` + `load_ledger` + `reconcile` 对着真实 mockserver（`seed=7, n=20`）重放
+worked example，逐字段核对与 problem.md 一致。
+
+### F（必须修）—— 发现 0 个功能性 bug，2 个 lint 类 F 项
+改动前逻辑本身已经正确（分页、429/Retry-After、5xx 指数退避+抖动、非 429 4xx 不重试、`max_attempts` 耗尽
+抛出、`Idempotency-Key` 每次重试都带、`reconcile` 字段名映射与三路排序、`hmac.compare_digest` 常数时间比
+较、`handle_event` 按 `event.id` 去重）都已正确实现且被对应测试覆盖，worked example 手动重放结果与
+problem.md 完全一致，不需要改任何行为。真正踩到 F 线的只有 lint 层面：
+1. `starter.py` / `starter_template.py` 预留的 `csv`/`hashlib`/`hmac` import（候选人实现 `load_ledger`/
+   `verify_webhook` 才会用到）在候选人动手之前是未使用的，`flake8 --select F` 直接报 3 个 F401 ×2 文件 ——
+   按 checklist "starter 预留 import 可加 `# noqa: F401`" 加了行内注释修复，两个文件保持逐字节一致。
+2. `test_int02.py` 里 `test_perf_reconcile_100k_rows` 的两个列表推导式续行缩进不满足 flake8 E127（无关
+   F 类，但影响 `loop/lint.sh` 整体通过）——跑 `loop/lint.sh --fix` 时被 black 一并规范化。
+`loop/lint.sh loop/rounds/05_integration/int02_payments_reconciliation` 现在全绿（0 F 类、0 其他）。
+
+### S（建议修，已做）
+- **把 HTTP 调用收敛成一个独立函数**：改前 `_get_json`（GET）和 `refund._do`（POST）各自手写一份
+  `urllib.request.Request(...) + urlopen(...)`，两份逻辑几乎重复。改为一个 `_request(base_url, method,
+  path, api_key, body=None, extra_headers=None) -> dict`（14 行，`solution.py:74-88`），`fetch_all_charges`
+  的分页循环、`refund`、`main()` 的 `PART 2` 分支现在都只调用它，不再各自碰 `urllib.request.Request`/
+  `urlopen` 的细节。业务逻辑（分页判断 `has_more`、退款的幂等 header 拼装、`main` 的分发）和"怎么发一次
+  HTTP 请求"彻底分层。
+- `refund` 从"内嵌一个闭包 `_do()`"简化成直接把 `_request(...)` 包一层 lambda 传给 `with_retry`，函数体
+  从 ~30 行降到 8 行，可读性更直接。
+- 其余 S 项本来就已经做到位，未改动：`sleep`/`rng` 全程可注入、`with_retry` 单一职责 ≤ 35 行、类型标注、
+  一句话 docstring 打头、错误处理用具体异常类型（`urllib.error.HTTPError`，无裸 `except:`）、`reconcile`
+  用两个 dict + 集合运算 O(n+m) 不是嵌套扫描、`fetch_all_charges`/`refund` 复用同一个 `with_retry`。
+
+### 测试新增
+补了 1 个：`test_with_retry_does_not_retry_timeout_or_connection_errors`（part2/edge）—— 直接单测
+`with_retry` 面对 `TimeoutError`（`URLError` 的子类，代表连接超时/失败）时不重试、立即抛出、`fn()` 只被
+调用一次，覆盖 checklist 里"429/5xx/超时/连接失败/幂等冲突/签名验证失败"六类网络错误路径中原先只用
+`fetch_all_charges` 间接测过的"超时"一类，且是纯单元测试（不依赖真实网络/真实超时，不引入 flaky 风险）。
+其余五类（429、5xx、连接失败、幂等冲突、签名验证失败×5 种畸形/边界）改前就已覆盖，未新增。
+
+测试数：29 → **30**（part1 6 · part2 6（含新增的 timeout 边界）· part3 10 · part4 8，edge 14 · fmt 1 ·
+io 4 · perf 1）。
+
+### 回归结果
+- `rtk proxy python3 -m pytest loop/rounds/05_integration/int02_payments_reconciliation --tb=short`：
+  **30 passed**，连跑 2 次结果一致（无 flaky，fixture 每个测试独立起停 mockserver，`server.shutdown()` +
+  `server.server_close()` 保证端口/线程不残留）。
+- `IMPL=starter` 同一条命令：**20 failed / 10 passed**（比改前的 9 passed 多 1 个——新增的 timeout 测试直
+  接调 `with_retry`，starter 的占位实现 `return fn()` 对这个用例碰巧也是"立即抛出、只调用一次"的正确行
+  为，属于 checklist 允许的"边界默认值凑巧正确"，不是测试空洞；其余 20 个失败照旧覆盖每个真正需要实现的
+  行为点）。
+- `python3 loop/mock.py serve int02 --port 0`：子进程方式验证首行输出 `listening on http://127.0.0.1:...`
+  后 `SIGTERM` 能正常退出（`returncode -15`），无残留进程。
+
+### 遗留问题
+无。四个 part 的行为、排序、错误路径、幂等语义与 problem.md 逐条核对一致；未发现需要进一步修的 F/S 项。
+
+### mockserver bug
+未发现。核对了 `loop/mockserver/payments.py` 的分页游标语义、`Idempotency-Key` 缓存/冲突逻辑、
+`_read_json_or_form` 的 `Content-Type` 判定、`sign`/`verify` 的签名格式，均与 `problem.md`/
+`loop/mockserver/README.md` 描述一致，与 `solution.py` 的假设吻合（未改动 `loop/mockserver/`）。

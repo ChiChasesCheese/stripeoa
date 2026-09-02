@@ -4,6 +4,7 @@ repo-root conftest.py (loads solution.py, or starter.py under IMPL=starter) and 
 loop.mockserver.payments instance seeded to match data/ledger.csv: seed=7, n=20).
 `run_script` (repo-root conftest.py) drives the module as a subprocess for io tests.
 """
+
 from __future__ import annotations
 
 import random
@@ -29,6 +30,7 @@ def _http_error(code, headers=None):
 
 
 # --------------------------------------------------------------------------- Part 1: fetch_all_charges
+
 
 @pytest.mark.part1
 def test_fetch_all_charges_happy_path(impl, payments_server):
@@ -66,6 +68,7 @@ def test_fetch_all_charges_connection_refused_raises(impl):
 
 
 # --------------------------------------------------------------------------- Part 2: with_retry
+
 
 @pytest.mark.part2
 def test_with_retry_retries_429_using_retry_after_header(impl):
@@ -133,6 +136,23 @@ def test_with_retry_reraises_after_max_attempts(impl):
 
 
 @pytest.mark.part2
+@pytest.mark.edge
+def test_with_retry_does_not_retry_timeout_or_connection_errors(impl):
+    """`with_retry` only understands `urllib.error.HTTPError`; a timeout/connection
+    failure (`TimeoutError`, a `URLError` subclass) must propagate immediately, not get
+    treated as a retryable HTTP status."""
+    calls = {"n": 0}
+
+    def fn():
+        calls["n"] += 1
+        raise TimeoutError("timed out")
+
+    with pytest.raises(TimeoutError):
+        impl.with_retry(fn, sleep=lambda s: None)
+    assert calls["n"] == 1
+
+
+@pytest.mark.part2
 def test_with_retry_success_first_try_never_sleeps(impl):
     sleeps = []
     result = impl.with_retry(lambda: "ok", sleep=sleeps.append)
@@ -141,6 +161,7 @@ def test_with_retry_success_first_try_never_sleeps(impl):
 
 
 # --------------------------------------------------------------------------- Part 3: refund + reconcile
+
 
 @pytest.mark.part3
 def test_refund_happy_path(impl, payments_server):
@@ -233,6 +254,7 @@ def test_reconcile_lists_are_sorted_by_charge_id(impl):
 
 # --------------------------------------------------------------------------- Part 4: webhooks
 
+
 @pytest.mark.part4
 def test_verify_webhook_valid_signature(impl):
     payload = b'{"id":"evt_1","type":"charge.refunded"}'
@@ -300,6 +322,7 @@ def test_handle_event_idempotent(impl):
 
 # --------------------------------------------------------------------------- io
 
+
 @pytest.mark.part1
 @pytest.mark.io
 def test_io_part1(run_script, payments_server):
@@ -340,14 +363,23 @@ def test_io_empty_stdin(run_script):
 
 # --------------------------------------------------------------------------- perf
 
+
 @pytest.mark.part3
 @pytest.mark.perf
 def test_perf_reconcile_100k_rows(impl):
     rng = random.Random(0)
-    local = [{"charge_id": f"ch_{i}", "amount_cents": rng.randint(100, 100_000), "status": "succeeded"}
-              for i in range(100_000)]
-    remote = [{"id": f"ch_{i}", "amount": local[i]["amount_cents"] if i % 7 else local[i]["amount_cents"] + 1,
-               "status": "succeeded"} for i in range(100_000)]
+    local = [
+        {"charge_id": f"ch_{i}", "amount_cents": rng.randint(100, 100_000), "status": "succeeded"}
+        for i in range(100_000)
+    ]
+    remote = [
+        {
+            "id": f"ch_{i}",
+            "amount": local[i]["amount_cents"] if i % 7 else local[i]["amount_cents"] + 1,
+            "status": "succeeded",
+        }
+        for i in range(100_000)
+    ]
     t0 = time.perf_counter()
     diff = impl.reconcile(local, remote)
     elapsed = time.perf_counter() - t0

@@ -148,6 +148,36 @@ def test_parse_customers_missing_name_and_created_default_empty(impl):
 
 @pytest.mark.part1
 @pytest.mark.edge
+def test_parse_legacy_missing_and_blank_mail(impl):
+    # Mirrors test_parse_customers_missing_and_blank_email: parse_legacy must be usable
+    # (and independently testable) without any Part 2 function implemented.
+    raw = {
+        "records": {
+            "L1": {"cust": {"mail": "a@x.com", "full_name": "A", "signup_date": "2024-01-01"}},
+            "L2": {"cust": {"full_name": "No Mail Key"}},
+            "L3": {"cust": {"mail": "", "full_name": "Blank"}},
+            "L4": {"cust": {"mail": "   ", "full_name": "Whitespace Only"}},
+        }
+    }
+    customers, anomalies = impl.parse_legacy(raw)
+    assert [c["id"] for c in customers] == ["L1"]
+    assert {a["ref"] for a in anomalies} == {"L2", "L3", "L4"}
+    assert all(a["type"] == "missing_email" and a["source"] == "legacy" for a in anomalies)
+
+
+@pytest.mark.part1
+@pytest.mark.edge
+def test_parse_legacy_field_mapping_and_missing_defaults(impl):
+    # mail->email, full_name->name, signup_date->created; name/created default to "" when
+    # the legacy record's cust dict omits them (not KeyError, not None).
+    raw = {"records": {"L9": {"cust": {"mail": "A@X.com "}}}}
+    customers, anomalies = impl.parse_legacy(raw)
+    assert anomalies == []
+    assert customers == [{"id": "L9", "email": "a@x.com", "name": "", "created": ""}]
+
+
+@pytest.mark.part1
+@pytest.mark.edge
 def test_unify_missing_created_never_beats_a_dated_record(impl):
     # order matters for the assertion, not for correctness: the dated record must win
     # regardless of which list it's passed in first.

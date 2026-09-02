@@ -5,6 +5,7 @@ port). `run_script` (repo-root conftest.py) drives the module as a subprocess fo
 tests. Data files: data/ride-simple.json (500-point GeoJSON LineString, generated with
 random.Random(0) around a fixed Berlin-ish center) and data/landmarks.json (9 points
 near the route)."""
+
 from __future__ import annotations
 
 import json
@@ -37,7 +38,36 @@ def _landmarks():
     return json.loads(Path(LANDMARKS_PATH).read_text())
 
 
+class _NonPngHandler(http.server.BaseHTTPRequestHandler):
+    """A fake /render that returns 200 with a JSON body instead of a PNG -- exercises the
+    "don't trust a 200 status alone" defensive-parsing path in render_route."""
+
+    def log_message(self, *a):
+        pass
+
+    def do_POST(self):
+        body = b'{"not": "a png"}'
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+
+@pytest.fixture()
+def bad_png_server():
+    """Base URL of a real local HTTP server whose /render always returns a non-PNG 200."""
+    server = http.server.HTTPServer(("127.0.0.1", 0), _NonPngHandler)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+    yield f"http://127.0.0.1:{server.server_address[1]}"
+    server.shutdown()
+    server.server_close()
+    thread.join(timeout=5)
+
+
 # --------------------------------------------------------------------------- Part 1
+
 
 @pytest.mark.part1
 def test_worked_example_first_10(impl):
@@ -54,10 +84,12 @@ def test_lng_lat_order_is_swapped_not_identity(impl, tmp_path):
     lat and lng are clearly distinguishable (lat near 52, lng near 13)."""
     geo = {
         "type": "FeatureCollection",
-        "features": [{
-            "type": "Feature",
-            "geometry": {"type": "LineString", "coordinates": [[13.4, 52.5], [13.41, 52.51]]},
-        }],
+        "features": [
+            {
+                "type": "Feature",
+                "geometry": {"type": "LineString", "coordinates": [[13.4, 52.5], [13.41, 52.51]]},
+            }
+        ],
     }
     p = tmp_path / "tiny.json"
     p.write_text(json.dumps(geo))
@@ -96,6 +128,7 @@ def test_first_n_fewer_than_n_available(impl):
 
 # --------------------------------------------------------------------------- Part 2
 
+
 @pytest.mark.part2
 def test_render_map_happy_path(impl, maps_server, tmp_path):
     coords = impl.load_coordinates(RIDE_PATH)
@@ -125,6 +158,7 @@ def test_render_map_non_200_raises_maperror(impl, maps_server, tmp_path):
 
 # --------------------------------------------------------------------------- Part 3
 
+
 @pytest.mark.part3
 def test_render_route_with_markers_is_valid_png(impl, maps_server, tmp_path):
     coords = impl.load_coordinates(RIDE_PATH)
@@ -136,38 +170,18 @@ def test_render_route_with_markers_is_valid_png(impl, maps_server, tmp_path):
 
 @pytest.mark.part3
 @pytest.mark.edge
-def test_render_route_rejects_non_png_response(impl, tmp_path):
+def test_render_route_rejects_non_png_response(impl, bad_png_server, tmp_path):
     """A defensive client should not trust a 200 status alone -- if the server (bug, or
     a misconfigured endpoint) returns a 200 with a non-PNG body, render_route must
     raise MapError rather than silently writing garbage to out_path."""
-
-    class _FakeHandler(http.server.BaseHTTPRequestHandler):
-        def log_message(self, *a):
-            pass
-
-        def do_POST(self):
-            body = b'{"not": "a png"}'
-            self.send_response(200)
-            self.send_header("Content-Type", "application/json")
-            self.send_header("Content-Length", str(len(body)))
-            self.end_headers()
-            self.wfile.write(body)
-
-    server = http.server.HTTPServer(("127.0.0.1", 0), _FakeHandler)
-    thread = threading.Thread(target=server.serve_forever, daemon=True)
-    thread.start()
-    base = f"http://127.0.0.1:{server.server_address[1]}"
-    try:
-        coords = [(0.0, 0.0), (1.0, 1.0)]
-        with pytest.raises(impl.MapError):
-            impl.render_route(base, coords, [], str(tmp_path / "bad.png"))
-        assert not (tmp_path / "bad.png").exists()
-    finally:
-        server.shutdown()
-        server.server_close()
+    coords = [(0.0, 0.0), (1.0, 1.0)]
+    with pytest.raises(impl.MapError):
+        impl.render_route(bad_png_server, coords, [], str(tmp_path / "bad.png"))
+    assert not (tmp_path / "bad.png").exists()
 
 
 # --------------------------------------------------------------------------- Part 4
+
 
 @pytest.mark.part4
 def test_nearest_point_haversine_known_value(impl):
@@ -205,17 +219,25 @@ def test_worked_example_nearest_for_all(impl):
 
 # --------------------------------------------------------------------------- Part 5
 
+
 @pytest.mark.part5
 def test_cli_renders_and_prints_summary(impl, maps_server, tmp_path, capsys):
     out_dir = tmp_path / "out"
     cache_dir = tmp_path / "cache"
-    rc = impl.cli([
-        "--input", RIDE_PATH,
-        "--server", maps_server,
-        "--out", str(out_dir),
-        "--cache-dir", str(cache_dir),
-        "--landmarks", LANDMARKS_PATH,
-    ])
+    rc = impl.cli(
+        [
+            "--input",
+            RIDE_PATH,
+            "--server",
+            maps_server,
+            "--out",
+            str(out_dir),
+            "--cache-dir",
+            str(cache_dir),
+            "--landmarks",
+            LANDMARKS_PATH,
+        ]
+    )
     assert rc == 0
     png_files = list(out_dir.glob("*.png"))
     assert len(png_files) == 1
@@ -253,27 +275,57 @@ def test_cli_batch_multiple_inputs(impl, maps_server, tmp_path):
     cache_dir = tmp_path / "cache"
     small_a = tmp_path / "a.json"
     small_b = tmp_path / "b.json"
-    small_a.write_text(json.dumps({
-        "type": "FeatureCollection",
-        "features": [{"type": "Feature", "geometry": {
-            "type": "LineString", "coordinates": [[13.0, 52.0], [13.01, 52.01], [13.02, 52.02]],
-        }}],
-    }))
-    small_b.write_text(json.dumps({
-        "type": "FeatureCollection",
-        "features": [{"type": "Feature", "geometry": {
-            "type": "LineString", "coordinates": [[14.0, 53.0], [14.01, 53.01], [14.02, 53.02]],
-        }}],
-    }))
-    rc = impl.cli([
-        "--input", str(small_a), str(small_b),
-        "--server", maps_server, "--out", str(out_dir), "--cache-dir", str(cache_dir),
-    ])
+    small_a.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [[13.0, 52.0], [13.01, 52.01], [13.02, 52.02]],
+                        },
+                    }
+                ],
+            }
+        )
+    )
+    small_b.write_text(
+        json.dumps(
+            {
+                "type": "FeatureCollection",
+                "features": [
+                    {
+                        "type": "Feature",
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [[14.0, 53.0], [14.01, 53.01], [14.02, 53.02]],
+                        },
+                    }
+                ],
+            }
+        )
+    )
+    rc = impl.cli(
+        [
+            "--input",
+            str(small_a),
+            str(small_b),
+            "--server",
+            maps_server,
+            "--out",
+            str(out_dir),
+            "--cache-dir",
+            str(cache_dir),
+        ]
+    )
     assert rc == 0
     assert sorted(p.name for p in out_dir.glob("*.png")) == ["a.png", "b.png"]
 
 
 # --------------------------------------------------------------------------- io
+
 
 @pytest.mark.part1
 @pytest.mark.io
@@ -281,6 +333,29 @@ def test_io_part1(run_script):
     r = run_script(f"PART 1\n{RIDE_PATH}\n10\n")
     assert r.returncode == 0, r.stderr
     assert r.stdout == "\n".join(EXPECTED_FIRST_10) + "\n"
+
+
+@pytest.mark.part3
+@pytest.mark.io
+def test_io_part3_happy(run_script, maps_server, tmp_path):
+    out_path = tmp_path / "route.png"
+    r = run_script(f"PART 3\n{maps_server}\n{RIDE_PATH}\n{LANDMARKS_PATH}\n{out_path}\n")
+    assert r.returncode == 0, r.stderr
+    assert r.stdout == f"{out_path.stat().st_size} bytes\n"
+    assert out_path.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n"
+
+
+@pytest.mark.part3
+@pytest.mark.io
+@pytest.mark.edge
+def test_io_part3_not_png(run_script, bad_png_server, tmp_path):
+    """The PART n driver must catch render_route's MapError and print 'NOT_PNG' per
+    problem.md, not let the exception crash the process with a nonzero exit code."""
+    out_path = tmp_path / "bad.png"
+    r = run_script(f"PART 3\n{bad_png_server}\n{RIDE_PATH}\n{LANDMARKS_PATH}\n{out_path}\n")
+    assert r.returncode == 0, r.stderr
+    assert r.stdout == "NOT_PNG\n"
+    assert not out_path.exists()
 
 
 @pytest.mark.part4
@@ -302,6 +377,7 @@ def test_io_empty_stdin(run_script):
 
 
 # --------------------------------------------------------------------------- perf
+
 
 @pytest.mark.part4
 @pytest.mark.perf

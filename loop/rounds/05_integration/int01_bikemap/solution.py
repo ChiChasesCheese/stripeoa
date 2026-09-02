@@ -15,6 +15,7 @@ Public API (same shape as starter.py / starter_template.py):
 
 Only stdlib: `json`, `urllib.request`, `math`, `argparse`, `hashlib`, `pathlib`.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -35,6 +36,7 @@ class MapError(Exception):
 
 
 # --------------------------------------------------------------------------- Part 1
+
 
 def load_coordinates(path: str) -> list[tuple[float, float]]:
     """Read a GeoJSON FeatureCollection (one LineString feature) and return
@@ -68,6 +70,7 @@ def first_n(coords: list[tuple[float, float]], n: int = 10) -> list[str]:
 
 
 # --------------------------------------------------------------------------- Part 2
+
 
 def _post_json(base_url: str, path: str, payload: dict) -> bytes:
     body = json.dumps(payload).encode("utf-8")
@@ -103,6 +106,7 @@ def render_map(base_url: str, coords: list[tuple[float, float]], out_path: str) 
 
 # --------------------------------------------------------------------------- Part 3
 
+
 def render_route(
     base_url: str,
     coords: list[tuple[float, float]],
@@ -126,6 +130,7 @@ def render_route(
 
 # --------------------------------------------------------------------------- Part 4
 
+
 def _haversine_m(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
     p1, p2 = math.radians(lat1), math.radians(lat2)
     dphi = math.radians(lat2 - lat1)
@@ -148,9 +153,7 @@ def nearest_point(coords: list[tuple[float, float]], landmark: dict) -> tuple[in
     return best_idx, best_dist
 
 
-def nearest_for_all(
-    coords: list[tuple[float, float]], landmarks: list[dict]
-) -> dict[str, tuple[int, float]]:
+def nearest_for_all(coords: list[tuple[float, float]], landmarks: list[dict]) -> dict[str, tuple[int, float]]:
     """{landmark name -> (nearest index, distance_m)} for every landmark, in the input
     landmarks order (dict preserves insertion order in Python 3.7+, and callers that
     need it explicitly should iterate `landmarks` themselves rather than sort the dict)."""
@@ -158,6 +161,7 @@ def nearest_for_all(
 
 
 # --------------------------------------------------------------------------- Part 5
+
 
 def _coords_hash(coords: list[tuple[float, float]]) -> str:
     """Stable content hash of a coordinate set — same coordinates (any two runs that
@@ -171,6 +175,42 @@ def _load_landmarks(path: str | None) -> list[dict]:
         return []
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def _parse_cli_args(argv: list[str] | None):
+    """argparse setup for `cli`, split out so `cli` itself stays a plain dispatch loop."""
+    parser = argparse.ArgumentParser(prog="int01-bikemap")
+    parser.add_argument("--input", nargs="+", required=True)
+    parser.add_argument("--server", required=True)
+    parser.add_argument("--out", required=True)
+    parser.add_argument("--landmarks", default=None)
+    parser.add_argument("--cache-dir", required=True)
+    return parser.parse_args(argv)
+
+
+def _render_or_reuse(
+    input_path: str,
+    coords: list[tuple[float, float]],
+    server: str,
+    out_dir: Path,
+    cache_dir: Path,
+    index: dict[str, str],
+) -> tuple[str, int]:
+    """Render one ride's PNG to `out_dir`, or copy it from `cache_dir` if the coordinate
+    content hash is already cached. Returns (status, bytes_written); mutates `index` in
+    place on a fresh render (caller persists it once after the whole batch)."""
+    h = _coords_hash(coords)
+    out_path = out_dir / (Path(input_path).stem + ".png")
+    cache_path = cache_dir / f"{h}.png"
+
+    if h in index and cache_path.exists():
+        out_path.write_bytes(cache_path.read_bytes())
+        return "cached", out_path.stat().st_size
+
+    n_bytes = render_map(server, coords, str(out_path))
+    cache_path.write_bytes(out_path.read_bytes())
+    index[h] = input_path
+    return "rendered", n_bytes
 
 
 def cli(argv: list[str] | None = None) -> int:
@@ -187,49 +227,29 @@ def cli(argv: list[str] | None = None) -> int:
     --cache-dir   directory holding '<hash>.png' cache entries + 'index.json'
                   (hash -> source input path), created if missing
     """
-    parser = argparse.ArgumentParser(prog="int01-bikemap")
-    parser.add_argument("--input", nargs="+", required=True)
-    parser.add_argument("--server", required=True)
-    parser.add_argument("--out", required=True)
-    parser.add_argument("--landmarks", default=None)
-    parser.add_argument("--cache-dir", required=True)
-    args = parser.parse_args(argv)
-
-    out_dir = Path(args.out)
-    cache_dir = Path(args.cache_dir)
+    args = _parse_cli_args(argv)
+    out_dir, cache_dir = Path(args.out), Path(args.cache_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     cache_dir.mkdir(parents=True, exist_ok=True)
 
     index_path = cache_dir / "index.json"
     index: dict[str, str] = json.loads(index_path.read_text()) if index_path.exists() else {}
-
     landmarks = _load_landmarks(args.landmarks)
 
     for input_path in args.input:
         coords = load_coordinates(input_path)
-        h = _coords_hash(coords)
-        out_path = out_dir / (Path(input_path).stem + ".png")
-        cache_path = cache_dir / f"{h}.png"
+        status, n_bytes = _render_or_reuse(input_path, coords, args.server, out_dir, cache_dir, index)
+        print(f"{input_path}: {status} ({n_bytes} bytes)")
+        for lm in landmarks:
+            idx, dist = nearest_point(coords, lm)
+            print(f"  {lm['name']}: index={idx} distance_m={dist:.1f}")
 
-        if h in index and cache_path.exists():
-            out_path.write_bytes(cache_path.read_bytes())
-            print(f"{input_path}: cached ({out_path.stat().st_size} bytes)")
-        else:
-            n_bytes = render_map(args.server, coords, str(out_path))
-            cache_path.write_bytes(out_path.read_bytes())
-            index[h] = input_path
-            index_path.write_text(json.dumps(index, indent=2))
-            print(f"{input_path}: rendered ({n_bytes} bytes)")
-
-        if landmarks:
-            for lm in landmarks:
-                idx, dist = nearest_point(coords, lm)
-                print(f"  {lm['name']}: index={idx} distance_m={dist:.1f}")
-
+    index_path.write_text(json.dumps(index, indent=2))
     return 0
 
 
 # --------------------------------------------------------------------------- PART n stdin driver
+
 
 def _read_nonblank(stdin) -> list[str]:
     return [ln.strip() for ln in stdin.read().splitlines() if ln.strip()]
@@ -261,8 +281,12 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
         server, input_path, landmarks_path, out_path = args
         coords = load_coordinates(input_path)
         landmarks = _load_landmarks(landmarks_path)
-        png_bytes = render_route(server, coords, landmarks, out_path)
-        out = [f"{len(png_bytes)} bytes" if png_bytes[:8] == PNG_MAGIC else "NOT_PNG"]
+        try:
+            png_bytes = render_route(server, coords, landmarks, out_path)
+        except MapError:
+            out = ["NOT_PNG"]
+        else:
+            out = [f"{len(png_bytes)} bytes"]
 
     elif part == 4:
         input_path, landmarks_path = args
@@ -273,7 +297,7 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
             out.append(f"{lm['name']}: index={idx} distance_m={dist:.1f}")
 
     elif part == 5:
-        rc = cli(args)
+        cli(args)
         stdout.flush()
         return
 

@@ -1,16 +1,17 @@
 """int01 BikeMap — YOUR implementation.
 Run: pytest loop/rounds/05_integration/int01_bikemap
 Mockserver: `python3 loop/mock.py serve int01 --port 0` (see problem.md's API doc)."""
+
 from __future__ import annotations
 
-import argparse
-import hashlib
+import argparse  # noqa: F401 (used once you implement Part 5)
+import hashlib  # noqa: F401 (used once you implement Part 5)
 import json
-import math
+import math  # noqa: F401 (used once you implement Part 4)
 import sys
 import urllib.error
-import urllib.request
-from pathlib import Path
+import urllib.request  # noqa: F401 (used once you implement Part 2)
+from pathlib import Path  # noqa: F401 (used once you implement Part 5)
 
 EARTH_RADIUS_M = 6_371_000.0
 PNG_MAGIC = b"\x89PNG\r\n\x1a\n"
@@ -21,6 +22,7 @@ class MapError(Exception):
 
 
 # --------------------------------------------------------------------------- Part 1
+
 
 def load_coordinates(path: str) -> list[tuple[float, float]]:
     """Read a GeoJSON FeatureCollection (one LineString feature) and return
@@ -37,6 +39,7 @@ def first_n(coords: list[tuple[float, float]], n: int = 10) -> list[str]:
 
 # --------------------------------------------------------------------------- Part 2
 
+
 def render_map(base_url: str, coords: list[tuple[float, float]], out_path: str) -> int:
     """POST the ride's points to /render and save the PNG response to `out_path`.
     Returns the number of bytes written. Raises MapError on any network error or
@@ -46,6 +49,7 @@ def render_map(base_url: str, coords: list[tuple[float, float]], out_path: str) 
 
 
 # --------------------------------------------------------------------------- Part 3
+
 
 def render_route(
     base_url: str,
@@ -61,6 +65,7 @@ def render_route(
 
 # --------------------------------------------------------------------------- Part 4
 
+
 def nearest_point(coords: list[tuple[float, float]], landmark: dict) -> tuple[int, float]:
     """Index into `coords` (0-based) of the closest point to `landmark`, and the
     great-circle distance in meters (Haversine, Earth radius 6,371,000 m)."""
@@ -68,15 +73,14 @@ def nearest_point(coords: list[tuple[float, float]], landmark: dict) -> tuple[in
     return 0, 0.0
 
 
-def nearest_for_all(
-    coords: list[tuple[float, float]], landmarks: list[dict]
-) -> dict[str, tuple[int, float]]:
+def nearest_for_all(coords: list[tuple[float, float]], landmarks: list[dict]) -> dict[str, tuple[int, float]]:
     """{landmark name -> (nearest index, distance_m)} for every landmark."""
     # TODO
     return {}
 
 
 # --------------------------------------------------------------------------- Part 5
+
 
 def cli(argv: list[str] | None = None) -> int:
     """Batch-render one or more ride files, reusing the maps server response when two
@@ -97,6 +101,7 @@ def cli(argv: list[str] | None = None) -> int:
 
 
 # --------------------------------------------------------------------------- PART n stdin driver
+
 
 def _read_nonblank(stdin) -> list[str]:
     return [ln.strip() for ln in stdin.read().splitlines() if ln.strip()]
@@ -134,8 +139,12 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
         server, input_path, landmarks_path, out_path = args
         coords = load_coordinates(input_path)
         landmarks = _load_landmarks(landmarks_path)
-        png_bytes = render_route(server, coords, landmarks, out_path)
-        out = [f"{len(png_bytes)} bytes" if png_bytes[:8] == PNG_MAGIC else "NOT_PNG"]
+        try:
+            png_bytes = render_route(server, coords, landmarks, out_path)
+        except MapError:
+            out = ["NOT_PNG"]
+        else:
+            out = [f"{len(png_bytes)} bytes"]
 
     elif part == 4:
         input_path, landmarks_path = args

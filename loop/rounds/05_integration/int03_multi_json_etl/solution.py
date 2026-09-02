@@ -39,6 +39,11 @@ class EtlError(Exception):
     invalid JSON, the line/column reported by json.JSONDecodeError."""
 
 
+def _anomaly(kind: str, source: str, ref: str, detail: str) -> dict:
+    """Build one anomaly row: the four columns anomalies.csv writes, in that order."""
+    return {"type": kind, "source": source, "ref": ref, "detail": detail}
+
+
 # --------------------------------------------------------------------------- Part 1
 
 
@@ -70,17 +75,11 @@ def parse_customers(raw: list[dict]) -> tuple[list[dict], list[dict]]:
     A record with no usable email is dropped and logged, never silently kept with ''."""
     customers: list[dict] = []
     anomalies: list[dict] = []
-    for idx, rec in enumerate(raw):
+    for rec in raw:
         email = normalize_email(rec.get("email"))
-        ref = str(rec.get("id", idx))
         if not email:
             anomalies.append(
-                {
-                    "type": "missing_email",
-                    "source": "customers",
-                    "ref": ref,
-                    "detail": "customer record has no usable email",
-                }
+                _anomaly("missing_email", "customers", str(rec["id"]), "customer record has no usable email")
             )
             continue
         customers.append(
@@ -94,6 +93,18 @@ def parse_customers(raw: list[dict]) -> tuple[list[dict], list[dict]]:
     return customers, anomalies
 
 
+def _legacy_cust_to_customer(legacy_id: str, cust: dict) -> dict:
+    """Map one legacy_export.json {mail,full_name,signup_date} dict to a Customer (does
+    not validate the email). Shared by parse_legacy (Part 1) and from_legacy (Part 2) so
+    the field-name mapping lives in exactly one place."""
+    return {
+        "id": legacy_id,
+        "email": normalize_email(cust.get("mail")),
+        "name": cust.get("full_name", ""),
+        "created": cust.get("signup_date", ""),
+    }
+
+
 def parse_legacy(raw: dict) -> tuple[list[dict], list[dict]]:
     """legacy_export.json's {"records": {legacy_id: {"cust": {...}}}} -> (valid Customer
     dicts, anomaly rows). Field names differ from customers.json -- see problem.md's
@@ -103,18 +114,13 @@ def parse_legacy(raw: dict) -> tuple[list[dict], list[dict]]:
     records = raw.get("records", {}) if isinstance(raw, dict) else {}
     for legacy_id, rec in records.items():
         cust = rec.get("cust", {}) if isinstance(rec, dict) else {}
-        email = normalize_email(cust.get("mail"))
-        if not email:
+        customer = _legacy_cust_to_customer(legacy_id, cust)
+        if not customer["email"]:
             anomalies.append(
-                {
-                    "type": "missing_email",
-                    "source": "legacy",
-                    "ref": legacy_id,
-                    "detail": "legacy record has no usable mail",
-                }
+                _anomaly("missing_email", "legacy", legacy_id, "legacy record has no usable mail")
             )
             continue
-        customers.append(from_legacy({"legacy_id": legacy_id, "cust": cust}))
+        customers.append(customer)
     return customers, anomalies
 
 
@@ -134,25 +140,16 @@ def unify_customers(*customer_lists: list[dict]) -> tuple[dict[str, dict], list[
                 continue
             existing_key = existing.get("created") or MISSING_CREATED_SENTINEL
             new_key = c.get("created") or MISSING_CREATED_SENTINEL
-            if new_key < existing_key:
-                anomalies.append(
-                    {
-                        "type": "duplicate_customer",
-                        "source": "unify",
-                        "ref": email,
-                        "detail": f"dropped id={existing['id']!r} created={existing.get('created','')!r}, kept id={c['id']!r}",
-                    }
+            winner, loser = (c, existing) if new_key < existing_key else (existing, c)
+            anomalies.append(
+                _anomaly(
+                    "duplicate_customer",
+                    "unify",
+                    email,
+                    f"dropped id={loser['id']!r} created={loser.get('created','')!r}, kept id={winner['id']!r}",
                 )
-                best[email] = c
-            else:
-                anomalies.append(
-                    {
-                        "type": "duplicate_customer",
-                        "source": "unify",
-                        "ref": email,
-                        "detail": f"dropped id={c['id']!r} created={c.get('created','')!r}, kept id={existing['id']!r}",
-                    }
-                )
+            )
+            best[email] = winner
     return best, anomalies
 
 
@@ -196,14 +193,25 @@ def to_legacy(customer: dict) -> dict:
 def from_legacy(record: dict) -> dict:
     """Inverse of to_legacy: legacy_export.json's per-record shape -> Customer.
     from_legacy(to_legacy(c)) == c for any Customer c whose email is already
-    normalize_email()'d (true for every Customer this module produces)."""
-    cust = record.get("cust", {})
-    return {
-        "id": record["legacy_id"],
-        "email": normalize_email(cust.get("mail")),
-        "name": cust.get("full_name", ""),
-        "created": cust.get("signup_date", ""),
-    }
+    normalize_email()'d (true for every Customer this module produces). Reuses Part 1's
+    `_legacy_cust_to_customer` so parsing and round-tripping share one field mapping."""
+    return _legacy_cust_to_customer(record["legacy_id"], record.get("cust", {}))
+
+
+def _order_total_cents(order: dict) -> int:
+    """Σ qty × unit_cents over one order's items, in integer cents (no float, no
+    rounding -- both operands are already integers)."""
+    return sum(int(item.get("qty", 0)) * int(item.get("unit_cents", 0)) for item in order.get("items", []))
+
+
+def _duplicate_order_anomalies(seen_ids: dict[str, int]) -> list[dict]:
+    """One 'duplicate_order' anomaly per order_id seen more than once (not one per
+    repeat -- problem.md: report the duplication, don't dedupe amounts)."""
+    return [
+        _anomaly("duplicate_order", "orders", order_id, f"order_id appears {count} times")
+        for order_id, count in seen_ids.items()
+        if order_id and count > 1
+    ]
 
 
 def join_orders(customers: dict[str, dict], orders: list[dict]) -> tuple[dict[str, dict], list[dict]]:
@@ -221,48 +229,21 @@ def join_orders(customers: dict[str, dict], orders: list[dict]) -> tuple[dict[st
         seen_ids[order_id] = seen_ids.get(order_id, 0) + 1
         email = normalize_email(order.get("customer_email"))
         if not email:
-            anomalies.append(
-                {
-                    "type": "missing_email",
-                    "source": "orders",
-                    "ref": order_id,
-                    "detail": "order has no customer_email",
-                }
-            )
+            anomalies.append(_anomaly("missing_email", "orders", order_id, "order has no customer_email"))
             continue
         if email not in joined:
-            anomalies.append(
-                {
-                    "type": "orphan_order",
-                    "source": "orders",
-                    "ref": order_id,
-                    "detail": f"no customer for email {email!r}",
-                }
-            )
+            anomalies.append(_anomaly("orphan_order", "orders", order_id, f"no customer for email {email!r}"))
             continue
-        total_cents = sum(
-            int(item.get("qty", 0)) * int(item.get("unit_cents", 0)) for item in order.get("items", [])
-        )
         joined[email]["orders"].append(
             {
                 "order_id": order_id,
                 "status": order.get("status", ""),
                 "placed_at": order.get("placed_at", ""),
-                "total_cents": total_cents,
+                "total_cents": _order_total_cents(order),
             }
         )
 
-    for order_id, count in seen_ids.items():
-        if order_id and count > 1:
-            anomalies.append(
-                {
-                    "type": "duplicate_order",
-                    "source": "orders",
-                    "ref": order_id,
-                    "detail": f"order_id appears {count} times",
-                }
-            )
-
+    anomalies.extend(_duplicate_order_anomalies(seen_ids))
     return joined, anomalies
 
 

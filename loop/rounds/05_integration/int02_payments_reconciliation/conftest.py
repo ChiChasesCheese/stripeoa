@@ -3,6 +3,7 @@ HTTP server on a random OS-assigned port, started/stopped per test via
 `start_in_thread()`. Charge fixture data is deterministic given (seed, n) — see
 data/ledger.csv's header comment / problem.md for exactly which (seed, n) it was
 generated against."""
+
 from __future__ import annotations
 
 import pytest
