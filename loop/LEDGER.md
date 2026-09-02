@@ -14,3 +14,4 @@
 | 2026-09-01 | T5 ps02 | sonnet | loop/rounds/03_phone_screen/ps02_shipping_cost_pricing | 21 | (this) | 3 个定死错误串；incremental gap 仅在跨越时报错 |
 | 2026-09-01 | T6 ps03 | sonnet | loop/rounds/03_phone_screen/ps03_brace_expansion | 19 | (this) | 与 qA03 区分：保序不去重 |
 | 2026-09-01 | T6 ps04 | sonnet | loop/rounds/03_phone_screen/ps04_data_validation_fraud | 17 | (this) | 与 q15 区分：范围/黑名单/行为匹配/优先级 |
+| 2026-09-01 | T13 mockserver | sonnet | loop/mockserver/ (maps, payments, _png, tests, README) | 40 | (this) | 纯 stdlib；管线 限流→fail-every→鉴权→路由 |
