@@ -47,9 +47,20 @@ def frontmatter(pid: str, title: str) -> str:
     )
 
 
+def tracked_articles(here: Path) -> list[Path]:
+    """只取 git 已跟踪的文章（未提交 = 未验收）。"""
+    import subprocess
+
+    out = subprocess.run(
+        ["git", "ls-files", "--", str(here)], capture_output=True, text=True, cwd=str(here)
+    ).stdout
+    names = {Path(p).name for p in out.split()}
+    return sorted(p for p in here.glob("*.md") if not p.name.startswith("_") and p.name in names)
+
+
 def main() -> int:
     dry = "--dry-run" in sys.argv
-    articles = sorted(p for p in HERE.glob("*.md") if not p.name.startswith("_"))
+    articles = tracked_articles(HERE)
     if not dry:
         DEST.mkdir(parents=True, exist_ok=True)
     written = []
