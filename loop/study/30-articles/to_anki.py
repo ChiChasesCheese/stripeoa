@@ -147,7 +147,17 @@ def main() -> int:
         anki("createDeck", deck=deck)
     res = anki("addNotes", notes=notes)
     added = sum(1 for r in res if r)
-    print(f"Anki：新增 {added} 张，跳过（已存在）{len(res) - added} 张")
+    # 已存在的（按 Front 去重）→ 用最新 Back 覆盖，保证文章更新后卡片同步
+    updated = 0
+    for n, r in zip(notes, res):
+        if r:
+            continue
+        front = n["fields"]["Front"].replace('"', '\\"')
+        ids = anki("findNotes", query=f'"deck:{n["deckName"]}" "Front:{front}"')
+        for nid in ids[:1]:
+            anki("updateNoteFields", note={"id": nid, "fields": {"Back": n["fields"]["Back"]}})
+            updated += 1
+    print(f"Anki：新增 {added} 张，更新 {updated} 张，未匹配 {len(res) - added - updated} 张")
     try:
         anki("sync")
         print("AnkiWeb sync 已触发")
