@@ -263,6 +263,9 @@ def cmd_serve(a):
     if not m:
         sys.exit(f"{problem} 未找到 `<!-- mockserver: NAME -->` 元数据")
     name = m.group(1)
+    if name == "none":
+        print(f"{a.id} 不需要 mockserver（本地文件/子进程题），直接 `start {a.id}`")
+        return
     mod_file = MOCKSERVER / f"{name}.py"
     if not mod_file.exists():
         sys.exit(f"未找到 mockserver（{mod_file} 不存在，可能尚未实现）")
