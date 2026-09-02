@@ -4,40 +4,40 @@
 
 ## Phase 0 · raw 收尾（进行中）
 - [x] T0a `loop/raw/cn_forums.md`（commit 0d8fe08）
-- [ ] T0b `loop/raw/github_repos.md` + `loop/raw/stripe_official_and_api.md`
+- [x] T0b `loop/raw/github_repos.md` + `loop/raw/stripe_official_and_api.md`
   - AC：两文件各 ≥ 250 行；每条带来源；`## 附` 列出失败来源
   - 验证：`wc -l`；`grep -c 'http' ` ≥ 80
 
 ## Phase 1 · 汇总层（协调者自写）
-- [ ] T1 `loop/CATALOG.md`
+- [x] T1 `loop/CATALOG.md`
   - AC：按轮次分表（phone / coding / bug squash / integration / SD / 非编码），每行含 ID·题名·别名·part 递进·最近报道·#refs·置信度·与 OA `problems/qNN` 的交叉引用·来源；覆盖 plan.md ID 表全部 33 个 ID；末尾"来源可信度"与"未收录/存疑"节
   - 验证：`grep -c '^| ps\|^| cd\|^| bs\|^| int\|^| sd' loop/CATALOG.md` = 33
-- [ ] T2 `loop/LOOP_GUIDE.md`
+- [x] T2 `loop/LOOP_GUIDE.md`
   - AC：流程总图（校招 vs 社招）、每轮 1 页（形式·时长·平台·评分维度·通过线·挂点 top5·备考动作·对应 rounds ID 与 study 章节）、时间线/HC/team match/offer、AI 轮、语言选择结论
   - 验证：8 个 `## ` 轮次节全在；每节含"对应练习"链接且路径存在（`check_tree.py --guide`）
-- [ ] T3 `loop/tree/interview-loop.yaml` + `loop/tree/check_tree.py`
+- [x] T3 `loop/tree/interview-loop.yaml` + `loop/tree/check_tree.py`
   - AC：节点 = 轮次 → 技能 → problems（ID）→ study 章节；受限 YAML（2 空格缩进、`key: value`、`- item`）；check_tree.py 校验所有 `rounds/<round>/<id>` 与 `study/...` 路径存在、ID 与 CATALOG 一致
   - 验证：`python3 loop/tree/check_tree.py` 退出码 0（此时允许"目录尚不存在"以 warning 报告）
 
 ### Checkpoint A（Phase 1 后）
-- [ ] CATALOG 33 ID 全覆盖；check_tree 通过；commit；LEDGER 记 T1–T3；CHECKPOINT.md 更新
+- [x] CATALOG 33 ID 全覆盖；check_tree 通过；commit；LEDGER 记 T1–T3；CHECKPOINT.md 更新
 
 ## Phase 2 · 基建 + phone screen（5 并行）
-- [ ] T4 `loop/mock.py` + `loop/README.md` + `.gitignore`（loop/work/）
+- [x] T4 `loop/mock.py` + `loop/README.md` + `.gitignore`（loop/work/）
   - AC：`list / show <id> / start <id> [-m] / test <id> [-k] / ref <id> / time <id>`（对齐 drill.py）；bs 题 `start` 拷贝到 `loop/work/<id>/` 并跑失败测试；int 题 `serve <id>` 启动 mockserver；`bq [round] [-n]` 随机抽题计时；默认时长 ps45/cd60/int60/bs60/sd45
   - 验证：`python3 loop/mock.py list` 列出全部 rounds；`python3 loop/mock.py start ps01 -m 45` 生成计时文件；`rtk proxy python3 -m pytest loop/tests/test_mock.py -q` 绿
-- [ ] T5 ps01 transaction_stream_levels · ps02 shipping_cost_pricing
-- [ ] T6 ps03 brace_expansion · ps04 data_validation_fraud
-- [ ] T7 ps05 numeronym_validation · ps06 receivables_registration
-- [ ] T8 ps07 redact_card_numbers · ps08 minmax_comparator
+- [x] T5 ps01 transaction_stream_levels · ps02 shipping_cost_pricing
+- [x] T6 ps03 brace_expansion · ps04 data_validation_fraud
+- [x] T7 ps05 numeronym_validation · ps06 receivables_registration
+- [x] T8 ps07 redact_card_numbers · ps08 minmax_comparator
   - T5–T8 共同 AC：每题 6 文件齐（problem.md / starter_template.py / starter.py / solution.py / test_psNN.py / REPORT.md）；每 part ≥ 3 测试 + edge/fmt/io 各 ≥ 1 + perf 1；problem.md 含 worked example 与来源置信度；REPORT 含"面试官追问"节
   - 验证：solution 全绿；starter 全红；`git status` 无越界文件
 
 ### Checkpoint B（Phase 2 后）
-- [ ] `rtk proxy python3 -m pytest loop/rounds/03_phone_screen -q` 全绿；mock.py 可 start/test 任一 ps 题；commit ×5；LEDGER；CHECKPOINT
+- [x] `rtk proxy python3 -m pytest loop/rounds/03_phone_screen -q` 全绿；mock.py 可 start/test 任一 ps 题；commit ×5；LEDGER；CHECKPOINT
 
 ## Phase 3 · coding + mockserver + integration 前半 + bug squash 前半（5 并行）
-- [ ] T13 `loop/mockserver/`（先做，同一代理随后做 T14）
+- [x] T13 `loop/mockserver/`（先做，同一代理随后做 T14）
   - AC：`maps.py`（POST /render JSON 坐标 → 返回最小合法 PNG；GET /health）；`payments.py`（GET /v1/charges 带 `limit/starting_after` cursor 分页与 `has_more`；每 N 次返回 429 + `Retry-After`；POST /v1/refunds 支持 `Idempotency-Key` 头：重放返回同响应、body 不同返回 400；POST /webhook 事件带 `Stripe-Signature` t=…,v1=HMAC）；纯 stdlib；`python3 -m loop.mockserver.maps --port 0` 打印端口
   - 验证：`rtk proxy python3 -m pytest loop/mockserver/tests -q` 绿（分页/429/幂等/签名各 ≥ 2 测试）
 - [ ] T14 int01 bikemap · int02 payments_reconciliation
