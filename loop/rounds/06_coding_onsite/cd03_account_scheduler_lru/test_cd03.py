@@ -4,14 +4,29 @@ import pytest
 
 EX1 = [
     "ACCOUNTS a b",
-    "AVAIL a 0", "ACQ a 0 10", "AVAIL a 9", "AVAIL a 10", "ACQ a 5 5",
-    "ANY 5 10", "ANY 5 10", "ANY 15 5", "ACQ b 16 100", "AVAIL b 17", "ANY 20 1",
+    "AVAIL a 0",
+    "ACQ a 0 10",
+    "AVAIL a 9",
+    "AVAIL a 10",
+    "ACQ a 5 5",
+    "ANY 5 10",
+    "ANY 5 10",
+    "ANY 15 5",
+    "ACQ b 16 100",
+    "AVAIL b 17",
+    "ANY 20 1",
 ]
 EX1_OUT = ["true", "true", "false", "true", "false", "b", "none", "a", "true", "false", "a"]
 
 EX2 = [
     "ACCOUNTS c b a",
-    "ANY 0 1", "ANY 0 1", "ANY 0 1", "ANY 0 1", "ANY 1 1", "ACQ a 1 1", "ANY 2 1",
+    "ANY 0 1",
+    "ANY 0 1",
+    "ANY 0 1",
+    "ANY 0 1",
+    "ANY 1 1",
+    "ACQ a 1 1",
+    "ANY 2 1",
 ]
 EX2_OUT = ["c", "b", "a", "none", "c", "true", "b"]
 
@@ -24,7 +39,7 @@ EX3_OUT = ["ERROR", "ERROR", "ERROR", "ERROR"]
 def test_available_when_never_locked_any_t(impl):
     s = impl.AccountScheduler(["a", "b"])
     assert s.is_available("a", 0) is True
-    assert s.is_available("a", -100) is True   # no lock ever taken -> free at every t, even negative
+    assert s.is_available("a", -100) is True  # no lock ever taken -> free at every t, even negative
 
 
 @pytest.mark.part1
@@ -39,10 +54,10 @@ def test_unknown_account_raises_keyerror(impl):
 @pytest.mark.edge
 def test_lock_end_is_exclusive(impl):
     s = impl.AccountScheduler(["a"])
-    assert s.acquire("a", 100, 10) is True    # locks [100, 110)
+    assert s.acquire("a", 100, 10) is True  # locks [100, 110)
     assert s.is_available("a", 100) is False
     assert s.is_available("a", 109) is False  # one below the end
-    assert s.is_available("a", 110) is True   # == end -> free
+    assert s.is_available("a", 110) is True  # == end -> free
     assert s.is_available("a", 111) is True
 
 
@@ -51,8 +66,8 @@ def test_lock_end_is_exclusive(impl):
 def test_acquire_success_then_blocked(impl):
     s = impl.AccountScheduler(["a"])
     assert s.acquire("a", 0, 10) is True
-    assert s.acquire("a", 5, 5) is False       # still locked at t=5
-    assert s.acquire("a", 10, 1) is True       # re-lock exactly at expiry
+    assert s.acquire("a", 5, 5) is False  # still locked at t=5
+    assert s.acquire("a", 10, 1) is True  # re-lock exactly at expiry
 
 
 @pytest.mark.part2
@@ -63,7 +78,7 @@ def test_duration_zero_or_negative_raises_valueerror(impl):
         s.acquire("a", 0, 0)
     with pytest.raises(ValueError):
         s.acquire("a", 0, -3)
-    assert s.is_available("a", 0) is True      # rejected before touching state
+    assert s.is_available("a", 0) is True  # rejected before touching state
 
 
 @pytest.mark.part2
@@ -96,7 +111,7 @@ def test_worked_example_2_construction_order(impl):
 @pytest.mark.part3
 @pytest.mark.edge
 def test_never_used_first_then_construction_order(impl):
-    s = impl.AccountScheduler(["z", "a", "m"])   # NOT alphabetical -> id order would fail this test
+    s = impl.AccountScheduler(["z", "a", "m"])  # NOT alphabetical -> id order would fail this test
     assert s.acquire_any(0, 1) == "z"
     assert s.acquire_any(0, 1) == "a"
     assert s.acquire_any(0, 1) == "m"
@@ -107,8 +122,8 @@ def test_never_used_first_then_construction_order(impl):
 @pytest.mark.edge
 def test_lru_oldest_last_used_wins_over_construction_order(impl):
     s = impl.AccountScheduler(["a", "b"])
-    assert s.acquire("b", 0, 1) is True         # b used at t=0, free again at t=1
-    assert s.acquire_any(1, 1) == "a"           # a never used -> ranked ahead of used b
+    assert s.acquire("b", 0, 1) is True  # b used at t=0, free again at t=1
+    assert s.acquire_any(1, 1) == "a"  # a never used -> ranked ahead of used b
     # now both used: a last_used=1, b last_used=0 -> b is older despite coming later in construction order
     assert s.acquire_any(2, 1) == "b"
 
@@ -119,9 +134,9 @@ def test_failed_acquire_and_plain_queries_do_not_touch_last_used(impl):
     s = impl.AccountScheduler(["a", "b"])
     assert s.acquire("a", 0, 10) is True
     assert s.acquire("b", 1, 10) is True
-    assert s.acquire("a", 5, 5) is False        # fails: still locked; must not update last_used
-    s.is_available("b", 100)                    # plain query: no side effect
-    assert s.acquire_any(100, 1) == "a"         # a (last_used=0) still older than b (last_used=1)
+    assert s.acquire("a", 5, 5) is False  # fails: still locked; must not update last_used
+    s.is_available("b", 100)  # plain query: no side effect
+    assert s.acquire_any(100, 1) == "a"  # a (last_used=0) still older than b (last_used=1)
 
 
 @pytest.mark.part3
@@ -144,7 +159,7 @@ def test_acquire_any_empty_pool_returns_none(impl):
 def test_command_stream_output_strings_exact(impl):
     assert impl.run_commands(EX3) == EX3_OUT
     out = impl.run_commands(["ACCOUNTS a", "AVAIL a 0", "ACQ a 0 1", "ANY 5 1"])
-    assert out == ["true", "true", "a"]          # lowercase true/false, bare id, no extra text
+    assert out == ["true", "true", "a"]  # lowercase true/false, bare id, no extra text
 
 
 @pytest.mark.part3

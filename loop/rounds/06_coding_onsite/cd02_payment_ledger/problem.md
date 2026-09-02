@@ -36,9 +36,9 @@ doesn't match this shape, or that names a calendar-invalid date/time (`2026-02-3
 ### Part 1 — payments and revenue
 `add_payment(payment_id, amount_cents, ts_iso, customer)`: records a new payment and returns
 `True`. **If `payment_id` was already recorded, it is a no-op — return `False`** (an idempotent
-retry, not an error); the original record is left untouched. `ts_iso` is validated on every call,
-including the no-op duplicate path's own timestamp is still checked *before* the duplicate check
-runs — an invalid timestamp on a duplicate call still raises. `get_total_revenue()` returns the
+retry, not an error); the original record is left untouched. `ts_iso` is validated on every call
+and the check runs *before* the duplicate check — so an invalid timestamp on a duplicate call
+still raises `ValueError` rather than returning `False`. `get_total_revenue()` returns the
 sum of all recorded payment amounts (Part 1: no refunds exist yet, so this is a plain sum).
 
 ### Part 2 — partial refunds

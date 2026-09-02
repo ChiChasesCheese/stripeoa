@@ -15,6 +15,7 @@ Public API (must match solution.py):
 See problem.md for the exact timestamp profile (`YYYY-MM-DDTHH:MM:SS`, naive), the
 idempotent-duplicate vs. KeyError vs. ValueError contract, and the command-stream protocol.
 """
+
 from __future__ import annotations
 
 import sys

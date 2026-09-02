@@ -2,6 +2,7 @@
 
 See problem.md for the full contract (exception policy, exclusive lock end, LRU tie-break order).
 """
+
 from __future__ import annotations
 
 import sys

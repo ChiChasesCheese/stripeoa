@@ -61,3 +61,21 @@ perf 1.
 S03 class + dict modeling · S05 strict/non-strict time comparison · S08 deterministic tie-breaks
 (construction order, not the "obvious" id order) · S10 state over an event stream · S18
 validation/exception policy · S19 incremental design · S20 self-testing
+
+## Review（2026-09-02）
+**改了什么**
+- `loop/lint.sh` 在改动前对本题 4 个文件全部报 "would reformat"（未跑过 black -l 110）：`--fix` 后
+  `solution.py`/`starter.py`/`starter_template.py`/`test_cd03.py` 全部格式化通过，纯格式改动（多余空行、
+  行内注释多空格、`test_cd03.py` 里两条 worked-example 列表从单行挤在一起改成一行一个元素），无语义变化——
+  用 `git diff` 核对过，且格式化前后跑三条 worked examples 逐字核对输出不变。
+- `solution.py`：`acquire` 和 `acquire_any` 原本各自重复写 `locked_until[...] = t + duration` /
+  `last_used[...] = t` 这两行；抽成私有方法 `_lock(account_id, t, duration)`，两个公共方法末尾都调用它。
+  公共 API（`__init__`/`is_available`/`acquire`/`acquire_any` 的签名）完全未变，`starter_template.py`/
+  `starter.py`/`test_cd03.py` 不需要跟着改。
+**为什么**：lint 未过是 F 项（checklist "F `loop/lint.sh <dir>` 通过"），必须修。`_lock` 抽取是 S 项
+（checklist "后 part 复用前 part 的函数"）——原来 `acquire_any` 是重写一份写状态逻辑而不是复用 `acquire`
+已经验证过的路径，两处逻辑分离后续容易改一处漏一处；抽取后两个公共方法的加锁写入只有一条代码路径。
+`REPORT.md` 原有的 Summary/Sources/Approach/Pitfalls/Complexity/Test inventory/Skills 六节在改动前已经
+符合 CONVENTIONS 要求，未改动正文，只追加本节。
+**遗留**：`acquire_any` 仍是 O(pool size) 的线性扫描，problem.md 的追问 2 已经把"两个堆 + 版本号懒删除"
+的优化路线写清楚，本轮按题面要求不实现，只在文章第 6 节讲清楚怎么口头带过。

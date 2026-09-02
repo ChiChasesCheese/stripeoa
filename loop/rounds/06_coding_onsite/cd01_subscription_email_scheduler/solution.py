@@ -9,6 +9,7 @@ cancellation. Events always process in (date, input order) regardless of input o
 query window filters by date only, and output order is (date, user, fixed email-type priority),
 never event-processing order — see TYPE_ORDER.
 """
+
 from __future__ import annotations
 
 import re
@@ -44,7 +45,9 @@ def _add_schedule(lst: list[tuple[date, str]], expire: date, cutoff: date) -> No
     lst.append((expire, "expired"))
 
 
-def _parse(lines: list[str]):
+def _parse(lines: list[str]) -> tuple[list[tuple[date, int, str, str, str | None]], date, date]:
+    """Split off the trailing query line (if any), then parse+sort events into (date, input_order,
+    user, action, plan) tuples so callers can replay them in the required chronological order."""
     rows = [ln.strip() for ln in lines if ln.strip()]
     query = None
     if rows and _RANGE_RE.match(rows[-1]):
@@ -65,55 +68,72 @@ def _parse(lines: list[str]):
     return events, lo, hi
 
 
-def _run(lines: list[str], allow_change: bool, allow_renew_cancel: bool) -> list[str]:
-    events, lo, hi = _parse(lines)
-    state: dict[str, _Sub] = {}
-    emails: dict[str, list[tuple[date, str]]] = {}
+State = dict[str, _Sub]
+Emails = dict[str, list[tuple[date, str]]]
 
-    for d, _, user, action, plan in events:
-        if action == "subscribe":
-            lst = emails.setdefault(user, [])
-            lst[:] = [e for e in lst if e[0] <= d]  # a resubscribe wipes any pending future email
-            expire = d + timedelta(days=_period(plan))
-            lst.append((d, "welcome"))
-            _add_schedule(lst, expire, d)
-            state[user] = _Sub(plan, expire)
-        elif action == "change" and allow_change:
-            sub = state.get(user)
-            if sub is None or sub.canceled or d >= sub.expire:
-                continue  # unknown user, canceled, or already at/after expiry: ignored
-            lst = emails.setdefault(user, [])
-            lst[:] = [e for e in lst if e[0] <= d]
-            remaining_old = (sub.expire - d).days
-            # remaining days recomputed under the NEW plan's period, floored (never rounded up)
-            new_remaining = remaining_old * _period(plan) // _period(sub.plan)
-            new_expire = d + timedelta(days=new_remaining)
-            _add_schedule(lst, new_expire, d)
-            sub.plan, sub.expire = plan, new_expire
-        elif action == "renew" and allow_renew_cancel:
-            sub = state.get(user)
-            if sub is None or sub.canceled:
-                continue  # unknown or canceled user: ignored
-            lst = emails.setdefault(user, [])
-            lst[:] = [e for e in lst if e[0] <= d]
-            if d < sub.expire:  # renewing before expiry: extend the term from the OLD end
-                new_expire = sub.expire + timedelta(days=_period(sub.plan))
-                lst.append((d, "renewed"))
-            else:  # renewing on/after the expiry day: treated as a brand new subscription
-                new_expire = d + timedelta(days=_period(sub.plan))
-                lst.append((d, "welcome"))
-            _add_schedule(lst, new_expire, d)
-            sub.expire = new_expire
-        elif action == "cancel" and allow_renew_cancel:
-            sub = state.get(user)
-            if sub is None or sub.canceled:
-                continue  # unknown or already-canceled user: ignored (idempotent)
-            lst = emails.setdefault(user, [])
-            lst[:] = [e for e in lst if e[0] <= d]  # revokes every pending expiring/expired
-            lst.append((d, "canceled"))
-            sub.canceled = True
-        # any other (action, allow_*) combination -- e.g. `change` in part1 -- is silently ignored
 
+def _discard_future(lst: list[tuple[date, str]], cutoff: date) -> None:
+    """The one rule every state-changing event obeys: drop pending emails dated strictly after
+    `cutoff` (not yet committed); anything dated on or before `cutoff` is never revoked."""
+    lst[:] = [e for e in lst if e[0] <= cutoff]
+
+
+def _apply_subscribe(d: date, user: str, plan: str, state: State, emails: Emails) -> None:
+    """New or resubscribe: wipe any pending future emails, start a fresh schedule."""
+    lst = emails.setdefault(user, [])
+    _discard_future(lst, d)
+    expire = d + timedelta(days=_period(plan))
+    lst.append((d, "welcome"))
+    _add_schedule(lst, expire, d)
+    state[user] = _Sub(plan, expire)
+
+
+def _apply_change(d: date, user: str, plan: str, state: State, emails: Emails) -> None:
+    """Reprorate the remaining term onto the new plan's period; a no-op event emits nothing."""
+    sub = state.get(user)
+    if sub is None or sub.canceled or d >= sub.expire:
+        return  # unknown user, canceled, or already at/after expiry: ignored
+    lst = emails.setdefault(user, [])
+    _discard_future(lst, d)
+    remaining_old = (sub.expire - d).days
+    remaining_new = remaining_old * _period(plan) // _period(sub.plan)  # floor, never rounded up
+    new_expire = d + timedelta(days=remaining_new)
+    _add_schedule(lst, new_expire, d)
+    sub.plan, sub.expire = plan, new_expire
+
+
+def _apply_renew(d: date, user: str, state: State, emails: Emails) -> None:
+    """Before expiry: extend the term from the OLD end, emit `renewed`. On/after expiry: treated
+    as a brand new subscription on the same plan, emit `welcome` instead."""
+    sub = state.get(user)
+    if sub is None or sub.canceled:
+        return  # unknown or canceled user: ignored
+    lst = emails.setdefault(user, [])
+    _discard_future(lst, d)
+    if d < sub.expire:
+        new_expire = sub.expire + timedelta(days=_period(sub.plan))
+        lst.append((d, "renewed"))
+    else:
+        new_expire = d + timedelta(days=_period(sub.plan))
+        lst.append((d, "welcome"))
+    _add_schedule(lst, new_expire, d)
+    sub.expire = new_expire
+
+
+def _apply_cancel(d: date, user: str, state: State, emails: Emails) -> None:
+    """Idempotent: a second cancel for an already-canceled (or unknown) user is a silent no-op."""
+    sub = state.get(user)
+    if sub is None or sub.canceled:
+        return
+    lst = emails.setdefault(user, [])
+    _discard_future(lst, d)  # revokes every pending expiring/expired
+    lst.append((d, "canceled"))
+    sub.canceled = True
+
+
+def _render(emails: Emails, lo: date, hi: date) -> list[str]:
+    """Filter every user's accumulated schedule to the query window and sort by
+    (date, user, fixed email-type priority) — never by the order events were processed."""
     out = []
     for user, lst in emails.items():
         for d, typ in lst:
@@ -121,6 +141,25 @@ def _run(lines: list[str], allow_change: bool, allow_renew_cancel: bool) -> list
                 out.append((d, user, TYPE_ORDER[typ], typ))
     out.sort(key=lambda t: (t[0], t[1], t[2]))
     return [f"{d.isoformat()} {user} {typ}" for d, user, _, typ in out]
+
+
+def _run(lines: list[str], allow_change: bool, allow_renew_cancel: bool) -> list[str]:
+    """Replay events in (date, input order), dispatching each to its action handler, then render
+    the accumulated per-user email lists into output lines."""
+    events, lo, hi = _parse(lines)
+    state: State = {}
+    emails: Emails = {}
+    for d, _, user, action, plan in events:
+        if action == "subscribe":
+            _apply_subscribe(d, user, plan, state, emails)
+        elif action == "change" and allow_change:
+            _apply_change(d, user, plan, state, emails)
+        elif action == "renew" and allow_renew_cancel:
+            _apply_renew(d, user, state, emails)
+        elif action == "cancel" and allow_renew_cancel:
+            _apply_cancel(d, user, state, emails)
+        # any other (action, allow_*) combination -- e.g. `change` in part1 -- is silently ignored
+    return _render(emails, lo, hi)
 
 
 def part1(lines: list[str]) -> list[str]:

@@ -92,7 +92,9 @@ def test_part1_ignores_change_renew_cancel_lines(impl):
 @pytest.mark.fmt
 def test_sort_by_date_user_then_fixed_type_priority(impl):
     # same date, two users -> string order; then within one date/user, welcome < expiring < expired
-    out = impl.part1(["2026-06-01,b,subscribe,monthly", "2026-06-01,a,subscribe,monthly", "2026-06-01..2026-12-31"])
+    out = impl.part1(
+        ["2026-06-01,b,subscribe,monthly", "2026-06-01,a,subscribe,monthly", "2026-06-01..2026-12-31"]
+    )
     assert out[0] == "2026-06-01 a welcome"
     assert out[1] == "2026-06-01 b welcome"
 
@@ -109,7 +111,9 @@ def test_whitespace_and_blank_lines_tolerated(impl):
 def test_query_window_boundaries_inclusive(impl):
     lines = ["2026-01-01,u,subscribe,monthly"]  # expire 2026-01-31, expiring 01-24/01-30
     assert impl.part1(lines + ["2026-01-24..2026-01-30"]) == [
-        "2026-01-24 u expiring", "2026-01-30 u expiring"]
+        "2026-01-24 u expiring",
+        "2026-01-30 u expiring",
+    ]
     assert impl.part1(lines + ["2026-01-25..2026-01-29"]) == []  # one day inside on each side: nothing left
     assert impl.part1(lines + ["2026-01-01..2026-01-01"]) == ["2026-01-01 u welcome"]
 
@@ -132,14 +136,20 @@ def test_change_ignored_for_unknown_user(impl):
 def test_change_ignored_exactly_at_expire_boundary(impl):
     lines = ["2026-01-01,u,subscribe,monthly", "2026-01-31,u,change,annual", "2026-01-01..2026-12-31"]
     assert impl.part2(lines) == [
-        "2026-01-01 u welcome", "2026-01-24 u expiring", "2026-01-30 u expiring", "2026-01-31 u expired"]
+        "2026-01-01 u welcome",
+        "2026-01-24 u expiring",
+        "2026-01-30 u expiring",
+        "2026-01-31 u expired",
+    ]
 
 
 @pytest.mark.part2
 @pytest.mark.edge
 def test_change_same_day_as_subscribe_is_exact_no_floor_loss(impl):
     # remaining_old == period_days(old) -> remaining_new == period_days(new) exactly
-    out = impl.part2(["2026-01-01,u,subscribe,monthly", "2026-01-01,u,change,annual", "2026-01-01..2027-12-31"])
+    out = impl.part2(
+        ["2026-01-01,u,subscribe,monthly", "2026-01-01,u,change,annual", "2026-01-01..2027-12-31"]
+    )
     assert out == [
         "2026-01-01 u welcome",
         "2026-12-25 u expiring",
@@ -157,9 +167,9 @@ def test_change_causing_immediate_expiry_keeps_same_day_old_emails(impl):
     lines = ["2026-01-01,u,subscribe,annual", "2026-12-31,u,change,monthly", "2026-01-01..2027-12-31"]
     assert impl.part2(lines) == [
         "2026-01-01 u welcome",
-        "2026-12-25 u expiring",   # from the ORIGINAL annual schedule, untouched (dated <= event day)
-        "2026-12-31 u expiring",   # also from the ORIGINAL schedule, dated == event day, untouched
-        "2026-12-31 u expired",    # NEW: immediate expiry from the change (remaining floors to 0)
+        "2026-12-25 u expiring",  # from the ORIGINAL annual schedule, untouched (dated <= event day)
+        "2026-12-31 u expiring",  # also from the ORIGINAL schedule, dated == event day, untouched
+        "2026-12-31 u expired",  # NEW: immediate expiry from the change (remaining floors to 0)
     ]
 
 
@@ -198,8 +208,7 @@ def test_renew_ignored_after_cancel_and_double_cancel_is_noop(impl):
 @pytest.mark.edge
 def test_resubscribe_while_active_wipes_pending_schedule(impl):
     lines = ["2026-01-01,u,subscribe,monthly", "2026-01-05,u,subscribe,annual", "2026-01-01..2026-12-31"]
-    assert impl.part3(lines) == [
-        "2026-01-01 u welcome", "2026-01-05 u welcome", "2026-12-29 u expiring"]
+    assert impl.part3(lines) == ["2026-01-01 u welcome", "2026-01-05 u welcome", "2026-12-29 u expiring"]
 
 
 @pytest.mark.part3
@@ -213,8 +222,8 @@ def test_same_day_cancel_then_resubscribe_orders_by_type_not_event_order(impl):
     ]
     assert impl.part3(lines) == [
         "2026-01-01 u welcome",
-        "2026-01-05 u welcome",    # welcome (priority 0) sorts before canceled (priority 4)
-        "2026-01-05 u canceled",   # even though cancel was processed first (same-day -> not revoked)
+        "2026-01-05 u welcome",  # welcome (priority 0) sorts before canceled (priority 4)
+        "2026-01-05 u canceled",  # even though cancel was processed first (same-day -> not revoked)
         "2026-01-28 u expiring",
         "2026-02-03 u expiring",
         "2026-02-04 u expired",
@@ -228,8 +237,11 @@ def test_duplicate_subscribe_lines_are_not_deduplicated(impl):
     out = impl.part3(lines)
     assert out.count("2026-01-01 u welcome") == 2
     assert out == [
-        "2026-01-01 u welcome", "2026-01-01 u welcome",
-        "2026-01-24 u expiring", "2026-01-30 u expiring", "2026-01-31 u expired",
+        "2026-01-01 u welcome",
+        "2026-01-01 u welcome",
+        "2026-01-24 u expiring",
+        "2026-01-30 u expiring",
+        "2026-01-31 u expired",
     ]
 
 
@@ -238,10 +250,10 @@ def test_duplicate_subscribe_lines_are_not_deduplicated(impl):
 def test_renew_before_and_after_expiry_message_types_differ(impl):
     # renew strictly before expiry -> "renewed"; on/after expiry -> treated as fresh "welcome"
     before = impl.part3(["2026-01-01,u,subscribe,monthly", "2026-01-20,u,renew", "2026-01-01..2027-12-31"])
-    assert any(l.endswith("renewed") for l in before)
+    assert any(line.endswith("renewed") for line in before)
     after = impl.part3(["2026-01-01,u,subscribe,monthly", "2026-01-31,u,renew", "2026-01-01..2027-12-31"])
-    assert any(l == "2026-01-31 u welcome" for l in after)
-    assert not any(l.endswith("renewed") for l in after)
+    assert any(line == "2026-01-31 u welcome" for line in after)
+    assert not any(line.endswith("renewed") for line in after)
 
 
 # ---------------------------------------------------------------- io / perf
@@ -272,6 +284,7 @@ def test_perf_100k_events(run_script):
 
     def rand_date(lo_ord, span):
         import datetime
+
         return (datetime.date.fromordinal(lo_ord) + datetime.timedelta(days=rng.randrange(span))).isoformat()
 
     base = 738_000  # ~2021-11-01 as an ordinal, arbitrary stable anchor

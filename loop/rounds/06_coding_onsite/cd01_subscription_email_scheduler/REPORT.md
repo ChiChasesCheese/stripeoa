@@ -90,3 +90,23 @@ S19 incremental design
   re-check these two rules first.
 - `renew`/`cancel` lines carry no `plan` field by design (renew always keeps the current plan);
   flagged as an open question in "边写边说什么" #1 for a candidate to raise proactively.
+
+## Review（2026-09-02）
+**改了什么**
+- `solution.py`：`_run` 原本是一个 ~56 行的大函数（四个事件类型的逻辑全部内联），超出 checklist 的
+  "函数 ≤ 40 行" 建议，可读性也差（陌生人要通读整个函数才能看清一个事件类型的规则）。拆成
+  `_discard_future`（"丢弃-重排"公共规则单独一个函数，供四个 handler 共用）+ `_apply_subscribe` /
+  `_apply_change` / `_apply_renew` / `_apply_cancel`（每个 handler 对应 problem.md 里的一条规则，
+  10 行左右）+ `_render`（过滤窗口 + 排序 + 格式化）。`_run` 现在只剩一个 10 行的分发循环，60 秒内能
+  从 `main` 追到任意一个 Part 的核心规则。新增 `State`/`Emails` 类型别名和函数级 docstring
+  （每个 handler 一句话说清"什么时候生效、做什么"）；`_parse` 补了返回类型标注和 docstring。公共 API
+  （`part1/2/3`、`main`）未变，`starter_template.py`/`starter.py`/`test_cd01.py` 无需同步签名改动。
+- `test_cd01.py`：修了 3 处 flake8 `E741`（循环变量名 `l` 与数字 `1` 易混淆），改名为 `line`；其余是
+  `black -l 110` 的自动换行（长断言列表拆成多行、`import datetime` 前补空行），无语义变化。
+- 三个 worked examples 逐字喂给 `python3 solution.py`，输出与 problem.md 完全一致（未改动）。
+**为什么**：`_run` 超长是 S 项（可读性/函数拆分），按 checklist "S 函数 ≤ 40 行；一个函数一件事" 修；
+拆分后每个 handler 直接对应题面里 `change`/`renew`/`cancel` 各自的小节，面试官对照 problem.md 读代码
+更快。`E741` 是 flake8 会拦的裸红线（虽不属于 F 类，但 `loop/lint.sh` 不区分类别，全量 flake8 通过才算
+过）。题面语义、排序 key、边界规则（同日邮件不撤销、`change` 恰好到期日是 no-op、幂等 cancel）均未变。
+**遗留**：无。`solution.py` 已是可复用的规则表结构；problem.md"面试官会怎么追问"里的幂等去重/流式重构/
+时区等追问均未实现（按设计，仅口头讨论，见 REPORT 原有"边写边说什么" #6）。

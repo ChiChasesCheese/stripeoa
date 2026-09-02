@@ -6,6 +6,7 @@ raises ValueError — the class never returns a sentinel for a caller bug, only 
 "not available right now" / "nothing to pick" outcome (False / None). main() is the only layer
 that turns exceptions into an `ERROR` line, per the stream-level error policy in problem.md.
 """
+
 from __future__ import annotations
 
 import sys
@@ -16,12 +17,17 @@ class AccountScheduler:
         # de-duplicate while preserving first-seen order: that order is the LRU tie-break key
         self._accounts: list[str] = list(dict.fromkeys(accounts))
         self._order: dict[str, int] = {aid: i for i, aid in enumerate(self._accounts)}
-        self.locked_until: dict[str, int] = {}   # account_id -> t at which it becomes free again
-        self.last_used: dict[str, int] = {}      # account_id -> t of its last SUCCESSFUL acquire
+        self.locked_until: dict[str, int] = {}  # account_id -> t at which it becomes free again
+        self.last_used: dict[str, int] = {}  # account_id -> t of its last SUCCESSFUL acquire
 
     def _check_known(self, account_id: str) -> None:
         if account_id not in self._order:
             raise KeyError(account_id)
+
+    def _lock(self, account_id: str, t: int, duration: int) -> None:
+        """Shared write path for a successful lock; both acquire() and acquire_any() end here."""
+        self.locked_until[account_id] = t + duration
+        self.last_used[account_id] = t
 
     def is_available(self, account_id: str, t: int) -> bool:
         """Registered and (never locked, or its lock's exclusive end <= t)."""
@@ -34,10 +40,9 @@ class AccountScheduler:
         before the unknown-id check that is_available performs)."""
         if duration <= 0:
             raise ValueError("duration must be > 0")
-        if not self.is_available(account_id, t):   # raises KeyError for unknown ids
+        if not self.is_available(account_id, t):  # raises KeyError for unknown ids
             return False
-        self.locked_until[account_id] = t + duration
-        self.last_used[account_id] = t
+        self._lock(account_id, t, duration)
         return True
 
     def acquire_any(self, t: int, duration: int) -> str | None:
@@ -55,8 +60,7 @@ class AccountScheduler:
             return (1 if used else 0, self.last_used.get(aid, 0), self._order[aid])
 
         chosen = min(candidates, key=key)
-        self.locked_until[chosen] = t + duration
-        self.last_used[chosen] = t
+        self._lock(chosen, t, duration)
         return chosen
 
 

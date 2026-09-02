@@ -33,3 +33,4 @@
 | 2026-09-02 | R1 ps01–03 | fable(review)+写入 | ps01 29 / ps02 23 / ps03 20 tests + 3 篇文章 | 绿；lint 通过 | (this) | ps04 未做 → 转 sonnet |
 | 2026-09-02 | R2 ps05–07 | fable(review)+写入 | ps05 26 / ps06 23 / ps07 29 tests + ps05/06 文章 | 绿；lint 通过 | (this) | ps07 文章、ps08 未做 → 转 sonnet |
 | 2026-09-02 | RA ps04/07/08 | sonnet | 3 目录 + 3 篇文章 | 17/29/33 | (this) | 无功能 bug；仅格式化 |
+| 2026-09-02 | RB cd01–03 | sonnet | 3 目录 + 3 篇文章 | 23/24/18 | (this) | cd02 Payment dataclass + 逐字样例测试；cd01 handler 拆分；cd03 _lock 复用 |

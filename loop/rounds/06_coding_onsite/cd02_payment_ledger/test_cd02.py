@@ -22,7 +22,29 @@ CMD_STREAM_OUT = [
 ]
 
 
+def _example_ledger(impl):
+    """problem.md Example 1 state (p1 1000 / p2 500 / duplicate p1 ignored) -> revenue 1500."""
+    L = impl.PaymentLedger()
+    assert L.add_payment("p1", 1000, "2026-01-01T10:00:00", "cus_a") is True
+    assert L.add_payment("p2", 500, "2026-01-02T09:00:00", "cus_b") is True
+    assert L.add_payment("p1", 999, "2026-01-03T00:00:00", "cus_a") is False
+    return L
+
+
+def _example2_ledger(impl):
+    """problem.md Example 2 applied on top of Example 1 -> revenue 800, p1 refunded 700."""
+    L = _example_ledger(impl)
+    assert L.add_refund("r1", "p1", 300, "2026-01-05T00:00:00") is True
+    assert L.add_refund("r2", "p1", 400, "2026-01-06T00:00:00") is True
+    return L
+
+
 # ---------------------------------------------------------------- Part 1
+@pytest.mark.part1
+def test_example1_verbatim(impl):
+    assert _example_ledger(impl).get_total_revenue() == 1500
+
+
 @pytest.mark.part1
 def test_add_payment_and_total_revenue(impl):
     L = impl.PaymentLedger()
@@ -38,7 +60,13 @@ def test_duplicate_payment_id_is_idempotent_and_does_not_overwrite(impl):
     assert L.add_payment("p1", 999, "2026-01-03T00:00:00", "cus_z") is False
     assert L.get_total_revenue() == 1000  # original amount kept, not overwritten
     assert L.get_payments_by_date("2026-01-01T00:00:00", "2026-12-31T23:59:59") == [
-        {"payment_id": "p1", "amount_cents": 1000, "ts": "2026-01-01T10:00:00", "customer": "cus_a", "refunded_cents": 0}
+        {
+            "payment_id": "p1",
+            "amount_cents": 1000,
+            "ts": "2026-01-01T10:00:00",
+            "customer": "cus_a",
+            "refunded_cents": 0,
+        }
     ]
 
 
@@ -65,6 +93,18 @@ def test_invalid_timestamp_shapes_raise_value_error(impl):
 
 
 # ---------------------------------------------------------------- Part 2
+@pytest.mark.part2
+def test_example2_verbatim(impl):
+    L = _example2_ledger(impl)
+    assert L.get_total_revenue() == 800
+    with pytest.raises(ValueError):
+        L.add_refund("r3", "p1", 400, "2026-01-07T00:00:00")  # 700+400 > 1000
+    assert L.add_refund("r1", "p1", 300, "2026-01-08T00:00:00") is False  # r1 already applied
+    with pytest.raises(KeyError):
+        L.add_refund("rX", "ghost", 100, "2026-01-08T00:00:00")
+    assert L.get_total_revenue() == 800  # none of the three failures touched state
+
+
 @pytest.mark.part2
 def test_partial_refunds_accumulate_and_reduce_revenue(impl):
     L = impl.PaymentLedger()
@@ -116,6 +156,32 @@ def test_refund_invalid_timestamp_raises_before_other_checks(impl):
 
 # ---------------------------------------------------------------- Part 3
 @pytest.mark.part3
+def test_example3_verbatim(impl):
+    L = _example2_ledger(impl)
+    lo, hi = "2026-01-01T00:00:00", "2026-01-02T23:59:59"
+    rows = L.get_payments_by_date(lo, hi)
+    assert rows == [
+        {
+            "payment_id": "p1",
+            "amount_cents": 1000,
+            "ts": "2026-01-01T10:00:00",
+            "customer": "cus_a",
+            "refunded_cents": 700,
+        },
+        {
+            "payment_id": "p2",
+            "amount_cents": 500,
+            "ts": "2026-01-02T09:00:00",
+            "customer": "cus_b",
+            "refunded_cents": 0,
+        },
+    ]
+    L2 = impl.PaymentLedger.load_json(L.export_json())
+    assert L2.get_total_revenue() == L.get_total_revenue() == 800
+    assert L2.get_payments_by_date(lo, hi) == rows
+
+
+@pytest.mark.part3
 def test_get_payments_by_date_inclusive_and_sorted(impl):
     L = impl.PaymentLedger()
     L.add_payment("p1", 1000, "2026-01-01T10:00:00", "cus_a")
@@ -123,8 +189,20 @@ def test_get_payments_by_date_inclusive_and_sorted(impl):
     L.add_refund("r1", "p1", 300, "2026-01-05T00:00:00")
     rows = L.get_payments_by_date("2026-01-01T00:00:00", "2026-01-02T23:59:59")
     assert rows == [
-        {"payment_id": "p1", "amount_cents": 1000, "ts": "2026-01-01T10:00:00", "customer": "cus_a", "refunded_cents": 300},
-        {"payment_id": "p2", "amount_cents": 500, "ts": "2026-01-02T09:00:00", "customer": "cus_b", "refunded_cents": 0},
+        {
+            "payment_id": "p1",
+            "amount_cents": 1000,
+            "ts": "2026-01-01T10:00:00",
+            "customer": "cus_a",
+            "refunded_cents": 300,
+        },
+        {
+            "payment_id": "p2",
+            "amount_cents": 500,
+            "ts": "2026-01-02T09:00:00",
+            "customer": "cus_b",
+            "refunded_cents": 0,
+        },
     ]
 
 
@@ -134,7 +212,9 @@ def test_range_boundary_inclusive_one_second_outside_excluded(impl):
     L = impl.PaymentLedger()
     L.add_payment("p1", 100, "2026-01-01T00:00:00", "cus_a")
     L.add_payment("p2", 100, "2026-01-02T00:00:00", "cus_a")
-    assert [r["payment_id"] for r in L.get_payments_by_date("2026-01-01T00:00:00", "2026-01-01T00:00:00")] == ["p1"]
+    assert [
+        r["payment_id"] for r in L.get_payments_by_date("2026-01-01T00:00:00", "2026-01-01T00:00:00")
+    ] == ["p1"]
     assert L.get_payments_by_date("2026-01-01T00:00:01", "2026-01-01T23:59:59") == []
 
 
@@ -157,8 +237,9 @@ def test_export_load_json_round_trip_preserves_state(impl):
     blob = L.export_json()
     L2 = impl.PaymentLedger.load_json(blob)
     assert L2.get_total_revenue() == L.get_total_revenue()
-    assert L2.get_payments_by_date("2026-01-01T00:00:00", "2026-12-31T00:00:00") == \
-        L.get_payments_by_date("2026-01-01T00:00:00", "2026-12-31T00:00:00")
+    assert L2.get_payments_by_date("2026-01-01T00:00:00", "2026-12-31T00:00:00") == L.get_payments_by_date(
+        "2026-01-01T00:00:00", "2026-12-31T00:00:00"
+    )
 
 
 @pytest.mark.part3

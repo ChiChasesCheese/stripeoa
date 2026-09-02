@@ -44,9 +44,10 @@ failures are exceptions vs. `False`, or persistence method signatures (`export_j
    `test_refund_invalid_timestamp_raises_before_other_checks` and
    `test_duplicate_refund_id_is_idempotent_before_amount_check` pin down two orderings a candidate
    is likely to get backwards.
-3. **Part 3**: `get_payments_by_date` re-parses each stored `ts` at query time rather than storing
-   a parsed `datetime` — kept simple since the perf budget (10^5 payments, single query) never
-   needs an index; the follow-up list explicitly names bisect/index-based scaling as a discussion
+3. **Part 3**: `get_payments_by_date` validates both bounds, then filters on the stored *strings*
+   — the fixed-width `YYYY-MM-DDTHH:MM:SS` profile makes string order == chronological order, so
+   nothing is re-parsed per query. Linear scan, no index: the perf budget (10^5 payments, single
+   query) never needs one; the follow-up list names bisect/index-based scaling as a discussion
    point instead. `export_json`/`load_json` round-trip both the payment records *and* the
    `refund_ids` set — losing the latter would let a reloaded ledger accept a replayed duplicate
    refund, which `test_loaded_ledger_still_enforces_refund_rules` catches directly.
@@ -75,7 +76,7 @@ discussion extension. 100k payments + one range query, well under the 2 s / 256 
 `test_perf_100k_payments_and_range_query`).
 
 ## Test inventory
-21 tests — part1: 5 · part2: 5 · part3: 11 (incl. 1 fmt, 3 io, 1 perf); edge 9 · fmt 1 · io 3 · perf 1.
+24 tests — part1: 6 · part2: 6 · part3: 12 (incl. 1 fmt, 3 io, 1 perf); edge 9 · fmt 1 · io 3 · perf 1.
 
 ## Skills exercised
 S02 parsing/validation with a fixed timestamp profile . S03 an incrementally-revealed class API .
@@ -112,3 +113,31 @@ handling . S20 serialization round-trip correctness
 - The exact command-stream protocol (`PAY`/`REFUND`/`REVENUE`/`RANGE` verbs, `OK`/`DUP`/`ERROR`
   tokens) is invented for this suite's io-test harness; programhelp.net's source describes only
   the class API, not a CLI protocol.
+
+## Review（2026-09-02）
+**改了什么**
+- `test_cd02.py`：problem.md 的 worked examples 1–3 原来只被"拆散"覆盖（各测试用不同金额），没有逐字
+  进测试（checklist F 项）。新增 `_example_ledger` / `_example2_ledger` 两个 helper 复现例子状态，加
+  `test_example1_verbatim`（revenue 1500）、`test_example2_verbatim`（800 / r3 ValueError / r1 dup /
+  ghost KeyError，且三次失败都不改状态）、`test_example3_verbatim`（区间查询 dict 逐字 + round-trip）。
+  现在 24 tests：part1 6 · part2 6 · part3 12；edge 9 · fmt 1 · io 3 · perf 1。`IMPL=starter` 23
+  failed / 1 passed（只有 `test_empty_stdin` 天然通过）。
+- `solution.py` 重构为范本（公共 API 不变）：`Payment` dataclass 取代魔法字符串 key 的 dict
+  （`p["amount"]`→`p.amount_cents`，字段名与 `get_payments_by_date` 的输出 dict 一致，`asdict` 直接
+  出结果）；`net_cents` property 把"剩余可退额度"和"贡献的 revenue"收成一个定义，`add_refund` 的超额
+  判断变成 `amount_cents > payment.net_cents`；`_parse_ts` 改为 `_validate_ts`（返回原串），
+  `get_payments_by_date` 不再对每条记录 `strptime` 两次——固定宽度 profile 下已校验字符串的序 == 时间
+  序，直接比字符串（这条本来就写在 REPORT 的 Open points 里，代码现在和说法一致；perf 测试 0.58 s）；
+  命令流 harness 从一个 40 行 if/elif 改为 `COMMANDS` 分发表 + 每个动词一个 `_cmd_*` 函数，错误到文本
+  的映射只在 harness 层，类本身不知道 CLI 协议；`PaymentLedger` / `__init__` / `get_total_revenue` /
+  `export_json` / `load_json` 补一句话 docstring，类 docstring 列出两个状态字段及"为什么要持久化
+  refund_ids"。
+- `problem.md` Part 1："including the no-op duplicate path's own timestamp is still checked…"
+  一句语法不通，改写为"the check runs before the duplicate check — an invalid timestamp on a
+  duplicate call still raises `ValueError` rather than returning `False`"，语义不变。
+- black 格式化 4 个文件（docstring 后空行等），`loop/lint.sh` 通过（flake8 原本就是 0）。
+**为什么**：worked examples 逐字进测试与 lint 通过是 F 项；其余是 S 项（记录用 dataclass、规则表取代
+散落 if、docstring、不重复解析）。4 个 worked examples 已用 `python3 solution.py` / 直接调类逐个核
+对，输出逐字不变；`IMPL=starter` 失败集合与之前一致（多出的 3 个 example 测试也失败）。
+**遗留**：无。`get_total_revenue` 保持 O(n) 求和而不维护 running total（避免第二份真相），O(1) 版本
+与按 `ts` 的 bisect 索引仍只作为追问 #2/#6 口头讨论，不实现。

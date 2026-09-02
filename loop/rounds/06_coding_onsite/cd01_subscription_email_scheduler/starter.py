@@ -9,6 +9,7 @@ Public API (must match solution.py):
 See problem.md for the exact input grammar, the discard-then-reschedule rule, and the
 `date user email_type` output format (sorted by date, user, then a fixed email-type priority).
 """
+
 from __future__ import annotations
 
 import sys
