@@ -3,3 +3,4 @@
 | 时间 | 任务 | 代理 | 产物 | 测试 | commit | 备注 |
 |---|---|---|---|---|---|---|
 | 2026-09-01 | T0a cn_forums | sonnet | loop/raw/cn_forums.md（269 行） | — | 0d8fe08 | 1p3a `__NEXT_DATA__` 拿到 10 道题库原题 |
+| 2026-09-01 | T3 tree | fable | loop/tree/interview-loop.yaml + check_tree.py | check_tree: 8 rounds/38 skills/33 ids, 0 err | (this) | 84 warn = 目录未建 |

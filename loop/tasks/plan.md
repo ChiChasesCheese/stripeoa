@@ -26,9 +26,9 @@
 | ps02 | Shipping cost pricing（fixed→tiered→incremental/fixed mixed） | phone(intern) | 3 | cn learncswithus 2025-10-20；1p3a post/7100079 |
 | ps03 | Brace expansion（展开→不匹配/单 token→嵌套） | phone | 3 | LC 5341224；interviewdb |
 | ps04 | Data validation / fraud 4-part（非空→范围+黑名单→50% 行为匹配→对齐错误码） | phone | 4 | LC 7384225 |
-| ps05 | Invoice reconciliation（memo→金额+最早到期→容差） | phone | 3 | LC 6696304 |
+| ps05 | Numeronym validation（校验 i18n 形式→按词典校验展开→生成最短唯一 numeronym）（invoice reconciliation 已在 OA q25） | phone | 3 | FinalRound；Exponent |
 | ps06 | Receivables registration（CSV → merchant+card_type+payout_date 聚合 → 追问） | phone/coding | 2 | csoahelp 2024-10-04 |
-| ps07 | Card parsing（打码→品牌规则→Luhn） | phone | 3 | staffengprep；interviewdb |
+| ps07 | Redact card numbers from logs（找候选数字串→Luhn/品牌去误报→保留后 4 位与格式→流式大日志）（Luhn 校验已在 OA q05） | phone/coding | 4 | interviewing.io C8；staffengprep |
 | ps08 | Min/Max with comparator + ties | phone | 4 | rampatra 2020 |
 | cd01 | Subscription email scheduler（基础→改 plan→续费） | coding | 3 | linkjob；1p3a post/7100084 |
 | cd02 | PaymentLedger 类（add_payment/refund/revenue/by_date + 5 追问） | coding | 3 | programhelp intern VO |

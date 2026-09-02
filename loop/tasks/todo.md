@@ -28,8 +28,8 @@
   - 验证：`python3 loop/mock.py list` 列出全部 rounds；`python3 loop/mock.py start ps01 -m 45` 生成计时文件；`rtk proxy python3 -m pytest loop/tests/test_mock.py -q` 绿
 - [ ] T5 ps01 transaction_stream_levels · ps02 shipping_cost_pricing
 - [ ] T6 ps03 brace_expansion · ps04 data_validation_fraud
-- [ ] T7 ps05 invoice_reconciliation · ps06 receivables_registration
-- [ ] T8 ps07 card_parsing · ps08 minmax_comparator
+- [ ] T7 ps05 numeronym_validation · ps06 receivables_registration
+- [ ] T8 ps07 redact_card_numbers · ps08 minmax_comparator
   - T5–T8 共同 AC：每题 6 文件齐（problem.md / starter_template.py / starter.py / solution.py / test_psNN.py / REPORT.md）；每 part ≥ 3 测试 + edge/fmt/io 各 ≥ 1 + perf 1；problem.md 含 worked example 与来源置信度；REPORT 含"面试官追问"节
   - 验证：solution 全绿；starter 全红；`git status` 无越界文件
 
