@@ -5,8 +5,8 @@ Run: pytest loop/rounds/05_integration/int04_review_assignment_gitdiff
 from __future__ import annotations
 
 import argparse
-import csv
-import subprocess
+import csv  # noqa: F401
+import subprocess  # noqa: F401
 import sys
 
 UNOWNED = "UNOWNED"
