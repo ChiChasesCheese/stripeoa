@@ -1,4 +1,5 @@
 """ps08 Min/Max with comparator — YOUR implementation."""
+
 from __future__ import annotations
 
 import sys

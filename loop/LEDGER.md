@@ -32,3 +32,4 @@
 | 2026-09-02 | T15 int04 WIP | sonnet | loop/rounds/05_integration/int04_review_assignment_gitdiff | 无测试（缺 starter.py/test/REPORT） | (this) | 半成品，backlog 收尾 |
 | 2026-09-02 | R1 ps01–03 | fable(review)+写入 | ps01 29 / ps02 23 / ps03 20 tests + 3 篇文章 | 绿；lint 通过 | (this) | ps04 未做 → 转 sonnet |
 | 2026-09-02 | R2 ps05–07 | fable(review)+写入 | ps05 26 / ps06 23 / ps07 29 tests + ps05/06 文章 | 绿；lint 通过 | (this) | ps07 文章、ps08 未做 → 转 sonnet |
+| 2026-09-02 | RA ps04/07/08 | sonnet | 3 目录 + 3 篇文章 | 17/29/33 | (this) | 无功能 bug；仅格式化 |

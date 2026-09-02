@@ -10,6 +10,7 @@ Money: `decimal.Decimal` throughout, never float. Not the same problem as
 dependency rules) -- this is transaction fraud triage: numeric range + blocklist + user-behavior
 matching against a historical profile.
 """
+
 from __future__ import annotations
 
 import sys

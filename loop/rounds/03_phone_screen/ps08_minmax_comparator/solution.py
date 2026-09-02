@@ -5,6 +5,7 @@ once by `parse_records`. Parts 1-3 all resolve ties to the first record in input
 is the one place that contract changes (return every tied record, sorted by id) -- called out
 explicitly in problem.md and in REPORT.md rather than left as a silent inconsistency.
 """
+
 from __future__ import annotations
 
 import sys

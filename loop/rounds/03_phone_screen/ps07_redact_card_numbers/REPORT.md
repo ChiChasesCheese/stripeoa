@@ -109,3 +109,19 @@ backtracking regex
   from q05's already-verified Luhn/network code, the repo's recurring "naive -> filtered ->
   scaled" phone-screen template, and real PCI-DSS partial-PAN display conventions. If a verbatim
   transcript surfaces, reconcile part boundaries and the exact masking format against it.
+
+## Review（2026-09-02）
+复核通过，本轮未改动 `solution.py`/`starter.py`/`starter_template.py`/`test_ps07.py`（代码已在此前
+review 中定型）。
+- 快速核对：problem.md 的关键 worked examples（1a/4a 单卡+多卡打码、2c 电话号码过度分组、3a 时间戳/
+  电话/订单号被 Part 3 放过、3b 五个品牌样例含 Mastercard `2221-2720`/Discover 新前缀及 Luhn 失败样例）
+  已用 `solution.py` 逐字重跑核对 stdin → stdout，全部与文档一致。
+- 回归：`rtk proxy python3 -m pytest loop/rounds/03_phone_screen/ps07_redact_card_numbers --tb=short`
+  29 passed；`IMPL=starter` 同目录 20 failed / 9 passed（starter 的桩函数默认原样透传输入而非返回空，
+  故"不该被打码的行"这类用例恰好也通过，符合设计，不构成空洞测试）。
+- Lint：`loop/lint.sh loop/rounds/03_phone_screen/ps07_redact_card_numbers` 直接通过，无需 `--fix`
+  （black 110 列 + flake8 F 类 0）。
+- `starter.py`/`starter_template.py` 内容仍完全一致，公共 API 与 `solution.py` 一致。
+- 遗留：无。problem.md 的 Open points（interviewing.io 源为单句无逐字 transcript）已如实标注，不影响
+  代码正确性。
+- 文章：`loop/study/30-articles/ps07_redact_card_numbers.md`（157 行）。

@@ -65,3 +65,25 @@ incremental rule categories (`checks` gate) · S24 domain (fraud triage, distinc
   suspicious——如果面试官希望反过来（没画像更可疑），改一行判断就行，我先按更保守的假设写。"
 - 收尾如果还有时间：主动提出加一个 `--part 4` 的列宽在流式场景下如何处理（要不要固定宽度而不是动态计算，
   因为流式场景取不到"最长 id"）——展示对边界条件的延伸思考。
+
+## Review（2026-09-02）
+- 逐条对照 `loop/tasks/review_checklist.md` 复核：problem.md 四个 Part 的 worked examples 已用
+  `solution.py` 逐字重跑核对（直接喂 stdin，对比 stdout），四段输出与文档字符级一致，未发现规则歧义或
+  文档-代码不一致。
+- `solution.py` 逻辑复核：`check_row` 的四类规则相互独立判断（不用 `elif`）、`checks` 等级正确门控
+  Part n 只评估类别 1..n、`SUSPICIOUS` 的插入顺序天然等于 `PRIORITY` 常量顺序（Part 4 截断 `codes[:2]`
+  无需重排）、无画像用户正确跳过 `SUSPICIOUS`、金额缺失不会额外触发 `AMOUNT_OUT_OF_RANGE`、金额区间/
+  黑名单大小写不敏感/列宽动态计算均按题面实现，未发现功能性 bug（F 项 0 处需修）。
+  `starter.py`/`starter_template.py` 内容仍完全一致，公共 API（`partN(lines) -> list[str]`）与
+  `solution.py` 一致。
+- 修复：`loop/lint.sh --fix` 对 `solution.py`/`starter.py`/`starter_template.py`/`test_ps04.py` 做了
+  纯格式化（模块 docstring 后补一行空行、超长字面量列表按 black 的 magic-trailing-comma 规则逐行展开），
+  无语义变化；`loop/lint.sh` 复检通过（black 110 列 + flake8 F 类 0）。
+- 回归：`rtk proxy python3 -m pytest loop/rounds/03_phone_screen/ps04_data_validation_fraud --tb=short`
+  17 passed；`IMPL=starter` 同目录 15 failed / 2 passed（余下 2 处是空输入的平凡用例，starter 的默认
+  `return []` 恰好也满足，不构成"空洞测试"）。
+- 遗留：无功能性遗留项。`PRIORITY` 常量当前只用于文档/注释说明（`check_row` 内 append 顺序需要人工保持
+  与其一致），代码里已有显式注释标注这一不变量（"insertion order below IS priority order -- do not
+  re-sort"）；若未来规则类别继续增多，可考虑改成显式按 `PRIORITY` 顺序迭代的规则表以消除该隐式耦合，
+  当前 4 类规模下不值得为此增加抽象层。
+- 文章：`loop/study/30-articles/ps04_data_validation_fraud.md`（138 行）。

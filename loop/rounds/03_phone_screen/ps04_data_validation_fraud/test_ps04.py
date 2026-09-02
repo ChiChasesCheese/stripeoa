@@ -79,7 +79,13 @@ def test_worked_example_part1(impl):
 @pytest.mark.edge
 def test_whitespace_only_field_is_missing(impl):
     body = [
-        "RULES", "0,999999", "BLOCKLIST", "", "PROFILES", "TRANSACTIONS", HEADER,
+        "RULES",
+        "0,999999",
+        "BLOCKLIST",
+        "",
+        "PROFILES",
+        "TRANSACTIONS",
+        HEADER,
         "t1,u1,10.00,USD,  ,US,2026-01-01T00:00:00",
     ]
     assert impl.part1(body) == ["t1: MISSING_FIELD"]
@@ -89,7 +95,13 @@ def test_whitespace_only_field_is_missing(impl):
 @pytest.mark.edge
 def test_fewer_than_seven_columns_is_missing(impl):
     body = [
-        "RULES", "0,999999", "BLOCKLIST", "", "PROFILES", "TRANSACTIONS", HEADER,
+        "RULES",
+        "0,999999",
+        "BLOCKLIST",
+        "",
+        "PROFILES",
+        "TRANSACTIONS",
+        HEADER,
         "t1,u1,10.00,USD,credit_card,US",  # timestamp column absent
     ]
     assert impl.part1(body) == ["t1: MISSING_FIELD"]
@@ -99,7 +111,13 @@ def test_fewer_than_seven_columns_is_missing(impl):
 def test_complete_row_is_ok_under_part1_even_with_other_violations(impl):
     # part1 does not evaluate range/blocklist/suspicious at all
     body = [
-        "RULES", "0.00,1.00", "BLOCKLIST", "credit_card", "PROFILES", "TRANSACTIONS", HEADER,
+        "RULES",
+        "0.00,1.00",
+        "BLOCKLIST",
+        "credit_card",
+        "PROFILES",
+        "TRANSACTIONS",
+        HEADER,
         "t1,u1,9999.00,USD,credit_card,ZZ,2026-01-01T00:00:00",
     ]
     assert impl.part1(body) == ["t1: OK"]
@@ -129,7 +147,13 @@ def test_amount_inclusive_boundaries(impl):
 @pytest.mark.edge
 def test_blocklist_case_insensitive_and_empty_blocks_nothing(impl):
     body = [
-        "RULES", "0,999999", "BLOCKLIST", "Prepaid_Card", "PROFILES", "TRANSACTIONS", HEADER,
+        "RULES",
+        "0,999999",
+        "BLOCKLIST",
+        "Prepaid_Card",
+        "PROFILES",
+        "TRANSACTIONS",
+        HEADER,
         "t1,u1,10.00,USD,PREPAID_CARD,US,2026-01-01T00:00:00",
     ]
     assert impl.part2(body) == ["t1: BLOCKED_METHOD"]
@@ -147,9 +171,14 @@ def test_worked_example_part3(impl):
 @pytest.mark.edge
 def test_two_of_three_match_is_not_suspicious_one_of_three_is(impl):
     body_tmpl = [
-        "RULES", "0,999999", "BLOCKLIST", "", "PROFILES",
+        "RULES",
+        "0,999999",
+        "BLOCKLIST",
+        "",
+        "PROFILES",
         "u1,US,8,20,10.00,500.00",
-        "TRANSACTIONS", HEADER,
+        "TRANSACTIONS",
+        HEADER,
     ]
     # country match + hour match, amount out of profile range (2/3) -> OK
     two_of_three = body_tmpl + ["t1,u1,9000.00,USD,credit_card,US,2026-01-01T14:00:00"]
@@ -163,7 +192,13 @@ def test_two_of_three_match_is_not_suspicious_one_of_three_is(impl):
 @pytest.mark.edge
 def test_no_profile_never_suspicious(impl):
     body = [
-        "RULES", "0,999999", "BLOCKLIST", "", "PROFILES", "TRANSACTIONS", HEADER,
+        "RULES",
+        "0,999999",
+        "BLOCKLIST",
+        "",
+        "PROFILES",
+        "TRANSACTIONS",
+        HEADER,
         "t1,ghost,999999.00,USD,credit_card,ZZ,2026-01-01T03:00:00",
     ]
     assert impl.part3(body) == ["t1: OK"]
@@ -179,7 +214,13 @@ def test_worked_example_part4(impl):
 @pytest.mark.fmt
 def test_column_width_follows_longest_txn_id(impl):
     body = [
-        "RULES", "10.00,5000.00", "BLOCKLIST", "", "PROFILES", "TRANSACTIONS", HEADER,
+        "RULES",
+        "10.00,5000.00",
+        "BLOCKLIST",
+        "",
+        "PROFILES",
+        "TRANSACTIONS",
+        HEADER,
         "t1,u1,150.00,USD,credit_card,US,2026-01-01T00:00:00",
         "transaction-42,u1,150.00,USD,credit_card,US,2026-01-01T00:00:00",
     ]
@@ -193,9 +234,14 @@ def test_column_width_follows_longest_txn_id(impl):
 @pytest.mark.edge
 def test_more_than_two_codes_truncated_to_top_two(impl):
     body = [
-        "RULES", "0.00,1.00", "BLOCKLIST", "credit_card", "PROFILES",
+        "RULES",
+        "0.00,1.00",
+        "BLOCKLIST",
+        "credit_card",
+        "PROFILES",
         "u1,US,8,20,0.00,1.00",
-        "TRANSACTIONS", HEADER,
+        "TRANSACTIONS",
+        HEADER,
         # missing field + blocked method + out of range + suspicious -> keep top 2 only
         "t1,u1,9999.00,,credit_card,ZZ,2026-01-01T03:00:00",
     ]

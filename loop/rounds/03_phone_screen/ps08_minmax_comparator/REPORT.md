@@ -104,3 +104,23 @@ datetime.fromisoformat, functools.cmp_to_key discussed but not used, in favor of
   the record schema, field names, and every worked number in this problem.md are a reconstruction
   chosen to be internally consistent and hand-checkable. If a transcript with real sample I/O
   surfaces, reconcile the schema and numbers against it.
+
+## Review（2026-09-02）
+- 逐条对照 `loop/tasks/review_checklist.md` 复核：problem.md 四个 Part 的全部 worked examples（Part 1
+  单值、Part 2 四组 key/mode、Part 3 比较器、Part 4 两组并列、空输入 `NONE`）已用 `solution.py` 逐字
+  重跑核对（stdin → stdout），全部与文档一致，未发现规则歧义。
+- `solution.py` 逻辑复核：`min_by_amount`/`extreme`/`extreme_with` 三者都是同一个"严格更优才替换"的
+  单趟扫描骨架，平局天然保留输入序中先出现的记录，无需额外 tie-break 分支；`extreme_with` 未对
+  comparator 做任何字段假设（`test_extreme_with_custom_comparator_ignores_amount` 覆盖）；`extreme_all`
+  两趟扫描复用 `_key_extractor`，不复用单赢家函数（返回类型不同，独立实现是对的）；未知 `key`/`mode`
+  均正确抛 `ValueError`；`created_at` 的 `Z`/显式偏移量归一化正确比较为同一时刻；未发现功能性 bug
+  （F 项 0 处需修）。`starter.py`/`starter_template.py` 内容仍完全一致，公共 API 与 `solution.py` 一致。
+- 修复：`loop/lint.sh --fix` 对 `solution.py`/`starter.py`/`starter_template.py` 做了纯格式化（模块
+  docstring 后补一行空行，本地 black 版本差异导致），无语义变化；`loop/lint.sh` 复检通过（black 110 列
+  + flake8 F 类 0，flake8 单独核实无任何警告）。
+- 回归：`rtk proxy python3 -m pytest loop/rounds/03_phone_screen/ps08_minmax_comparator --tb=short`
+  33 passed；`IMPL=starter` 同目录 26 failed / 7 passed（余下 7 处全部是"空输入 → None/NONE"的平凡
+  用例，starter 桩代码的默认返回值恰好满足，不构成空洞测试）。
+- 遗留：无功能性遗留项。问题面来源置信度为 medium（仅四段的一句话描述可验证，具体字段名/schema/worked
+  numbers 为本仓库重构），problem.md 的 Open points 已如实标注，不需要在代码侧处理。
+- 文章：`loop/study/30-articles/ps08_minmax_comparator.md`（152 行）。
