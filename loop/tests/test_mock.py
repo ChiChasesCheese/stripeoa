@@ -4,6 +4,7 @@ monkeypatches mock.ROUNDS / mock.WORK so nothing here touches the real loop/ tre
 Run: rtk proxy python3 -m pytest loop/tests -q   (from the repo root, so `import mock` resolves
 via the sys.path insertion below and the real root conftest.py is not required).
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -26,6 +27,7 @@ _spec.loader.exec_module(mock)
 # ---------------------------------------------------------------------------
 # fixture: fake rounds/ + work/ tree
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def tree(tmp_path, monkeypatch):
@@ -92,15 +94,21 @@ def tree(tmp_path, monkeypatch):
     # non-coding rounds: bank.json question banks
     for name, q in (
         ("01_recruiter", [{"round": "recruiter", "q": "Why Stripe?", "principle": "", "source": "x"}]),
-        ("02_hm", [
-            {"round": "hm", "q": "Tell me about a conflict.", "principle": "Move fast", "source": "y"},
-            {"round": "hm", "q": "Biggest failure.", "principle": "Ownership", "source": "y"},
-        ]),
-        ("08_behavioral", [
-            {"round": "behavioral", "q": "STAR story 1", "principle": "User focus", "source": "z"},
-            {"round": "behavioral", "q": "STAR story 2", "principle": "Simplify", "source": "z"},
-            {"round": "behavioral", "q": "STAR story 3", "principle": "Rigor", "source": "z"},
-        ]),
+        (
+            "02_hm",
+            [
+                {"round": "hm", "q": "Tell me about a conflict.", "principle": "Move fast", "source": "y"},
+                {"round": "hm", "q": "Biggest failure.", "principle": "Ownership", "source": "y"},
+            ],
+        ),
+        (
+            "08_behavioral",
+            [
+                {"round": "behavioral", "q": "STAR story 1", "principle": "User focus", "source": "z"},
+                {"round": "behavioral", "q": "STAR story 2", "principle": "Simplify", "source": "z"},
+                {"round": "behavioral", "q": "STAR story 3", "principle": "Rigor", "source": "z"},
+            ],
+        ),
     ):
         d = rounds / name
         d.mkdir(parents=True)
@@ -126,6 +134,7 @@ class Args:
 # id resolution
 # ---------------------------------------------------------------------------
 
+
 def test_dir_resolves_unique(tree):
     d = mock._dir("ps01")
     assert d.name == "ps01_widget_levels"
@@ -150,6 +159,7 @@ def test_dir_ambiguous(tree):
 # ---------------------------------------------------------------------------
 # list / show
 # ---------------------------------------------------------------------------
+
 
 def test_list_includes_all_rounds(tree, capsys):
     mock.cmd_list(Args())
@@ -181,6 +191,7 @@ def test_show_sd_prints_prompt(tree, capsys):
 # ---------------------------------------------------------------------------
 # start
 # ---------------------------------------------------------------------------
+
 
 def test_start_ps_resets_starter_from_template(tree, capsys):
     mock.cmd_start(Args(id="ps01", minutes=None))
@@ -220,6 +231,7 @@ def test_start_bs_wipes_existing_work_dir(tree):
 # time
 # ---------------------------------------------------------------------------
 
+
 def test_time_computes_remaining(tree, capsys):
     mock.WORK.mkdir(parents=True, exist_ok=True)
     (mock.WORK / ".timers").mkdir(parents=True, exist_ok=True)
@@ -248,6 +260,7 @@ def test_time_no_timer_errors(tree):
 # test / ref for non-coding round (sd) -> no autotest
 # ---------------------------------------------------------------------------
 
+
 def test_cmd_test_sd_has_no_autotest(tree, capsys):
     mock.cmd_test(Args(id="sd01", k=None))
     assert "无自动测试" in capsys.readouterr().out
@@ -263,6 +276,7 @@ def test_cmd_ref_bs_applies_patch_and_passes(tree, capfd):
 # ---------------------------------------------------------------------------
 # bq
 # ---------------------------------------------------------------------------
+
 
 def test_bq_draws_n_questions(tree, capsys):
     mock.cmd_bq(Args(round=None, n=3, minutes=3, seed=1))
@@ -286,7 +300,6 @@ def test_bq_single_round_filter(tree, capsys):
 
 
 def test_bq_missing_bank_errors(tree, monkeypatch):
-    empty_rounds = mock.WORK  # any dir with no bank.json under it
     monkeypatch.setattr(mock, "NONCODING_ROUNDS", ["99_nope"])
     with pytest.raises(SystemExit) as exc:
         mock.cmd_bq(Args(round=None, n=1, minutes=1, seed=0))
@@ -296,6 +309,7 @@ def test_bq_missing_bank_errors(tree, monkeypatch):
 # ---------------------------------------------------------------------------
 # serve
 # ---------------------------------------------------------------------------
+
 
 def test_serve_reads_metadata_and_reports_missing_module(tree):
     with pytest.raises(SystemExit) as exc:

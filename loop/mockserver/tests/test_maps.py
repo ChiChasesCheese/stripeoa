@@ -2,6 +2,7 @@
 (BikeMap) problem talks to. Starts a real ThreadingHTTPServer on port 0 and drives it
 with urllib, the same way a problem's solution.py would.
 """
+
 import json
 import struct
 import urllib.error
@@ -23,8 +24,9 @@ def server():
 
 def _post(base, path, body_obj=None, raw_body=None):
     data = raw_body if raw_body is not None else json.dumps(body_obj).encode()
-    req = urllib.request.Request(base + path, data=data, method="POST",
-                                  headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        base + path, data=data, method="POST", headers={"Content-Type": "application/json"}
+    )
     try:
         resp = urllib.request.urlopen(req, timeout=5)
         return resp.status, resp.getheader("Content-Type"), resp.read()
@@ -99,7 +101,8 @@ def test_render_too_many_points_413(server):
 def test_render_request_id_header_present(server):
     points = [[0, 0], [1, 1]]
     data = json.dumps({"points": points}).encode()
-    req = urllib.request.Request(server + "/render", data=data, method="POST",
-                                  headers={"Content-Type": "application/json"})
+    req = urllib.request.Request(
+        server + "/render", data=data, method="POST", headers={"Content-Type": "application/json"}
+    )
     resp = urllib.request.urlopen(req, timeout=5)
     assert resp.getheader("Request-Id", "").startswith("req_")

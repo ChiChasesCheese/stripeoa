@@ -22,6 +22,7 @@ Run standalone: `python3 -m loop.mockserver.maps --port 0` (0 = OS-assigned; the
 port is printed as `listening on http://127.0.0.1:<port>`). Import `serve`/`start_in_thread`
 to run it in-process for tests / problem fixtures.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -124,7 +125,9 @@ class Handler(BaseHTTPRequestHandler):
 
         points = body.get("points")
         if not isinstance(points, list) or len(points) < 2:
-            _error(self, 400, "invalid_request_error", "'points' must be a list of at least 2 [lat, lng] pairs")
+            _error(
+                self, 400, "invalid_request_error", "'points' must be a list of at least 2 [lat, lng] pairs"
+            )
             return
         if len(points) > MAX_POINTS:
             _error(self, 413, "invalid_request_error", f"too many points (max {MAX_POINTS})")
@@ -147,7 +150,12 @@ class Handler(BaseHTTPRequestHandler):
 
         width = body.get("width", DEFAULT_WIDTH)
         height = body.get("height", DEFAULT_HEIGHT)
-        if not isinstance(width, int) or not isinstance(height, int) or not (1 <= width <= 4000) or not (1 <= height <= 4000):
+        if (
+            not isinstance(width, int)
+            or not isinstance(height, int)
+            or not (1 <= width <= 4000)
+            or not (1 <= height <= 4000)
+        ):
             _error(self, 400, "invalid_request_error", "'width'/'height' must be integers in [1, 4000]")
             return
 

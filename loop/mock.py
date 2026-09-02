@@ -187,7 +187,18 @@ def cmd_start(a):
 
 def _pytest(d: Path, which: str, extra: list[str]) -> int:
     env = dict(os.environ, IMPL=which)
-    cmd = [sys.executable, "-m", "pytest", str(d), "-q", "-p", "no:cacheprovider", "--no-header", "-rN", *extra]
+    cmd = [
+        sys.executable,
+        "-m",
+        "pytest",
+        str(d),
+        "-q",
+        "-p",
+        "no:cacheprovider",
+        "--no-header",
+        "-rN",
+        *extra,
+    ]
     return subprocess.call(cmd, cwd=str(ROOT), env=env)
 
 
@@ -203,7 +214,18 @@ def cmd_test(a):
         if not work.exists():
             sys.exit(f"no work dir for {a.id!r}; run `python3 loop/mock.py start {a.id}` first")
         rc = subprocess.call(
-            [sys.executable, "-m", "pytest", str(work), "-q", "-p", "no:cacheprovider", "--no-header", "-rN", *extra],
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                str(work),
+                "-q",
+                "-p",
+                "no:cacheprovider",
+                "--no-header",
+                "-rN",
+                *extra,
+            ],
             cwd=str(ROOT),
         )
     else:
@@ -235,7 +257,18 @@ def cmd_ref(a):
             if rc_apply != 0:
                 sys.exit(f"`git apply {patch}` failed (rc={rc_apply})")
             rc = subprocess.call(
-                [sys.executable, "-m", "pytest", str(tmp_path), "-q", "-p", "no:cacheprovider", "--no-header", "-rN", *extra],
+                [
+                    sys.executable,
+                    "-m",
+                    "pytest",
+                    str(tmp_path),
+                    "-q",
+                    "-p",
+                    "no:cacheprovider",
+                    "--no-header",
+                    "-rN",
+                    *extra,
+                ],
                 cwd=str(ROOT),
             )
         sys.exit(rc)
@@ -310,7 +343,9 @@ def main():
 
     sub.add_parser("list").set_defaults(fn=cmd_list)
 
-    s = sub.add_parser("show"); s.add_argument("id"); s.set_defaults(fn=cmd_show)
+    s = sub.add_parser("show")
+    s.add_argument("id")
+    s.set_defaults(fn=cmd_show)
 
     s = sub.add_parser("start")
     s.add_argument("id")
@@ -327,7 +362,9 @@ def main():
     s.add_argument("-k", default=None)
     s.set_defaults(fn=cmd_ref)
 
-    s = sub.add_parser("time"); s.add_argument("id"); s.set_defaults(fn=cmd_time)
+    s = sub.add_parser("time")
+    s.add_argument("id")
+    s.set_defaults(fn=cmd_time)
 
     s = sub.add_parser("serve")
     s.add_argument("id")

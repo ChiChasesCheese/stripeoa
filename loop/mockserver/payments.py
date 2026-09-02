@@ -26,6 +26,7 @@ mirrors how a real integration would implement webhook verification.
 Run standalone: `python3 -m loop.mockserver.payments --port 0 [--seed 0] [--n 250]
 [--rate 5] [--fail-every 0]`. Import `serve`/`start_in_thread` for tests / fixtures.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -51,6 +52,7 @@ CURRENCIES = ("usd", "usd", "usd", "eur", "gbp")
 
 
 # --------------------------------------------------------------------------- webhook signing
+
 
 def sign(payload: bytes, secret: str, t: int) -> str:
     """Build a `Stripe-Signature` header value for `payload`, signed at unix time `t`."""
@@ -89,6 +91,7 @@ def verify(payload: bytes, header: str, secret: str, tolerance: int = 300) -> bo
 
 
 # --------------------------------------------------------------------------- fixture data
+
 
 def _rand_id(rng: random.Random, prefix: str, n: int = 24) -> str:
     alphabet = string.ascii_lowercase + string.digits
@@ -188,7 +191,9 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _error(self, status: int, error_type: str, message: str, code: str = None, extra_headers: dict = None) -> None:
+    def _error(
+        self, status: int, error_type: str, message: str, code: str = None, extra_headers: dict = None
+    ) -> None:
         self._send_error_body(status, _error_body(error_type, message, code), extra_headers)
 
     # -- cross-cutting pipeline --
@@ -239,7 +244,7 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/v1/charges":
             self._list_charges(state, query)
         elif path.startswith("/v1/charges/"):
-            charge_id = path[len("/v1/charges/"):]
+            charge_id = path[len("/v1/charges/") :]
             self._get_charge(state, charge_id)
         else:
             self._error(404, "invalid_request_error", f"unknown path {path!r}")
@@ -271,7 +276,9 @@ class Handler(BaseHTTPRequestHandler):
         starting_after = query.get("starting_after", [None])[0]
         ending_before = query.get("ending_before", [None])[0]
         if starting_after and ending_before:
-            self._error(400, "invalid_request_error", "cannot specify both 'starting_after' and 'ending_before'")
+            self._error(
+                400, "invalid_request_error", "cannot specify both 'starting_after' and 'ending_before'"
+            )
             return
 
         charges = state.charges  # already reverse-chronological
@@ -280,7 +287,7 @@ class Handler(BaseHTTPRequestHandler):
                 self._error(400, "invalid_request_error", f"No such charge (cursor): {starting_after!r}")
                 return
             idx = next(i for i, c in enumerate(charges) if c["id"] == starting_after)
-            candidates = charges[idx + 1:]
+            candidates = charges[idx + 1 :]
             page = candidates[:limit]
             has_more = len(candidates) > limit
         elif ending_before is not None:
@@ -295,19 +302,24 @@ class Handler(BaseHTTPRequestHandler):
             page = charges[:limit]
             has_more = len(charges) > limit
 
-        self._send_json(200, {
-            "object": "list",
-            "url": "/v1/charges",
-            "has_more": has_more,
-            "data": [state.public_charge(c) for c in page],
-        })
+        self._send_json(
+            200,
+            {
+                "object": "list",
+                "url": "/v1/charges",
+                "has_more": has_more,
+                "data": [state.public_charge(c) for c in page],
+            },
+        )
 
     # -- GET /v1/charges/{id} --
 
     def _get_charge(self, state: PaymentsState, charge_id: str) -> None:
         c = state.by_id.get(charge_id)
         if c is None:
-            self._error(404, "invalid_request_error", f"No such charge: {charge_id!r}", code="resource_missing")
+            self._error(
+                404, "invalid_request_error", f"No such charge: {charge_id!r}", code="resource_missing"
+            )
             return
         self._send_json(200, state.public_charge(c))
 
@@ -332,9 +344,12 @@ class Handler(BaseHTTPRequestHandler):
             if cached is not None:
                 cached_body, status, response = cached
                 if cached_body != normalized:
-                    self._error(400, "idempotency_error",
-                                f"Keys for idempotent requests can only be used once; a request with "
-                                f"the key {idem_key!r} was already used with different parameters.")
+                    self._error(
+                        400,
+                        "idempotency_error",
+                        f"Keys for idempotent requests can only be used once; a request with "
+                        f"the key {idem_key!r} was already used with different parameters.",
+                    )
                     return
                 self._send_json(status, response)
                 return
@@ -357,17 +372,45 @@ class Handler(BaseHTTPRequestHandler):
 
         with state.lock:
             if c["status"] != "succeeded" or c["refunded_amount"] >= c["amount"]:
-                self._error(400, "invalid_request_error", "Charge has already been refunded", code="charge_already_refunded")
+                self._error(
+                    400,
+                    "invalid_request_error",
+                    "Charge has already been refunded",
+                    code="charge_already_refunded",
+                )
                 if idem_key:
-                    state._idempotency[idem_key] = (normalized, 400,
-                        json.loads(_error_body("invalid_request_error", "Charge has already been refunded", "charge_already_refunded")))
+                    state._idempotency[idem_key] = (
+                        normalized,
+                        400,
+                        json.loads(
+                            _error_body(
+                                "invalid_request_error",
+                                "Charge has already been refunded",
+                                "charge_already_refunded",
+                            )
+                        ),
+                    )
                 return
             remaining = c["amount"] - c["refunded_amount"]
             if amount <= 0 or amount > remaining:
-                self._error(400, "invalid_request_error", "Refund amount is greater than unrefunded amount on charge", code="amount_too_large")
+                self._error(
+                    400,
+                    "invalid_request_error",
+                    "Refund amount is greater than unrefunded amount on charge",
+                    code="amount_too_large",
+                )
                 if idem_key:
-                    state._idempotency[idem_key] = (normalized, 400,
-                        json.loads(_error_body("invalid_request_error", "Refund amount is greater than unrefunded amount on charge", "amount_too_large")))
+                    state._idempotency[idem_key] = (
+                        normalized,
+                        400,
+                        json.loads(
+                            _error_body(
+                                "invalid_request_error",
+                                "Refund amount is greater than unrefunded amount on charge",
+                                "amount_too_large",
+                            )
+                        ),
+                    )
                 return
 
             c["refunded_amount"] += amount
@@ -422,7 +465,9 @@ class Handler(BaseHTTPRequestHandler):
         header = sign(payload, WEBHOOK_SECRET, t)
 
         req = urllib.request.Request(
-            url, data=payload, method="POST",
+            url,
+            data=payload,
+            method="POST",
             headers={"Content-Type": "application/json", "Stripe-Signature": header},
         )
         delivered = False
@@ -437,22 +482,33 @@ class Handler(BaseHTTPRequestHandler):
         except (urllib.error.URLError, OSError, TimeoutError):
             delivered = False
 
-        self._send_json(200, {
-            "delivered": delivered,
-            "response_status": response_status,
-            "event": event,
-        })
+        self._send_json(
+            200,
+            {
+                "delivered": delivered,
+                "response_status": response_status,
+                "event": event,
+            },
+        )
 
 
-def _build_server(port: int = 0, host: str = "127.0.0.1", seed: int = 0, n: int = 250,
-                   rate: int = 5, fail_every: int = 0) -> ThreadingHTTPServer:
+def _build_server(
+    port: int = 0, host: str = "127.0.0.1", seed: int = 0, n: int = 250, rate: int = 5, fail_every: int = 0
+) -> ThreadingHTTPServer:
     server = ThreadingHTTPServer((host, port), Handler)
     server.state = PaymentsState(seed=seed, n=n, rate=rate, fail_every=fail_every)
     return server
 
 
-def serve(port: int = 0, host: str = "127.0.0.1", seed: int = 0, n: int = 250,
-          rate: int = 5, fail_every: int = 0, **_opts):
+def serve(
+    port: int = 0,
+    host: str = "127.0.0.1",
+    seed: int = 0,
+    n: int = 250,
+    rate: int = 5,
+    fail_every: int = 0,
+    **_opts,
+):
     """Start the payments mockserver in a daemon thread. Returns (server, thread)."""
     server = _build_server(port, host, seed=seed, n=n, rate=rate, fail_every=fail_every)
     thread = threading.Thread(target=server.serve_forever, daemon=True)

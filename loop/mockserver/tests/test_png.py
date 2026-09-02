@@ -1,4 +1,5 @@
 """Tests for loop.mockserver._png — the hand-rolled PNG encoder (no PIL)."""
+
 import struct
 import zlib
 
@@ -10,9 +11,9 @@ def _parse_chunks(data: bytes):
     chunks = []
     i = 8
     while i < len(data):
-        length = struct.unpack(">I", data[i:i + 4])[0]
-        ctype = data[i + 4:i + 8]
-        cdata = data[i + 8:i + 8 + length]
+        length = struct.unpack(">I", data[i : i + 4])[0]
+        ctype = data[i + 4 : i + 8]
+        cdata = data[i + 8 : i + 8 + length]
         chunks.append((ctype, cdata))
         i += 8 + length + 4  # length + type + data + crc
     return chunks
@@ -42,10 +43,10 @@ def test_idat_roundtrips_to_original_pixels():
     stride = 1 + 4 * 3
     assert len(raw) == stride * 2
     row0 = raw[0:stride]
-    row1 = raw[stride:2 * stride]
+    row1 = raw[stride : 2 * stride]
     assert row0[0] == 0 and row1[0] == 0  # filter type None
     assert row0[1:4] == bytes((10, 20, 30))  # untouched pixel
-    assert row1[1 + 1 * 3:1 + 2 * 3] == bytes((200, 100, 50))  # the pixel we set
+    assert row1[1 + 1 * 3 : 1 + 2 * 3] == bytes((200, 100, 50))  # the pixel we set
 
 
 def test_write_png_rejects_mismatched_row_count():
@@ -78,6 +79,6 @@ def test_draw_marker_fills_a_small_square():
     _png.draw_marker(canvas, 9, 9, 4, 4, (0, 128, 0), radius=1)
     for dy in (-1, 0, 1):
         for dx in (-1, 0, 1):
-            assert bytes(canvas[4 + dy][(4 + dx) * 3:(4 + dx) * 3 + 3]) == bytes((0, 128, 0))
+            assert bytes(canvas[4 + dy][(4 + dx) * 3 : (4 + dx) * 3 + 3]) == bytes((0, 128, 0))
     # outside the marker radius stays background
     assert bytes(canvas[0][0:3]) == bytes((255, 255, 255))

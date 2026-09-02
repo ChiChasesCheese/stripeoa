@@ -3,6 +3,7 @@ reconciliation) problem talks to: cursor pagination, rate limiting, idempotent r
 webhook signing. Starts a real ThreadingHTTPServer on port 0 and drives it with urllib,
 plus a tiny local receiver server for the webhook-delivery test.
 """
+
 import json
 import threading
 import time
@@ -48,6 +49,7 @@ def _req(base, path, method="GET", headers=None, body=None):
 
 # --------------------------------------------------------------------------- auth
 
+
 def test_missing_auth_401(server):
     status, headers, body = _req(server, "/v1/charges")
     assert status == 401
@@ -61,6 +63,7 @@ def test_request_id_header_present(server):
 
 
 # --------------------------------------------------------------------------- list charges
+
 
 def test_list_charges_default_limit(server):
     status, headers, body = _req(server, "/v1/charges", headers=AUTH)
@@ -115,6 +118,7 @@ def test_list_charges_both_cursors_400(server):
 
 # --------------------------------------------------------------------------- get charge
 
+
 def test_get_charge_by_id(server):
     _, _, listing = _req(server, "/v1/charges?limit=1", headers=AUTH)
     charge_id = listing["data"][0]["id"]
@@ -131,6 +135,7 @@ def test_get_charge_not_found_404(server):
 
 # --------------------------------------------------------------------------- refunds
 
+
 def _find_refundable(base):
     _, _, listing = _req(base, "/v1/charges?limit=30", headers=AUTH)
     for c in listing["data"]:
@@ -141,8 +146,9 @@ def _find_refundable(base):
 
 def test_refund_success(server):
     charge = _find_refundable(server)
-    status, headers, body = _req(server, "/v1/refunds", method="POST", headers=AUTH,
-                                  body={"charge": charge["id"], "amount": 100})
+    status, headers, body = _req(
+        server, "/v1/refunds", method="POST", headers=AUTH, body={"charge": charge["id"], "amount": 100}
+    )
     assert status == 200
     assert body["charge"] == charge["id"]
     assert body["amount"] == 100
@@ -163,16 +169,22 @@ def test_refund_idempotency_conflict_different_body_400(server):
     charge = _find_refundable(server)
     headers = dict(AUTH, **{"Idempotency-Key": "test-key-2"})
     _req(server, "/v1/refunds", method="POST", headers=headers, body={"charge": charge["id"], "amount": 10})
-    status, _, body = _req(server, "/v1/refunds", method="POST", headers=headers,
-                            body={"charge": charge["id"], "amount": 20})
+    status, _, body = _req(
+        server, "/v1/refunds", method="POST", headers=headers, body={"charge": charge["id"], "amount": 20}
+    )
     assert status == 400
     assert body["error"]["type"] == "idempotency_error"
 
 
 def test_refund_amount_too_large_400(server):
     charge = _find_refundable(server)
-    status, _, body = _req(server, "/v1/refunds", method="POST", headers=AUTH,
-                            body={"charge": charge["id"], "amount": charge["amount"] + 1})
+    status, _, body = _req(
+        server,
+        "/v1/refunds",
+        method="POST",
+        headers=AUTH,
+        body={"charge": charge["id"], "amount": charge["amount"] + 1},
+    )
     assert status == 400
     assert body["error"]["code"] == "amount_too_large"
 
@@ -180,24 +192,33 @@ def test_refund_amount_too_large_400(server):
 def test_refund_charge_already_refunded_400(server):
     charge = _find_refundable(server)
     # fully refund it first
-    _req(server, "/v1/refunds", method="POST", headers=AUTH,
-         body={"charge": charge["id"], "amount": charge["amount"]})
-    status, _, body = _req(server, "/v1/refunds", method="POST", headers=AUTH,
-                            body={"charge": charge["id"], "amount": 1})
+    _req(
+        server,
+        "/v1/refunds",
+        method="POST",
+        headers=AUTH,
+        body={"charge": charge["id"], "amount": charge["amount"]},
+    )
+    status, _, body = _req(
+        server, "/v1/refunds", method="POST", headers=AUTH, body={"charge": charge["id"], "amount": 1}
+    )
     assert status == 400
     assert body["error"]["code"] == "charge_already_refunded"
 
 
 def test_refund_without_idempotency_key_creates_new_refund_each_time(server):
     charge = _find_refundable(server)
-    _, _, body1 = _req(server, "/v1/refunds", method="POST", headers=AUTH,
-                        body={"charge": charge["id"], "amount": 1})
-    _, _, body2 = _req(server, "/v1/refunds", method="POST", headers=AUTH,
-                        body={"charge": charge["id"], "amount": 1})
+    _, _, body1 = _req(
+        server, "/v1/refunds", method="POST", headers=AUTH, body={"charge": charge["id"], "amount": 1}
+    )
+    _, _, body2 = _req(
+        server, "/v1/refunds", method="POST", headers=AUTH, body={"charge": charge["id"], "amount": 1}
+    )
     assert body1["id"] != body2["id"]
 
 
 # --------------------------------------------------------------------------- rate limiting
+
 
 def test_rate_limit_429_with_retry_after():
     srv, base = _start(seed=1, n=10, rate=2, fail_every=0)
@@ -228,6 +249,7 @@ def test_rate_limit_error_body_type():
 
 # --------------------------------------------------------------------------- fail-every
 
+
 def test_fail_every_returns_500():
     srv, base = _start(seed=3, n=10, rate=1000, fail_every=3)
     try:
@@ -242,6 +264,7 @@ def test_fail_every_returns_500():
 
 
 # --------------------------------------------------------------------------- webhook signing (pure functions)
+
 
 def test_sign_and_verify_roundtrip():
     payload = b'{"id": "evt_1", "type": "charge.refunded"}'
@@ -273,6 +296,7 @@ def test_verify_wrong_secret_fails():
 
 # --------------------------------------------------------------------------- webhook delivery endpoint
 
+
 class _CapturingReceiver(BaseHTTPRequestHandler):
     captured = []
 
@@ -295,8 +319,9 @@ def test_webhook_endpoints_test_delivers_signed_event(server):
     thread.start()
     try:
         receiver_url = f"http://127.0.0.1:{receiver.server_address[1]}/hook"
-        status, headers, body = _req(server, "/v1/webhook_endpoints/test", method="POST",
-                                      headers=AUTH, body={"url": receiver_url})
+        status, headers, body = _req(
+            server, "/v1/webhook_endpoints/test", method="POST", headers=AUTH, body={"url": receiver_url}
+        )
         assert status == 200
         assert body["delivered"] is True
         assert body["event"]["type"] == "charge.refunded"

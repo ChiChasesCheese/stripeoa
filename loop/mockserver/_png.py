@@ -10,6 +10,7 @@ length `width * 3` holding packed RGB bytes (no filter byte — that's added by
 `write_png`). Use `new_canvas` to create one and `set_pixel`/`draw_polyline`/
 `draw_marker` to paint into it, then `write_png` to encode.
 """
+
 from __future__ import annotations
 
 import struct
@@ -73,11 +74,21 @@ def draw_polyline(rows: list, width: int, height: int, points, color, thickness:
     coordinates, already projected) using Bresenham's line algorithm. `thickness` > 1
     also paints the immediate neighbor pixels for a slightly bolder line."""
     if len(points) < 2:
-        for (x, y) in points:
+        for x, y in points:
             _paint_thick(rows, width, height, int(round(x)), int(round(y)), color, thickness)
         return
     for (x0, y0), (x1, y1) in zip(points, points[1:]):
-        _draw_segment(rows, width, height, int(round(x0)), int(round(y0)), int(round(x1)), int(round(y1)), color, thickness)
+        _draw_segment(
+            rows,
+            width,
+            height,
+            int(round(x0)),
+            int(round(y0)),
+            int(round(x1)),
+            int(round(y1)),
+            color,
+            thickness,
+        )
 
 
 def _draw_segment(rows, width, height, x0, y0, x1, y1, color, thickness):

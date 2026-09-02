@@ -125,8 +125,10 @@ def main() -> int:
         print("WARN ", w)
     for e in errors:
         print("ERROR", e)
-    print(f"rounds={len(rounds)} skills={sum(len(r['skills']) for r in rounds)} problems={len(all_pids)} "
-          f"errors={len(errors)} warnings={len(warnings)}")
+    print(
+        f"rounds={len(rounds)} skills={sum(len(r['skills']) for r in rounds)} problems={len(all_pids)} "
+        f"errors={len(errors)} warnings={len(warnings)}"
+    )
     return 1 if errors else 0
 
 
