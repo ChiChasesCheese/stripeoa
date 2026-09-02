@@ -18,3 +18,5 @@
 | 2026-09-01 | T8 ps07 | sonnet | loop/rounds/03_phone_screen/ps07_redact_card_numbers | 27 | (this) | 品牌表 +Discover +MC 2221–2720；原题仅一句话 |
 | 2026-09-01 | T8 ps08 | sonnet | loop/rounds/03_phone_screen/ps08_minmax_comparator | 33 | (this) | 四段形状来自 rampatra，schema 为重建 |
 | 2026-09-01 | 检查点 B | fable | 03_phone_screen 全 8 题 | pytest 03_phone_screen 全绿 | (this) | Phase 2 完成 |
+| 2026-09-01 | T10 cd03 | sonnet | loop/rounds/06_coding_onsite/cd03_account_scheduler_lru | 18 | (this) | LRU tie-break 构造顺序，与 OA q26 区分 |
+| 2026-09-01 | T10 cd04 | sonnet | loop/rounds/06_coding_onsite/cd04_rate_limiter_4part | 21 | (this) | 4-part 仅 TOC 可读，规则为重建；毫秒；回拨 clamp |
