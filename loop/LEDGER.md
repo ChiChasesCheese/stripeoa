@@ -7,3 +7,4 @@
 | 2026-09-01 | T0b raw github+official | sonnet | loop/raw/github_repos.md(251) + stripe_official_and_api.md(338) | — | (this) | femisowems repo; Mako #434/#435; stripe-mock |
 | 2026-09-01 | T4 mock.py | sonnet+fable | loop/mock.py, loop/tests/test_mock.py, loop/README.md | 22 | (this) | bs 工作区改为整目录减 solution/ |
 | 2026-09-01 | T1 CATALOG | fable | loop/CATALOG.md | check_tree --catalog 0 err | (this) | 33 ID + OA 交叉引用 |
+| 2026-09-01 | T2 LOOP_GUIDE | fable | loop/LOOP_GUIDE.md | — | (this) | 8 轮 + 总图 + 4 周计划 |
