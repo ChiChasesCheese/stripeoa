@@ -24,3 +24,5 @@
 | 2026-09-01 | T11 cd06 | sonnet | loop/rounds/06_coding_onsite/cd06_suspicious_users_window | 19 | (this) | 闭区间 [t-60,t]；perf 1.66s@1e6 |
 | 2026-09-01 | T9 cd01 | sonnet | loop/rounds/06_coding_onsite/cd01_subscription_email_scheduler | 23 | (this) | 日历日期 VO 版，与 q07 区分 |
 | 2026-09-01 | T9 cd02 | sonnet | loop/rounds/06_coding_onsite/cd02_payment_ledger | 21 | (this) | 类 + partN 薄包装（CONVENTIONS 偏离已注） |
+| 2026-09-01 | T14 int01 | sonnet | loop/rounds/05_integration/int01_bikemap | 20 | (this) | 5 part；data 为重建；Part5 CLI 直接 print |
+| 2026-09-01 | T14 int02 | sonnet | loop/rounds/05_integration/int02_payments_reconciliation | 29 | (this) | with_retry 只重试 HTTPError（设计选择） |
