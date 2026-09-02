@@ -15,3 +15,6 @@
 | 2026-09-01 | T6 ps03 | sonnet | loop/rounds/03_phone_screen/ps03_brace_expansion | 19 | (this) | 与 qA03 区分：保序不去重 |
 | 2026-09-01 | T6 ps04 | sonnet | loop/rounds/03_phone_screen/ps04_data_validation_fraud | 17 | (this) | 与 q15 区分：范围/黑名单/行为匹配/优先级 |
 | 2026-09-01 | T13 mockserver | sonnet | loop/mockserver/ (maps, payments, _png, tests, README) | 40 | (this) | 纯 stdlib；管线 限流→fail-every→鉴权→路由 |
+| 2026-09-01 | T8 ps07 | sonnet | loop/rounds/03_phone_screen/ps07_redact_card_numbers | 27 | (this) | 品牌表 +Discover +MC 2221–2720；原题仅一句话 |
+| 2026-09-01 | T8 ps08 | sonnet | loop/rounds/03_phone_screen/ps08_minmax_comparator | 33 | (this) | 四段形状来自 rampatra，schema 为重建 |
+| 2026-09-01 | 检查点 B | fable | 03_phone_screen 全 8 题 | pytest 03_phone_screen 全绿 | (this) | Phase 2 完成 |
