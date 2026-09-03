@@ -1,7 +1,8 @@
 # Skills matrix — what the Stripe OA tests, which problem drills it, which JD line it maps to
 
 Skill ids S01–S24 come from `catalog/raw/process_and_jd.md` §E (each backed by candidate reports
-or Stripe docs). "Problems" = directories under `problems/`. JD lines = frequency across the 9
+or Stripe docs). S25 was added 2026-09-03 from the Bitfont family — see the note under the table
+for why it is here and why its evidence is weaker than the rest. "Problems" = directories under `problems/`. JD lines = frequency across the 9
 Stripe SWE JDs read (2025–2026) + the two JDs already evaluated in `career-ops` (Optimized
 Checkout & Link 8075469; Credit Decisions 8084195).
 
@@ -31,6 +32,28 @@ Checkout & Link 8075469; Credit Decisions 8084195).
 | S22 | Time-boxing: ~10–12 min/part, 5 min final format check | Reported outcomes 18/20, 22/25 pass; 14/20 fails | `drill.py time` | — |
 | S23 | Print-debugging in a browser IDE, keep the tab focused | HackerRank logs tab switches; no breakpoints | CONVENTIONS: stderr only | — |
 | S24 | Domain literacy: merchant/MCC/dispute/refund/payout/subscription/proration/tier/BIN/Luhn/idempotency | "reflects the real-world engineering work we do" | glossary in catalog/raw/process_and_jd.md §D; q01 q03 q04 q05 q10 q16 q20 | all payments JDs |
+| S25 | Binary frame decoding: byte order, MSB-first bit and nibble extraction, RLE run-length decode, length-prefixed variable records | The Bitfont family decodes a made-up binary format: a big-endian 16-bit length header, one bit per pixel with the byte's high bit leftmost, COMPACT splitting a byte into two nibbles, and RLE runs that must sum to the declared size | cd09 (all three parts); cd10 part 3 (RLE only) | — (no JD line yet; see below) |
+
+### S25 的收录理由与它的不确定性
+
+S25 是 2026-09-03 那轮排查的产物。离它最近的两个是 **S02**（行式解析）和 **S09**（字节级精确
+输出），但两者都停在"文本行 + 字段"这一层：S02 的原语是 `split` 和按名取列，S09 管的是打印出来
+的那一串字符长什么样。**在一个字节内部按位取值、按字节序把几个字节拼成一个整数、把游程展开成
+像素** —— 这三件事在现有 24 个编号里没有落点，硬塞进 S02 会让 S02 失去边界。
+
+需要说清的是**它的证据强度**：S25 来自 `cd09_bitfont_binary_frames`，而那道题是**重建题**——
+规格来自一个 GitHub 仓库里的转录文件，其唯一上游（一亩三分地）两轮排查都被 Cloudflare 挡住，
+无法核实。所以：
+
+- **技能本身是真的**：字节序、MSB-first 取位、nibble 切片、RLE 解码是确定存在的一类基本功，
+  Stripe 考不考它，都值得会。
+- **"Stripe 考这个"这件事没有被证实**。JD 列里留空就是这个意思——不像 S01–S24 每条都能指回
+  一份候选人报告或一条 JD。
+- 如果哪天能读到一亩三分地原文、或出现第二个独立来源，把这一行的证据补上；如果反过来证实
+  cd09 那份规格是二次创作，**这一行应该降级或删掉**，不要留着它假装有依据。
+
+判据是 `catalog/SOURCES.md` 那三条纪律里的第二条：不把猜测写成事实。收录一个技能，和声称
+Stripe 考过它，是两件事。
 
 ## Algorithm / DS targets (phone screen + onsite; LeetCode Stripe tag)
 

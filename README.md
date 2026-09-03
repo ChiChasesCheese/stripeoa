@@ -21,7 +21,7 @@ conftest.py         shared fixtures (`impl`, `run_script` with time+RSS measurem
 - `study/README.md` — **中文**题解 53 篇 + 通用精华（解题框架 · 核心考点 · 语法速查 · 陷阱清单 · 算法模式 · 调试 · 沟通）
 - `reports/OVERALL_REPORT.md` — what the OA is, drill order, quality gates, caveats
 - `catalog/CATALOG.md` — every problem found online with #independent refs + source URLs (Tables A/B/C)
-- `skills_matrix.md` — 24 bespoke + 16 algorithm test targets ↔ problems ↔ JD lines
+- `skills_matrix.md` — 25 bespoke + 16 algorithm test targets ↔ problems ↔ JD lines
 - `reports/TEST_SUMMARY.md` — 53 problem sets · 965 tests (regenerate: `python tools/summary.py --run`)
 
 Drill order (OA stage × recency × refs): q01 → q09 → q02 → q18 → q17 → q07 → q03 → q15 → q29 → q08, then q04 q13 q05 q06 q10; phone-screen set q22 q21 q19 q25 q32; algorithms qA01–qA13.
