@@ -8,6 +8,7 @@ reddit 记成"全站 403 不可达"、把小红书记成"必须登录"。两条�
   python3 tools/harvest.py reddit --sub leetcode --q "stripe interview"
   python3 tools/harvest.py reddit-post 1k1d2rl --sub leetcode   # 正文 + 评论
   python3 tools/harvest.py sweep [--out DIR]                    # 预置矩阵，跑一遍全的
+  python3 tools/harvest.py hn --q "stripe onsite" --tags comment  # Hacker News
   python3 tools/harvest.py xhs "<小红书分享链接>"                # 单篇笔记正文
 
 ## Reddit 的门在哪
@@ -55,6 +56,8 @@ MOBILE_UA = (
     "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
 )
 
+# 宁滥勿缺：先全量收，去重和筛选留到最后一步。多搜一个组合的成本是一次 HTTP 请求，
+# 漏掉一个组合的成本是一道没见过的题。
 SUBS = [
     "leetcode",
     "cscareerquestions",
@@ -62,14 +65,54 @@ SUBS = [
     "ExperiencedDevs",
     "developersIndia",
     "cscareerquestionsEU",
+    "cscareerquestionsuk",
+    "InterviewPrep",
+    "ITCareerQuestions",
+    "SoftwareEngineering",
+    "learnprogramming",
+    "recruitinghell",
+    "dataengineering",
+    "FinancialCareers",
+    "fintech",
+    "stripe",
+    "Python",
+    "webdev",
+    "leetcode_meta",
+    "compsci",
 ]
 QUERIES = [
     "stripe interview",
     "stripe oa",
+    "stripe online assessment",
     "stripe onsite",
+    "stripe virtual onsite",
     "stripe phone screen",
+    "stripe coding round",
     "stripe new grad",
+    "stripe intern",
     "stripe integration round",
+    "stripe bug squash",
+    "stripe debugging round",
+    "stripe system design",
+    "stripe hackerrank",
+    "stripe take home",
+    "stripe offer",
+    "stripe recruiter",
+    "stripe rejected",
+    "stripe l2",
+    "stripe backend interview",
+]
+
+# Hacker News 的 Algolia 接口完全开放、无需鉴权，story 和 comment 都能搜。
+# 细节往往在评论里——搜 story 只能拿到标题。
+HN_API = "https://hn.algolia.com/api/v1/search"
+HN_QUERIES = [
+    "stripe interview",
+    "stripe interview process",
+    "stripe onsite",
+    "stripe hiring",
+    "stripe engineering interview",
+    "stripe take home",
     "stripe bug squash",
 ]
 
@@ -207,6 +250,64 @@ def cmd_sweep(a) -> None:
     print(f"\n写入 {path.relative_to(ROOT)}")
     print(f"  {len(posts)} 帖 · 其中正文 >200 字的 {len(substantive)} 帖 · 评论共 {sum(len(p['comments']) for p in posts)} 条")
 
+    if not a.no_hn:
+        hn_rows: list[dict] = []
+        seen_hn: set[str] = set()
+        for q in HN_QUERIES:
+            for tags in ("comment", "story"):
+                for r in hn_search(q, tags=tags):
+                    if r["id"] not in seen_hn:
+                        seen_hn.add(r["id"])
+                        hn_rows.append(r)
+                time.sleep(a.delay)
+        hn_path = out / f"hn_{stamp}.json"
+        hn_path.write_text(json.dumps(hn_rows, ensure_ascii=False, indent=1), encoding="utf-8")
+        meaty = [r for r in hn_rows if len(r["text"]) > 200]
+        print(f"写入 {hn_path.relative_to(ROOT)}")
+        print(f"  {len(hn_rows)} 条 · 其中正文 >200 字的 {len(meaty)} 条")
+
+
+# ---------------------------------------------------------------- hacker news
+
+
+def hn_search(query: str, tags: str = "comment", pages: int = 3, per: int = 100) -> list[dict]:
+    """搜 HN。tags='comment' 拿评论正文，tags='story' 拿帖子。"""
+    out = []
+    for page in range(pages):
+        url = HN_API + "?" + urllib.parse.urlencode(
+            {"query": query, "tags": tags, "hitsPerPage": per, "page": page}
+        )
+        try:
+            data = json.loads(_get(url))
+        except Exception as exc:  # noqa: BLE001 - 一页失败不该中断整轮
+            print(f"  ! HN {query!r} p{page}: {exc}", file=sys.stderr)
+            break
+        hits = data.get("hits") or []
+        for h in hits:
+            text = re.sub(r"<[^>]+>", "", html.unescape(h.get("comment_text") or h.get("story_text") or ""))
+            out.append(
+                {
+                    "id": h.get("objectID"),
+                    "title": h.get("title") or h.get("story_title") or "",
+                    "text": text.strip(),
+                    "author": h.get("author"),
+                    "created_at": h.get("created_at"),
+                    "url": f"https://news.ycombinator.com/item?id={h.get('objectID')}",
+                    "query": query,
+                    "kind": tags,
+                }
+            )
+        if len(hits) < per:
+            break
+    return out
+
+
+def cmd_hn(a) -> None:
+    rows = hn_search(a.q, tags=a.tags, pages=a.pages)
+    print(f"HN {a.q!r} ({a.tags}) → {len(rows)} 条")
+    for r in rows[: a.limit]:
+        print(f"  {r['created_at'][:10]}  {r['title'][:50]:52s} {r['text'][:90]}")
+
 
 # ---------------------------------------------------------------- 小红书
 
@@ -270,7 +371,15 @@ def main(argv=None) -> None:
     s = sub.add_parser("sweep", help="预置矩阵跑一遍，落 JSON")
     s.add_argument("--out", default=None)
     s.add_argument("--delay", type=float, default=1.0, help="每次请求之间等多久（别把人家打挂）")
+    s.add_argument("--no-hn", action="store_true", help="跳过 Hacker News")
     s.set_defaults(fn=cmd_sweep)
+
+    s = sub.add_parser("hn", help="搜 Hacker News（Algolia，开放接口）")
+    s.add_argument("--q", default="stripe interview")
+    s.add_argument("--tags", default="comment", choices=["comment", "story"])
+    s.add_argument("--pages", type=int, default=3)
+    s.add_argument("--limit", type=int, default=20)
+    s.set_defaults(fn=cmd_hn)
 
     s = sub.add_parser("xhs", help="取一篇小红书笔记（需要你提供分享链接）")
     s.add_argument("url")
