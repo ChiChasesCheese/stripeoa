@@ -8,7 +8,8 @@
   - 2026-09-03：用户曾单次指示「spawn more than three」，本会话一度并行 5 个；随后用户明确**恢复上限 3**。≤3 是默认值，只有用户当次明确要求才可突破。
 - **每个 stage 结束**：commit → `git push` → `python3 loop/study/30-articles/sync_obsidian.py` → `python3 loop/study/30-articles/to_anki.py`（三条分开跑）。
 - 材料中文；专有名词/代码英文；文章二八定律：方法论/下笔/建模/代码组织，不堆 corner case。
-- 不动 `catalog/`、`problems/`、`loop/study/00-prereq/exercises/ex02_structure.py`（用户在改）、`catalog/CATALOG.md`（用户侧未提交改动）。
+- 不动 `loop/study/00-prereq/exercises/ex02_structure.py`（用户在改）。
+  - 2026-09-03 更新：原先还列了 `catalog/`、`problems/`、`catalog/CATALOG.md`，理由是「用户侧有未提交改动」。该前提本次会话已不成立（工作区干净），且本轮任务要求写这几处，故解除。**改动前仍应先 `git status` 确认工作区干净。**
 - pytest 注意：pytest.ini 已带 `-q`，命令里**别再加 `-q`**（会吞掉汇总行）。
 
 ## 状态
