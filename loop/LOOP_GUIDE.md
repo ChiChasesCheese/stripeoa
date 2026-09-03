@@ -10,6 +10,8 @@
   → Technical Phone Screen 60 min（45 编码 + 15 Q&A；1 题 3–4 part）
   → Virtual Onsite（Zoom，全远程）
        校招/实习：Programming Exercise + Integration（+ Bug Squash）≈ 3–3.5 h 连排
+       ※ 2026-07 一手实习面经：**coding 是两轮独立 45 min**（R1 CSV 字符串解析+多查询 4 part；
+         R2 图+字符串、"类似 Splitwise" = 债务最小化 = q32/qA08），之后才是 debugging + HR
        L2/L3 社招：Programming + Bug Squash + Integration + System Design + HM/Behavioral，常分 2 天
        2026 新增：AI Programming Exercise（HackerRank 内嵌 AI，30 min）——其余轮次严禁 AI
   → HM chat（校招常在 onsite 后 3–4 个工作日单独安排）
@@ -91,7 +93,9 @@
 - **形式**：与电面同类但更长、更多 part，常"从 JSON/测试数据出发按逐步加码的需求实现"，有时先 clone repo；CoderPad/本地 IDE/HackerRank 都有；"Stripe usually wants two parts"（L2）。[Blind x7beaq87、cnhknchr、8grkgwt1]
 - **题型**：订阅通知调度、支付账本类 + 追问、账户调度/LRU、限流 4-part、规则引擎、滑窗可疑用户、清账。追问方向固定：部分退款/去重/时间范围/持久化/并发/海量。
 - **AI Programming Exercise（2026）**：HackerRank 内嵌 AI；30 min；题为 transactions + rules（关键词 → AND/OR）；评"能否指挥/验证/调试 AI 输出而不关掉脑子"——让 AI 读 README 出计划、生成代码，**自己写测试**、抓过度工程与漏边界。[interviewdb AI guide]
-  - **范围可能比这更广（存疑，勿当定论）**：一位 Senior+ 候选人（2026-08-25）说自己"Two phone screens, coding with AI"——两轮电面都是 AI 辅助编码，而非只有一轮独立 AI Exercise。另有候选人形容该轮"自己手写 80% 概率写不完，主要依赖 AI"。**单一来源 medium，未改写上面的正文，下一轮需交叉验证。**[prachub ie1；assign-reviewers-from-changed-files]
+  - **2026-06-13 一手长文已确认细节**（r/leetcode，正文 1989 字 + 23 评论）：HackerRank 内嵌**类 Cursor 的 AI 对话框**；题目是 transactions + rules（每条规则 accept/block + 一个 if 条件），**前面 part 是关键词/字符串匹配，后面 part 加 AND/OR 布尔逻辑并叠加前面的成果**；README 很长，**读规格的速度本身是考点**；真正编码只有约 30 分钟，"trying to hand-code everything yourself may not be realistic"。
+    有效打法：让 AI 读完整 README → 让它总结需求 → 要实现计划**并真的 review** → 让它写 →**自己加测试和边界** → 跑、调。**本仓库 `cd07_transactions_rules_ai` 与此高度吻合。**
+  - **范围可能比这更广（仍存疑）**：一位 Senior+ 候选人（2026-08-25）说自己"Two phone screens, coding with AI"——两轮电面都是 AI 辅助编码，而非只有一轮独立 AI Exercise。另有候选人形容该轮"自己手写 80% 概率写不完，主要依赖 AI"。**单一来源 medium，未改写上面的正文，下一轮需交叉验证。**[prachub ie1；assign-reviewers-from-changed-files]
 - **反馈实录**：两 part 完成但第二 part 有 bug 未修 = 拒因之一；"output has some extra commas"；面试官要求改变量名可读性。
 - **备考动作**：类设计先写接口签名再填；每个方法先写 3 个 assert；追问清单预演（见各题 REPORT "面试官会怎么追问"）。
 - **练习**：cd01–cd07（`loop/rounds/06_coding_onsite/`）+ OA 的 q07 q13 q32 q23；材料 `loop/study/10-rounds/06-coding.md`、卡片 `20-cards/patterns.md`。
