@@ -70,7 +70,8 @@
 - **四类典型 bug（背下来，进场先按这四类猜）**：逻辑错误 · off-by-one · 符号反转 · **跨调用残留的状态**（该重置没重置）· 排序里用错 comparator。[leonstaff 2026-08-13]
 - **备考动作**：用 recruiter 发的 sample repo 提前跑通 IDE + debugger + 测试；自己 clone 热门库注入 bug 计时 ≥4 次（其中 1 次不用 debugger）；流程固定：跑失败测试 → 读 README 30 s → 从失败断言向上追数据 → 假设 → 断点验证 → 最小修复 → 加回归测试 → 讲根因与副作用。
 - **5 步硬流程（面试官在看你做没做这几步，不只看你修没修好）**：① **先跑失败测试**把错误亲眼确认一遍——"跳过这步直接读代码，是有经验的工程师不会犯的错" ② 读入口点、追数据流，再动代码 ③ **把假设说出来**（"我怀疑在 X，因为 Y"）④ 用**断点**验证，不要靠 print ⑤ 写生产级修复，不是能过测试就行的补丁。[leonstaff 2026-08-13]
-- **练习**：`mock.py start bs01`（拷到 `loop/work/bs01/`，用 IDE 打开）→ `mock.py test bs01` → `mock.py ref bs01` 看参考修复；bs01–bs05；真实库对应 issue 见 `loop/raw/github_repos.md` §2；材料 `loop/study/10-rounds/04-bug-squash.md`、卡片 `20-cards/python_debug.md`。
+- **从零学调试**：`loop/rounds/04_bug_squash/DEBUG_101.md` —— 假设你没用过 pdb，从读 traceback 讲到 `pytest --pdb`，含在 bs01 上真跑出来的实录（两条命令找到根因）；卡片 `loop/study/20-cards/python_debug.md`。
+- **练习**：`mock.py start bs01`（拷到 `loop/work/bs01/`，用 IDE 打开）→ `mock.py test bs01` → `mock.py ref bs01` 看参考修复；bs01–bs05，每题旁边有中文 `CODE_GUIDE.md` 逐模块讲代码（**第二遍起别读**）；真实库对应 issue 见 `loop/raw/github_repos.md` §2；材料 `loop/study/10-rounds/04-bug-squash.md`。
 
 ## 5. Onsite · Integration（60 min）
 
