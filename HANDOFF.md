@@ -38,7 +38,7 @@
 | 英文聚合站 + Blind + LC | ✅ 已落盘 | `catalog/discovery/2026-09-03b/aggregators_sweep.md` |
 | 中文站 + 小红书可行性 | ✅ 已落盘 | `catalog/discovery/2026-09-03b/chinese_sites.md` |
 | 1p3a 镜像 | ✅ 已落盘 | `catalog/raw/mirror_1p3a_stripe/` + `catalog/discovery/2026-09-03b/mirror/README.md` |
-| **Reddit + HN 收割** | **🔄 进行中** | 目标 `catalog/discovery/2026-09-03b/reddit_harvest.md` |
+| Reddit 收割（盲区期） | ✅ 已落盘 | `catalog/discovery/2026-09-03b/blindspot_2026-06_to_09.md` |
 
 ---
 
@@ -66,10 +66,25 @@ CSDN 可达但**混有 AI 内容农场**（日期造假，2012 年的帖子讨�
 
 ## 3. 下一步该做什么（按优先级，附具体动作）
 
-### P0 · 等 Reddit + HN 那一路回来
-落盘后做**跨信源统一去重**，再给一个有分母的覆盖率数字。
-**目前唯一有分母的数字是 82%（49/60，prachub 单站标题级），它是子集下限，不是总体撞题概率**——
-不要把它当成"我们达到 80% 目标了"。
+### P0 · 把已收割但没分析的材料吃掉（最便宜的增量）
+
+`catalog/discovery/harvest/` 下已有但**尚未逐条分析**的：
+- `reddit_2026-09-03.json` —— 89 帖全文 + **2852 条评论**
+- `reddit_2026-09-03_index.json` —— 418 帖索引，其中标题含 stripe 的 83 帖
+- 盲区期还有 **4 篇因 429 没取到**：`Stripe newgrad virtual onsite`(2026-08-07)、
+  `Stripe and Meta new AI interview experience`(2026-07-31)、`Stripe Interviews`(2026-06-17)、
+  `STRIPE Interview Experience: Android`(2026-06-08)
+
+补齐：`python3 tools/harvest.py reddit-post <post_id> --sub leetcode`
+
+**注意 Reddit 429 很凶**，工具已内置退避；别开并发去打，会更慢。
+
+### P0b · 已作废的旧任务
+覆盖率已经算过了，结论见 `catalog/discovery/2026-09-03b/coverage_analysis.md` **第 9 节**
+（前面几节有一个被推翻的错误结论，文件开头有更正块，**别引用第 3 节**）。
+
+一句话结论：**头部 15 个题族占镜像里 82% 的出现次数，这 15 个我们全部有实现。**
+不要再给两位有效数字的撞题率——采样框有硬伤，给不出来。
 
 ### P1 · `ps10_rbac_role_resolver` 按真实结构重写
 镜像确认 C6 的真实四阶段是：
@@ -128,3 +143,24 @@ Phase 1 直接角色查询 → Phase 2 继承 → **Phase 3 找出拥有某权�
 3. **转引要标明。** 复用旧材料标"复用 + 原采集日期"，**不冒用今天的访问日期**。
 
 重建题的边界不能糊：**练里面的技能，不背输出格式。** 把自拟格式当真题背，比不练更糟。
+
+
+---
+
+## 6. 会话 3 结束时的最终状态（2026-09-03）
+
+- 分支已 **merge 进 main 并 push**
+- `pytest problems` 1033 绿 / 1 红 · `pytest loop`（除 bug squash + prereq）714 绿 / 1 红
+- bug squash 五题各"补丁前 2 红"
+- `check_tree.py` errors=0 warnings=0
+- 我新增的代码 flake8 全干净
+
+**三处已知的 lint/测试红，全部先于本分支存在，不要"修"它们：**
+
+1. `loop/lint.sh` 的 black 失败（13 文件）—— 容器 black 26.3.1 比仓库当初用的版本严，
+   **不是代码问题**。要么固定 black 版本，要么全仓库重新格式化一次（会产生巨大无关 diff）。
+2. `loop/study/00-prereq/exercises/` 的 2 条 flake8 + 3 条测试红 —— **用户自己的作答文件**，
+   函数体还是 `# TODO`，红是正常状态。
+3. `tools/build_report_html.py` 的 4 条 flake8 —— commit `3aa8c78`，先于本分支。
+4. `q07::test_perf_100k`（单独跑也红）与 `cd06::test_perf_1m_rows`（单独跑绿，只在全量并跑时超时）——
+   **perf 预算按开发机定，不要放宽**。
