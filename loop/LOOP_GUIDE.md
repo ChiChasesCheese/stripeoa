@@ -61,11 +61,15 @@
 
 ## 4. Onsite · Bug Squash（45–60 min）
 
-- **形式**：真实开源项目的 fork（私有 repo，pin 版本）+ Stripe 加的一个失败单测或 issue 描述；在**自己 IDE** 里 clone → 跑测试 → 定位 → 修；通常 1 个主 bug + follow-up，senior 可能 2–4 个；"everything else is real"（Stripe 员工）。[Blind hkzsddkz、bekekkqf；Coditioning]
+- **形式**：真实开源项目的 fork（私有 repo，pin 版本）+ Stripe 加的一个失败单测或 issue 描述；在**自己 IDE** 里 clone → 跑测试 → 定位 → 修；"everything else is real"（Stripe 员工）。[Blind hkzsddkz、bekekkqf；Coditioning]
+- **几个 bug**：老证据说"1 个主 bug + follow-up，senior 2–4 个"；2026 的三份材料（LC 7595344 的 Mako 亲述、leonstaff 2026-08-13、1p3a 1161334）都说 **"2–3 个"**——但这三份中有两份只拿到搜索摘要（原页 403），所以按 **2–3 个**准备、按 1 个也可能的心态进场。[`catalog/discovery/2026-09/rounds_material.md` §1.2]
+- **明确禁用 AI**：这一轮（以及除 AI Programming Exercise 外的所有轮）禁止使用 AI 编码助手。[leonstaff 2026-08-13]
 - **库按语言分流**：Python `requests` / `Mako`；Java `SnakeYAML` / `Moshi` / `Jackson`；JS `Express` / `Day.js` / React 组件竞态；Ruby `Sass`。Python 版通过率 "<10%"（Stripe 员工 2022）。
 - **评什么**："solving the bug isn't the primary objective"——独立调试能力、方法论、沟通；强表现范文："read the entry point before touching code, set a breakpoint early, formed a hypothesis, verified it, applied a targeted fix"。[Blind bxonqpkp、gyamarmf；Leon]
 - **挂点 top5**：① 只用 print、不会 debugger（多例）② 盯栈顶、想读懂整个库 ③ 不读 README/文档（Google 候选人主因）④ 环境（JDK/Python 2 vs 3/import）吃掉 10 min ⑤ 大范围重写而非最小修复。
+- **四类典型 bug（背下来，进场先按这四类猜）**：逻辑错误 · off-by-one · 符号反转 · **跨调用残留的状态**（该重置没重置）· 排序里用错 comparator。[leonstaff 2026-08-13]
 - **备考动作**：用 recruiter 发的 sample repo 提前跑通 IDE + debugger + 测试；自己 clone 热门库注入 bug 计时 ≥4 次（其中 1 次不用 debugger）；流程固定：跑失败测试 → 读 README 30 s → 从失败断言向上追数据 → 假设 → 断点验证 → 最小修复 → 加回归测试 → 讲根因与副作用。
+- **5 步硬流程（面试官在看你做没做这几步，不只看你修没修好）**：① **先跑失败测试**把错误亲眼确认一遍——"跳过这步直接读代码，是有经验的工程师不会犯的错" ② 读入口点、追数据流，再动代码 ③ **把假设说出来**（"我怀疑在 X，因为 Y"）④ 用**断点**验证，不要靠 print ⑤ 写生产级修复，不是能过测试就行的补丁。[leonstaff 2026-08-13]
 - **练习**：`mock.py start bs01`（拷到 `loop/work/bs01/`，用 IDE 打开）→ `mock.py test bs01` → `mock.py ref bs01` 看参考修复；bs01–bs05；真实库对应 issue 见 `loop/raw/github_repos.md` §2；材料 `loop/study/10-rounds/04-bug-squash.md`、卡片 `20-cards/python_debug.md`。
 
 ## 5. Onsite · Integration（60 min）
