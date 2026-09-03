@@ -55,7 +55,8 @@
 - [x] T9 cd01 subscription_email_scheduler · cd02 payment_ledger
 - [x] T10 cd03 account_scheduler_lru · cd04 rate_limiter_4part
 - [x] T11 cd05 business_account_verification · cd06 suspicious_users_window
-- [x] T12 cd07 transactions_rules_ai · bs01 mini_template_engine · bs02 mini_http_client
+- [~] T12 cd07 transactions_rules_ai ✓ · bs01 mini_template_engine ✓ · **bs02 mini_http_client 从未落盘**
+  - 更正（2026-09-03）：本条原先勾成 [x]，但 git 历史里 `loop/rounds/04_bug_squash/` 只出现过 bs01。bs02 退回 BACKLOG，与 T17 的 bs03–05 一起排。
   - cd 题 AC 同 T5–T8；cd04 part4 含线程安全测试（`threading` 并发 1000 次无超发）
   - int 题 AC：目录含 `problem.md`（含 API 文档节）、`data/`（ride-simple.json 约 500 点 / charges 样本）、`starter_template.py`、`solution.py`、`test_intNN.py`（fixture 起 mockserver 于随机端口、结束关闭）、`REPORT.md`；测试覆盖 happy path + 网络错误 + 分页第 2 页 + 429 退避 + 幂等重放
   - bs 题 AC：`src/<pkg>/`（200–600 行）、`tests/`（1–3 个失败用例 + 其余通过）、`README.md`（库用途、跑测试命令）、`solution/FIX.patch`、`REPORT.md`（根因·排查路径·最小修复·真实库对应 issue/PR）；`git apply --check solution/FIX.patch` 通过；打补丁后全绿
@@ -67,7 +68,7 @@
 ## ⏸ BACKLOG（用户 2026-09-01 指示：先 review 已有题，以下暂停）
 
 ## Phase 4 · integration 后半 + bug squash 后半 + SD + 非编码轮 + study 前半（5 并行）
-- [~] T15 int03 ✓ · int04 半成品（缺 starter.py/test/REPORT）→ BACKLOG（int04 用 `subprocess git` 在 tmp repo 造两分支）
+- [x] T15 int03 ✓ · **int04 ✓（2026-09-03 收尾）**：补齐 starter.py / test_int04.py（34 测试）/ REPORT.md；测试在 tmp_path 里真起 git 仓库造 A/M/D/R 变更，无 git 时 skip；solution.py 未改动；lint 绿
 - [ ] T17 bs03 mini_yaml_csv · bs04 config_manager_concurrency · bs05 asyncio_fetch_race
 - [ ] T18 sd01–sd06：每题 `prompt.md`（一段业务描述 ≥ 300 字，不给结构）、`rubric.md`（五维 + 主线，可打分 1–4）、`model_answer.md`（≥ 150 行，含 API 契约/数据模型/失败模式/对账/可观测）、`followups.md`（≥ 8 条追问 + 期望要点）；复用 `raw/system_design.md` §4
   - 验证：每题 4 文件；`check_tree.py` 路径通过
@@ -89,3 +90,33 @@
 
 ### Checkpoint E（完成）
 - [ ] 33 ID × 全部文件；全量测试绿；tree 严格通过；README 可从零上手；commit + push 分支
+
+---
+
+## 2026-09-03 会话（进度追踪 + 二轮排查 + 收尾）
+
+已完成并入库：
+
+- [x] **进度追踪**：`tools/progress.py` + `tools/pytest_progress.py`；`drill.py status` / `loop/mock.py status`
+  - 只聚合 `IMPL=starter` 的运行；`ref` 不入账；pytest 没跑起来的运行不记录
+- [x] **int04 收尾**（见上 T15）
+- [x] **来源登记表**：`catalog/sources.json`（518 URL / 91 站）+ `catalog/SOURCES.md` + `tools/refresh_check.py`
+  - 更正：teamblind 换浏览器 UA 即 200（12/12 实测），leetcode 有 GraphQL 端点；**只有 1point3acres 真不可达**
+- [x] **Table C 二轮排查**：`catalog/discovery/2026-09/` 三份报告；结论已写回 CATALOG.md Table C 的 Note 列 + 新增「2026-09-03 二轮排查增量」节
+- [x] **LOOP_GUIDE §4** 吸收 bug squash 新证据（2–3 个 bug · 5 步流程 · 4 类典型 bug · 明确禁用 AI）
+
+进行中（代理产出，未验收前不合并）：
+
+- [ ] ps09 matching_contacts（真实复原）· ps10 rbac_role_resolver（重建）
+- [ ] ps11 factory_cost（重建）· q41 observability_metrics（重建）
+- [ ] ps12 hierarchical_task_csv（真实复原）· ps13 incident_monitor（部分重建）
+- [ ] T18 sd01–sd06
+- [ ] T19 01_recruiter / 02_hm / 08_behavioral
+
+仍在 BACKLOG：
+
+- [ ] T17 bs02–bs05（素材已备：`catalog/discovery/2026-09/rounds_material.md` 块 1 有 8 条一手可信 bug 候选，Python 5 条）
+- [ ] T21/T22 `loop/study/10-rounds/01–08`
+- [ ] T23 `loop/study/20-cards/`（stripe_api / python_debug / http_json / patterns）
+- [ ] T20 `loop/tree/TREE.md` 渲染 + check_tree 严格模式
+- [ ] **C27 Bitfont 故意不建**：三个版本互相矛盾，核实等级 low-medium，编规格会让人背错格式。等能读到 1p3a 原文再定稿
