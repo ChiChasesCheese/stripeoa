@@ -162,12 +162,12 @@
   "reddit.com": {
    "tier": 1,
    "kind": "一手面经",
-   "access": "manual",
+   "access": "auto",
    "cadence_days": 60,
    "last_verified": "2026-09-03",
    "note": "",
    "url_count": 2,
-   "recheck": "全站 403，需人工打开"
+   "recheck": "**走 RSS**：r/<sub>/search.rss?q=&restrict_sr=1&sort=new（25 条/次）+ 单帖 /comments/<id>/.rss（正文+评论）。HTML 页是 JS 壳、.json 403。工具 tools/harvest.py"
   },
   "glassdoor.com": {
    "tier": 1,
@@ -857,6 +857,33 @@
    "note": "",
    "url_count": 2,
    "recheck": ""
+  },
+  "xiaohongshu.com": {
+   "tier": 1,
+   "kind": "一手面经（中文，图文为主）",
+   "cadence_days": 30,
+   "url_count": 0,
+   "access": "manual",
+   "recheck": "正文能取（移动端 UA + 分享链接，SSR 在 window.__INITIAL_STATE__，保留 xsec_token）；但按关键词搜索需登录，搜索引擎也不索引——note URL 须人工提供。工具 tools/harvest.py xhs",
+   "last_verified": "2026-09-03"
+  },
+  "nowcoder.com": {
+   "tier": 1,
+   "kind": "一手面经（中文）",
+   "cadence_days": 30,
+   "url_count": 0,
+   "access": "auto",
+   "recheck": "牛客，中文面经，catalog 此前未覆盖",
+   "last_verified": "2026-09-03"
+  },
+  "1o24bbs.com": {
+   "tier": 1,
+   "kind": "一手面经",
+   "cadence_days": 30,
+   "url_count": 0,
+   "access": "manual",
+   "recheck": "本容器内 000 不可达（网络层，非反爬）",
+   "last_verified": "2026-09-03"
   }
  },
  "urls": {

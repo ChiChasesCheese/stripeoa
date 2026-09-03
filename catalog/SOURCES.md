@@ -38,16 +38,24 @@ python3 tools/refresh_check.py report    # 打印中文汇总表 + 探活异常�
 | **github.com**（HTML 仓库页） | 在受限出口下 403 | 换 raw 域名，或人工打开 |
 | **1point3acres.com** | **不能** | 结构性不可达：WebFetch / curl / r.jina.ai 三种方式都被 Cloudflare 拦。只能人工登录翻。**这是本题库最大的检索缺口** |
 | **medium.com** | **不能** | 浏览器 UA 也 403，人工打开 |
-| **reddit.com** | **不能** | 全站 403，人工打开 |
+| **reddit.com** | **能（走 RSS）** | HTML 页是 JS 壳、`.json` 接口 403，但 **`.rss` 可用**：`r/<sub>/search.rss?q=...&restrict_sr=1&sort=new` 每次 25 条；单帖 `/comments/<id>/.rss` 连**评论全文**一起给。只能按 subreddit 搜（全站 search.rss 返回 0 条）。工具：`tools/harvest.py` |
 | PracHub / InterviewDB / csoahelp / programhelp / oavoservice | 能 | 直接抓。本轮 C7、C12、C27 的题面就是从 PracHub 抓回来的 |
+| **xiaohongshu.com** | **正文能，搜索不能** | 桌面 UA 会 302 到 `/login`；**移动端 UA** 直拉分享链接则免登录吐 SSR，完整笔记在 `window.__INITIAL_STATE__` 里。**但站内搜索要登录，而搜索引擎几乎不索引小红书**——所以笔记 URL 必须由人提供（App 内分享→复制链接，**保留 `xsec_token`**）。工具：`tools/harvest.py xhs <链接>` |
+| nowcoder.com（牛客） | 能 | 中文面经，catalog 此前完全没覆盖 |
+| 1o24bbs.com | **连不上** | 本容器内 000（DNS/网络层不可达），与站点反爬无关 |
 
 由此得到两条工作方式：
 
 - **靠搜索引擎摘要拿到的内容，置信度最多 medium**，且必须标注「WebSearch 摘要，原页 403」。
 - 抓不动的站（1p3a / medium / reddit）在 `sources.json` 里标 `access: manual`，`ping` 会跳过，`stale` 单列一栏。**不要拿"跳过"当"来源已死"。**
 
-> 更正记录：本文件最初写的是"teamblind / leetcode / 1point3acres 三站一律 403"。
-> 实测后发现只有 1point3acres 属实——teamblind 换 UA 即可，leetcode 有 GraphQL 端点。
+> 更正记录（两次，都留着）：
+> 1. 本文件最初写的是"teamblind / leetcode / 1point3acres 三站一律 403"。实测后只有
+>    1point3acres 属实——teamblind 换 UA 即可，leetcode 有 GraphQL 端点。
+> 2. 2026-09-03 复测又推翻了一条：**reddit 不是"全站 403"**，HTML 页确实没用，但 `.rss`
+>    完全可用，连评论全文都给。此前把 reddit 记为不可达，代价是漏掉了整个 r/leetcode
+>    的一手面经流。**教训是同一个：不要用一次失败的抓取方式给一个站点定终身。**
+>    一个站"抓不动"要具体到**哪条路径**抓不动，并把试过的路径写下来。
 
 ## 另一条容易被误读的事实：403 有两种成因
 
