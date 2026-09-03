@@ -1,4 +1,4 @@
-# loop/ 进度断点 — 2026-09-02（会话 2，review 阶段）
+# loop/ 进度断点 — 2026-09-03（会话 3，**套件完成**）
 
 > OA 之后整套面试流程的 mock 套件。分支 `worktree-stripe-loop`（已 push 到 origin），worktree `/Users/chizhang/Code/ITV/stripe-oa/.claude/worktrees/stripe-loop/`。
 > **以 git + `loop/LEDGER.md`（账本）+ `loop/tasks/todo.md`（任务清单）为准**；本文件只是入口。
@@ -17,7 +17,25 @@
 - [x] Phase 3 部分：mockserver · cd01–07 · int01–03 · bs01；**int04 半成品（缺 starter/test/REPORT）、bs02 未开始**
 - [x] Phase R（review + 文章）：ps01–08 · cd01–07 · int01–03 · bs01 全部 review + 19 篇文章（`loop/study/30-articles/`）
 - [x] R7 收口（2026-09-02）：`pytest loop --ignore=loop/rounds/04_bug_squash` 499 绿；`loop/lint.sh` 绿；文章同步 Obsidian `Inbox/Stripe Loop/`（索引 + `Claude 接力.md`）与 Anki `Stripe::Loop::*`；遗留：4 篇文章骨架 41–46 行略超 40
-- ⏸ BACKLOG（用户指示暂停）：int04 收尾 · bs02–05 · sd01–06 · rc/hm/bq · study/10-rounds · 20-cards · TREE.md · README/INDEX
+- [x] **2026-09-03 全部 BACKLOG 清空**：int04 收尾 · bs02–bs05 · sd01–sd06 · recruiter/hm/behavioral 题库(66 题) ·
+  study/10-rounds 八章 · 20-cards 四份(224 张) · 30-articles 补 19 篇(共 38 篇 → 185 张 Anki 卡)
+- [x] 同期新增：Table C 二轮排查（3 份报告）· 来源登记表 + 复验工具 · drill/mock 进度板 ·
+  6 道复原/重建题(ps09–ps13, q41) · Bitfont 三版本(cd08–cd10) · S25 技能编号 · DEBUG_101 调试入门
+
+## 当前状态（2026-09-03）
+
+| 指标 | 值 |
+|---|---|
+| 可练题目 | **92**（53 problems + 39 loop rounds） |
+| `check_tree.py` | **errors=0 warnings=0**（首次全通） |
+| `pytest problems` | 1033 绿 / 1 红 |
+| `pytest loop`（除 bug squash + prereq 练习） | 714 绿 / 1 红 |
+| bug squash | 五题各"补丁前 2 红、打补丁后全绿" |
+
+两条红都是 **perf 预算**，且**本轮开工前就红**：`q07::test_perf_100k`（单独跑也红，3.4s vs 2.0s 预算）与
+`cd06::test_perf_1m_rows`（**单独跑是绿的**，只在全量并跑时被 CPU 争用挤超时）。预算按开发机定，
+**没有放宽任何预算**去让容器看起来绿。
+`loop/study/00-prereq/exercises/test_ex02.py` 的 3 红是**用户自己的作答文件**（满篇 `# TODO`），红是正常状态。
 
 ## 下一会话怎么接
 1. `git status` 盘点未提交目录（代理被 session limit 杀掉会留半成品）：跑 `rtk proxy python3 -m pytest <dir> --tb=no` + `loop/lint.sh <dir>`，绿的 commit。
