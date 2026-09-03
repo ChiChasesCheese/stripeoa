@@ -1,6 +1,6 @@
 # Stripe OA / phone-screen / onsite-coding problem catalog
 
-**Date:** 2026-08-25 · **Inputs:** `catalog/raw/{cn_sources,en_forums,github_repos,algo_questions,process_and_jd}.md` + `problems/*/problem.md`
+**Date:** 2026-08-25 · **二轮排查:** 2026-09-03（结果见 `catalog/discovery/2026-09/`；来源登记与复验工具见 `catalog/SOURCES.md`）· **Inputs:** `catalog/raw/{cn_sources,en_forums,github_repos,algo_questions,process_and_jd}.md` + `problems/*/problem.md`
 
 ## Format facts (triangulated from candidate reports; see `raw/process_and_jd.md` §A)
 
@@ -108,19 +108,19 @@ Tag frequencies: **S** = snehasishroy 2026-07-12 snapshot (`all / >6mo / 6mo`), 
 
 | # | Title (as seen) | Stage | Where seen | Note |
 |---|---|---|---|---|
-| C1 | Observability | OA (reported Aug 2026) | https://www.interviewdb.io/question/stripe | no content |
+| C1 | Observability | OA (reported Aug 2026) | https://www.interviewdb.io/question/stripe | **2026-09 二轮：仍无题面**。interviewdb 详情页正文是前端占位符。已按纯重建题建成 `problems/q41_observability_metrics`（训练用，非真题） |
 | C2 | Stripepay Backend · "Stripe in a box" ("mini functioning Stripe API with transactions, charges, interest, different charges per card company") | OA (intern/NG 2019–2021, 90 min; 2 questions: coding + essay) | https://www.interviewdb.io/question/stripe ; Blind / naukri (en_forums §27); 1p3a interview/software-engineer-677770 & 677836 | pre-2022 format |
 | C3 | Request Router · Proximity Request Routing | OA | https://www.interviewdb.io/question/stripe | almost certainly A2 / A14 |
-| C4 | Factory Cost | PS | https://www.interviewdb.io/question/stripe | title only |
+| C4 | Factory Cost | PS | https://www.interviewdb.io/question/stripe | **2026-09 二轮：部分线索**。PracHub《Minimize total factory cost with distance penalties》(Phone, 2026-03) 概述为「建厂成本+相邻距离惩罚+可跳过一个」的 DP；三个标题不完全一致，未证实同题。已建重建题 `ps11_factory_cost` |
 | C5 | Fraud Reports | PS | https://www.interviewdb.io/question/stripe | probably A4 or A33 |
-| C6 | User Roles · RBAC Role Resolver | PS / onsite | https://www.interviewdb.io/question/stripe ; 1p3a 题库 | title only |
-| C7 | Matching Contacts (by email domain and preferences; "reading speed is the main constraint") | PS (last asked 2026-06-10) | 1p3a 题库 ; https://www.interviewdb.io/question/stripe | low; possibly A9's record-linking cousin |
+| C6 | User Roles · RBAC Role Resolver | PS / onsite | https://www.interviewdb.io/question/stripe ; 1p3a 题库 | **2026-09 二轮：部分线索**。PracHub《Resolve user roles across account hierarchy》(Phone, 2026-05-12) 概述为「算账户层级链上的有效权限」；已证伪 interviewdb 上并无独立「RBAC Role Resolver」词条。已建重建题 `ps10_rbac_role_resolver` |
+| C7 | Matching Contacts (by email domain and preferences; "reading speed is the main constraint") | PS (last asked 2026-06-10) | 1p3a 题库 ; https://www.interviewdb.io/question/stripe | **2026-09 二轮：已复原，置信度 high**。PracHub 两次独立报告给出完整三 part 规则与权重 name .2/email .5/company .3，与 en_forums §24 转述数值完全一致。已建 `ps09_matching_contacts` |
 | C8 | Review Assignment via Git Diff + CSV Owners · "Assign Reviewers from Changed Files" | OA/OJ (SWE-AI, 2026-04-29) | 1p3a OJ title ; prachub.com/companies/stripe | title only |
-| C9 | Incident Monitor | OA/OJ | 1p3a OJ title | title only |
+| C9 | Incident Monitor | OA/OJ | 1p3a OJ title | **2026-09 二轮：部分线索**。PracHub《Detect Trigger and Resolve Events》含候选人第一人称报告（2026-01-15）：(merchant,status_code) 滑窗计数 → TRIGGER/RESOLVE；**标题不同，无法确认同题**。已建部分重建题 `ps13_incident_monitor` |
 | C10 | Calculate Service Fees | OA/OJ | 1p3a OJ title | title only (cf. A26) |
 | C11 | Transaction Fee with Status- and Type-specific Rates | OA/OJ | 1p3a OJ title | = A26 `rate_bps` variant, statement not public |
-| C12 | Parse and Format a Hierarchical Task CSV | OA/OJ | 1p3a OJ title | title only |
-| C13 | Beta Invite / bot detection (system sends invites, users request/activate; bot = ≥5 messages in 1 min) | OA (NG 2021-09, 60 min) | 1p3a thread-793401 | summary only |
+| C12 | Parse and Format a Hierarchical Task CSV | OA/OJ | 1p3a OJ title | **2026-09 二轮：已复原，置信度 high**。PracHub 页含候选人第一人称报告（2026-08-25）+ 完整规则/样例/4-part 划分：CSV 建树 + `├─`/`└─` 文件树式输出。已建 `ps12_hierarchical_task_csv` |
+| C13 | Beta Invite / bot detection (system sends invites, users request/activate; bot = ≥5 messages in 1 min) | OA (NG 2021-09, 60 min) | 1p3a thread-793401 | **2026-09 二轮：无新增**。1point3acres 全站经 WebFetch/curl/r.jina.ai 三法均被 Cloudflare 拦截 |
 | C14 | Logging / transaction loan calculation ("design Q, tricky edge cases") | OA (NG Aug 2020, ~90 min) | Blind mvtuacrh (en_forums §27) | probably A17 |
 | C15 | MLE NG OA 2026: PyTorch 3-class speed-sign classifier + pandas "employees visiting own branch ≥3 times/month" | OA (MLE, 2 questions) | programhelp 2026-04-10 ; 1p3a thread-844359 ; https://leetcode.com/discuss/post/5984403/ (Sr MLE 2024: Jupyter ML integration screen) | MLE track only |
 | C16 | State-machine command simulation (multiple entities, chronological commands, invalid ops no-op, sorted aggregate output) | OA (NG India, 2025-12-10, "Hard") | LC 7428741 | abstracted by OP; matches A4 or A6 |
@@ -131,10 +131,10 @@ Tag frequencies: **S** = snehasishroy 2026-07-12 snapshot (`all / >6mo / 6mo`), 
 | C21 | Searching string patterns in a list of strings (Trie) | PS (2021-02) | Blind bowkiqj3 | no statement |
 | C22 | Medium graph traversal in 3 parts | PS (2024-06) | Blind 1dbqalav | probably A23 |
 | C23 | Numeronym validation (`i18n`; first/last letters, digits between, min length 3) | PS | Exponent / finalround (en_forums §27) | cousin of A34 |
-| C24 | Email normalization (dots, plus-addressing, lowercase) | OA? | dev.to programhelp 2025-10-18 | low |
+| C24 | Email normalization (dots, plus-addressing, lowercase) | OA? | dev.to programhelp 2025-10-18 | **2026-09 二轮：中等置信度**。找到 3-part 规则（校验/规范化/去重计数），与 dev.to 交叉印证；样例神似 LC 929，可能是套壳练习题。未建题 |
 | C25 | Pattern Validator (frontend) · Build an Interactive UI Element · Frontend System Design | PS / onsite (frontend) | https://www.interviewdb.io/question/stripe | frontend track |
 | C26 | Telephone number input field (format-as-you-type) | Frontend / product-engineer interview | https://github.com/bradgarropy/stripe-telephone | frontend track |
-| C27 | Bitfont Renderer | Onsite | 1p3a 题库 | title only |
+| C27 | Bitfont Renderer | Onsite | 1p3a 题库 | **2026-09 二轮：确认是题目家族，无单一标准题面**。至少三个互相矛盾的版本（自定义二进制帧+RLE / ASCII 位图渲染+换行 / 画字符→画词→RLE→翻转）。**新增：也出现在 OA 阶段**，不只 onsite。核实等级不足，**故意未建题** |
 | C28 | Integration round: Request Replay (JSON file → re-send → compare) · Bikemap (JSON → REST API → render map) · request deduplication / idempotency (`POST /v1/charges` + `Idempotency-Key`) · "read file of requests, POST each, print responses" | INT | https://github.com/joeytor/StripeInterview (`BikeMap.java`, README) ; https://www.glassdoor.com/Interview/One-of-the-question-asked-me-to-implement-a-replay-test-with-a-pre-recorded-JSON-file-...-QTN_1885228.htm ; https://leetcode.com/discuss/post/7595344/ ; https://www.teamblind.com/post/how-to-approach-the-stripe-on-site-coding-challenges-qb0yu0tx ; https://programhelp.net/en/vo/stripe-intern-vo-coding-debug-integration-guide/ | private repo + API docs; not an OA problem |
 | C29 | Bug Squash: Mako (2 bugs: directory check, missing AST visitor) · SnakeYAML · jackson-core · Moshi · C++ OSS repo (2 bugs/hour) · ~200-line PaymentProcessor with 5–7 planted bugs | BUG | https://github.com/joeytor/StripeInterview README ; https://leetcode.com/discuss/post/7595344/ ; https://github.com/Shivam5022/Interview-Experiences ; programhelp VO 2025-08-06 (en_forums §A12) ; techinterview.org | round format, not OA |
 | C30 | System design prompts: Payment Webhook delivery · Counter / metrics logging · IAM · Ledger service · "Design Stripe subscriptions" · rate limiter | Onsite design | https://github.com/joeytor/StripeInterview README ; https://adonais0.github.io/20210603/interview-stripe/ ; https://leetcode.com/discuss/post/3102019/ ; https://leetcode.com/discuss/post/2172363/ | not coding |
@@ -142,6 +142,52 @@ Tag frequencies: **S** = snehasishroy 2026-07-12 snapshot (`all / >6mo / 6mo`), 
 | C32 | lodely.com "14 LeetCode-style questions, 90 min" list · vervecopilot 30 generic questions · sumansaurav91 mock set (reconciliation tool, streak of successful payments, card masking, minor-unit normalization, proportional refund allocation…) | — | lodely.com 2026-05-03 ; https://github.com/sumansaurav91/stripe-interview-prep | **ignore** — contradicts all first-hand sources / AI-generated |
 
 **Table C: 32 rows.**
+
+---
+
+## 2026-09-03 二轮排查增量
+
+完整报告在 `catalog/discovery/2026-09/`（三份并行排查：`C_batchA.md` · `C_batchB.md` · `rounds_material.md`）。
+来源分层、可抓取性、复验协议见 `catalog/SOURCES.md`；机器可读登记表 `catalog/sources.json`，工具 `tools/refresh_check.py`。
+
+### Table C 的结论（逐行批注已写回上表 Note 列）
+
+| 结果 | 条目 |
+|---|---|
+| **已复原（可建题）** | C7 Matching Contacts（high）· C12 Hierarchical Task CSV（high） |
+| **部分线索（够建重建题）** | C4 Factory Cost · C6 RBAC · C9 Incident Monitor · C24 Email normalization |
+| **仍然只有标题** | C1 Observability · C13 Beta Invite · C27 Bitfont（是家族，多版本互相矛盾） |
+| **拿到原文（低信息量那一组）** | C19（LeetCode GraphQL 取到帖子全文）· C21（teamblind 取到原帖 + OP 评论） |
+| **仍不可达** | C13、C20（1point3acres / reddit 全站被拦） |
+
+### 冻结日（2026-08-25）之后的新东西
+
+| 发现 | 日期 | 来源 | 处理 |
+|---|---|---|---|
+| 「Find Weekly Deployment Windows Across Time Zones」（Hard） | 2026-08-27 | PracHub | A13 `q29_deployment_windows` 的新难度变体，**晚于冻结日 2 天** |
+| 「Evaluate Ordered Access-Control Rules」（完整题面 + 函数签名 + 样例） | 2026-09-02 | PracHub | 与 A5 的布尔规则语法近乎同构；**注意别误当成 C6 的答案** |
+| 「Design a (Superhero) Dispatch System」 | 两次独立报告 | PracHub | 新的 onsite 系统设计题，未收录 |
+| 「Convert bitmap into ASCII characters」 | — | PracHub 列表页 | C27 家族的又一变体，仅标题，待核实 |
+| bug squash：2–3 个 bug / 5 步流程 / 4 类典型 bug / 明确禁用 AI | 2026-08-13 | leonstaff | 已写入 `loop/LOOP_GUIDE.md` §4 |
+| Stripe Operating Principles 官方文案 | 复核 2026-09 | stripe.com/jobs/culture | **无变化** |
+
+**流程层面结论：没有变化。** 轮次结构、语言选择结论、评分机制在 2026-08 之后未见任何一手报告提示改动。
+
+### 本轮建成的题（重建题一律带警示块）
+
+| 目录 | 来源等级 | 说明 |
+|---|---|---|
+| `loop/rounds/03_phone_screen/ps09_matching_contacts` | 真实复原 | C7 |
+| `loop/rounds/03_phone_screen/ps12_hierarchical_task_csv` | 真实复原 | C12 |
+| `loop/rounds/03_phone_screen/ps10_rbac_role_resolver` | **重建题** | C6 只有一句话概述 |
+| `loop/rounds/03_phone_screen/ps11_factory_cost` | **重建题** | C4 线索不足 |
+| `loop/rounds/03_phone_screen/ps13_incident_monitor` | **部分重建** | C9 的 Part 1 有实证，其余自拟 |
+| `problems/q41_observability_metrics` | **重建题** | C1 只有标题 |
+
+**C27 故意没建。** 三个版本互相矛盾，核实等级只到 low-medium；照着编一份规格会让人背错格式，比不练更糟。等能读到 1point3acres 原文再定稿。
+
+如果 C27 的二进制帧版本属实，它的"大端序 · 变长帧 · RLE 游程解码 · MSB-first 按位取值"是 S01–S24 / A01–A16 **都没覆盖**的新技能点，届时应新增 S25。
+
 
 ---
 
