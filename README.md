@@ -10,7 +10,8 @@ problems/qNN_slug/  problem.md · starter.py (yours) · solution.py (reference) 
 study/              中文题解 + 通用精华（读完能独立做出来的验收路径）→ study/README.md
 skills_matrix.md    test targets / knowledge / experience  ↔  problems  ↔  Stripe JD lines
 reports/            OVERALL_REPORT.md (+ per-problem REPORT.md lives next to each problem)
-drill.py            60-minute drill runner
+drill.py            60-minute drill runner (+ `status`: cross-problem progress board)
+progress.jsonl      append-only log, one line per `test` run — feeds `drill.py status`
 conftest.py         shared fixtures (`impl`, `run_script` with time+RSS measurement)
 ```
 
@@ -34,6 +35,8 @@ python drill.py test q01 -k part1   # lock Part 1 before touching Part 2
 python drill.py test q01            # full suite (edge + fmt + perf + io) against YOUR code
 python drill.py time q01            # minutes left
 python drill.py ref q01             # sanity: reference solution passes everything
+python drill.py status              # progress board: which problems are green, best time, trend
+python drill.py status --all        # ... including the ones you have never touched
 ```
 
 Rules that mirror the real thing: no debugger (print to **stderr**), stdout must be exact,
