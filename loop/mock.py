@@ -7,6 +7,7 @@
   python3 loop/mock.py test <id> [-k EXPR]      # run tests against YOUR starter (or work copy)
   python3 loop/mock.py ref <id> [-k EXPR]       # run tests against the reference solution
   python3 loop/mock.py time <id>                # how much of the round's minutes are left
+  python3 loop/mock.py status [--all]           # progress board across every round (see tools/progress.py)
   python3 loop/mock.py serve <id> [--port N]    # start the mockserver an integration round needs
   python3 loop/mock.py bq [round] [-n N] [-m MIN] [--seed S]
                                                  # draw N random non-coding questions and time them
@@ -34,6 +35,9 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT))
+from tools import progress  # noqa: E402  (needs ROOT on sys.path first)
+
 LOOP = ROOT / "loop"
 ROUNDS = LOOP / "rounds"
 WORK = LOOP / "work"
@@ -185,7 +189,7 @@ def cmd_start(a):
     print(f"计时开始：{minutes} 分钟。{note}")
 
 
-def _pytest(d: Path, which: str, extra: list[str]) -> int:
+def _pytest(d: Path, which: str, extra: list[str], record_id: str | None = None, k: str | None = None) -> int:
     env = dict(os.environ, IMPL=which)
     cmd = [
         sys.executable,
@@ -196,9 +200,44 @@ def _pytest(d: Path, which: str, extra: list[str]) -> int:
         "no:cacheprovider",
         "--no-header",
         "-rN",
-        *extra,
     ]
-    return subprocess.call(cmd, cwd=str(ROOT), env=env)
+    out = None
+    if record_id:
+        env["PYTHONPATH"] = os.pathsep.join(x for x in (str(ROOT), env.get("PYTHONPATH", "")) if x)
+        out = Path(tempfile.mkdtemp(prefix="mock_progress_")) / "summary.json"
+        env["DRILL_PROGRESS_OUT"] = str(out)
+        cmd += ["-p", "tools.pytest_progress"]
+    rc = subprocess.call([*cmd, *extra], cwd=str(ROOT), env=env)
+    if record_id:
+        _log(record_id, which, rc, out, k)
+    return rc
+
+
+def _log(id_: str, which: str, rc: int, out: Path | None, k: str | None) -> None:
+    """Append one line to progress.jsonl. Never let bookkeeping break the round."""
+    try:
+        summary = progress.read_summary(out) if out else {}
+        rec = {
+            "id": id_,
+            "kind": "loop",
+            "impl": which,
+            "rc": rc,
+            "k": k,
+            "parts": summary.get("parts", {}),
+            "duration": summary.get("duration"),
+        }
+        for key in ("passed", "failed", "skipped", "error"):
+            rec[key] = summary.get(key, 0)
+        if not any(rec[key] for key in ("passed", "failed", "skipped", "error")) and rec["rc"] != 0:
+            return  # pytest never ran (import error, missing dep) — do not pollute the log
+        timer = _timer_file(id_)
+        if timer.exists():
+            st = json.loads(timer.read_text())
+            rec["elapsed_min"] = round((time.time() - st["t0"]) / 60, 1)
+            rec["budget_min"] = st["minutes"]
+        progress.append(rec)
+    except Exception as exc:  # noqa: BLE001 - bookkeeping must never mask a test result
+        print(f"(进度未记录：{exc})", file=sys.stderr)
 
 
 def cmd_test(a):
@@ -207,11 +246,15 @@ def cmd_test(a):
     extra = ["-k", a.k] if a.k else []
 
     if prefix in ("ps", "cd", "int"):
-        rc = _pytest(d, "starter", extra)
+        rc = _pytest(d, "starter", extra, record_id=a.id, k=a.k)
     elif prefix == "bs":
         work = WORK / a.id
         if not work.exists():
             sys.exit(f"no work dir for {a.id!r}; run `python3 loop/mock.py start {a.id}` first")
+        env = dict(os.environ)
+        env["PYTHONPATH"] = os.pathsep.join(x for x in (str(ROOT), env.get("PYTHONPATH", "")) if x)
+        out = Path(tempfile.mkdtemp(prefix="mock_progress_")) / "summary.json"
+        env["DRILL_PROGRESS_OUT"] = str(out)
         rc = subprocess.call(
             [
                 sys.executable,
@@ -220,12 +263,16 @@ def cmd_test(a):
                 str(work),
                 "-p",
                 "no:cacheprovider",
+                "-p",
+                "tools.pytest_progress",
                 "--no-header",
                 "-rN",
                 *extra,
             ],
             cwd=str(ROOT),
+            env=env,
         )
+        _log(a.id, "starter", rc, out, a.k)
     else:
         print(f"{prefix} 轮次无自动测试（口头/评分表作答）")
         return
@@ -334,11 +381,19 @@ def cmd_bq(a):
         print(f"    限时 {a.minutes} 分钟\n")
 
 
+def cmd_status(a):
+    print(progress.render(show_all=a.all, kind=None if a.all_kinds else "loop"))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
 
     sub.add_parser("list").set_defaults(fn=cmd_list)
+    s = sub.add_parser("status")
+    s.add_argument("--all", action="store_true", help="连没做过的题一起列出来")
+    s.add_argument("--all-kinds", action="store_true", help="连 problems/ 的 OA 题一起列出来")
+    s.set_defaults(fn=cmd_status)
 
     s = sub.add_parser("show")
     s.add_argument("id")

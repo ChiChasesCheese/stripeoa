@@ -31,6 +31,7 @@ python3 loop/mock.py ref <id> [-k EXPR]       # 跑参考解（bs 会先 git app
 python3 loop/mock.py time <id>                # 查看剩余时间
 python3 loop/mock.py serve <id> [--port N]    # int 题：启动题面声明的 mockserver（Ctrl-C 停止）
 python3 loop/mock.py bq [round] [-n N] [--seed S]   # 从 recruiter/hm/behavioral 题库随机抽题计时
+python3 loop/mock.py status [--all] [--all-kinds]   # 进度板：哪些题绿了、最好用时、最近 10 次趋势
 ```
 
 `id` 用短前缀即可（`ps01`/`cd03`/`int01`/`bs02`/`sd01`），只要能在

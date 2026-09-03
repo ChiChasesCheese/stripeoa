@@ -10,6 +10,8 @@
   → Technical Phone Screen 60 min（45 编码 + 15 Q&A；1 题 3–4 part）
   → Virtual Onsite（Zoom，全远程）
        校招/实习：Programming Exercise + Integration（+ Bug Squash）≈ 3–3.5 h 连排
+       ※ 2026-07 一手实习面经：**coding 是两轮独立 45 min**（R1 CSV 字符串解析+多查询 4 part；
+         R2 图+字符串、"类似 Splitwise" = 债务最小化 = q32/qA08），之后才是 debugging + HR
        L2/L3 社招：Programming + Bug Squash + Integration + System Design + HM/Behavioral，常分 2 天
        2026 新增：AI Programming Exercise（HackerRank 内嵌 AI，30 min）——其余轮次严禁 AI
   → HM chat（校招常在 onsite 后 3–4 个工作日单独安排）
@@ -52,6 +54,7 @@
 ## 3. Technical Phone Screen（60 min = 45 编码 + 15 Q&A）
 
 - **形式**：Zoom + CoderPad 或自己 IDE 共享屏幕（可选）；语言任意；一题 3–4 part，做完一 part 才给下一 part；**无自动测例**——自己造输入、自己验证；面试官常在 part 2 后停下转 Q&A。[Blind nqzaykah、mdtk4bmj、jcnxxpsh；LC 6696304]
+- **OA 与电面的 IDE 规则不同（容易踩）**：**OA 必须在 HackerRank 网页里直接写**，用外部 IDE 写完复制粘贴**可能触发抄袭检测**；到了 Technical Screen 阶段才可以用自己的 IDE。[teamblind stripe-oa-tips-iw8632ms]
 - **题型**（Stripe 员工原话）："Read in this JSON, transform it / do something interesting with it"；不是 LeetCode；数组/哈希为主；难点是"把业务规则快速翻成好代码"与阅读理解（题面故意啰嗦）。
 - **递进模板**（中文圈印证）：basics → 加约束/滑窗 → TopK/最优 → 边界/并发；**中间 level 往往最难**（区间边界、无显式类型）。[cn_forums §3、§10]
 - **通过线**：Python 3/4、Java/C++ 2/4；rubric 存在但"多数面试官不按 rubric 判"，四个打动点：High code quality / Fast completion / Simple clear thought process / Humble attitude。[Blind 5d7673dy；interviewdb insider]
@@ -61,12 +64,18 @@
 
 ## 4. Onsite · Bug Squash（45–60 min）
 
-- **形式**：真实开源项目的 fork（私有 repo，pin 版本）+ Stripe 加的一个失败单测或 issue 描述；在**自己 IDE** 里 clone → 跑测试 → 定位 → 修；通常 1 个主 bug + follow-up，senior 可能 2–4 个；"everything else is real"（Stripe 员工）。[Blind hkzsddkz、bekekkqf；Coditioning]
+- **形式**：真实开源项目的 fork（私有 repo，pin 版本）+ Stripe 加的一个失败单测或 issue 描述；在**自己 IDE** 里 clone → 跑测试 → 定位 → 修；"everything else is real"（Stripe 员工）。[Blind hkzsddkz、bekekkqf；Coditioning]
+- **几个 bug**：老证据说"1 个主 bug + follow-up，senior 2–4 个"；2026 的三份材料（LC 7595344 的 Mako 亲述、leonstaff 2026-08-13、1p3a 1161334）都说 **"2–3 个"**——但这三份中有两份只拿到搜索摘要（原页 403），所以按 **2–3 个**准备、按 1 个也可能的心态进场。[`catalog/discovery/2026-09/rounds_material.md` §1.2]
+- **明确禁用 AI**：这一轮（以及除 AI Programming Exercise 外的所有轮）禁止使用 AI 编码助手。[leonstaff 2026-08-13]
 - **库按语言分流**：Python `requests` / `Mako`；Java `SnakeYAML` / `Moshi` / `Jackson`；JS `Express` / `Day.js` / React 组件竞态；Ruby `Sass`。Python 版通过率 "<10%"（Stripe 员工 2022）。
+- **一场 SnakeYAML 的真实 bug 对**（候选人原文）：① `flag: on` 解析不出来（YAML 1.1 把 `on` 当布尔）② CSV 解析结果漏掉引号。两个都属"逻辑错误"类。[prachub assign-reviewers-from-changed-files]
 - **评什么**："solving the bug isn't the primary objective"——独立调试能力、方法论、沟通；强表现范文："read the entry point before touching code, set a breakpoint early, formed a hypothesis, verified it, applied a targeted fix"。[Blind bxonqpkp、gyamarmf；Leon]
 - **挂点 top5**：① 只用 print、不会 debugger（多例）② 盯栈顶、想读懂整个库 ③ 不读 README/文档（Google 候选人主因）④ 环境（JDK/Python 2 vs 3/import）吃掉 10 min ⑤ 大范围重写而非最小修复。
+- **四类典型 bug（背下来，进场先按这四类猜）**：逻辑错误 · off-by-one · 符号反转 · **跨调用残留的状态**（该重置没重置）· 排序里用错 comparator。[leonstaff 2026-08-13]
 - **备考动作**：用 recruiter 发的 sample repo 提前跑通 IDE + debugger + 测试；自己 clone 热门库注入 bug 计时 ≥4 次（其中 1 次不用 debugger）；流程固定：跑失败测试 → 读 README 30 s → 从失败断言向上追数据 → 假设 → 断点验证 → 最小修复 → 加回归测试 → 讲根因与副作用。
-- **练习**：`mock.py start bs01`（拷到 `loop/work/bs01/`，用 IDE 打开）→ `mock.py test bs01` → `mock.py ref bs01` 看参考修复；bs01–bs05；真实库对应 issue 见 `loop/raw/github_repos.md` §2；材料 `loop/study/10-rounds/04-bug-squash.md`、卡片 `20-cards/python_debug.md`。
+- **5 步硬流程（面试官在看你做没做这几步，不只看你修没修好）**：① **先跑失败测试**把错误亲眼确认一遍——"跳过这步直接读代码，是有经验的工程师不会犯的错" ② 读入口点、追数据流，再动代码 ③ **把假设说出来**（"我怀疑在 X，因为 Y"）④ 用**断点**验证，不要靠 print ⑤ 写生产级修复，不是能过测试就行的补丁。[leonstaff 2026-08-13]
+- **从零学调试**：`loop/rounds/04_bug_squash/DEBUG_101.md` —— 假设你没用过 pdb，从读 traceback 讲到 `pytest --pdb`，含在 bs01 上真跑出来的实录（两条命令找到根因）；卡片 `loop/study/20-cards/python_debug.md`。
+- **练习**：`mock.py start bs01`（拷到 `loop/work/bs01/`，用 IDE 打开）→ `mock.py test bs01` → `mock.py ref bs01` 看参考修复；bs01–bs05，每题旁边有中文 `CODE_GUIDE.md` 逐模块讲代码（**第二遍起别读**）；真实库对应 issue 见 `loop/raw/github_repos.md` §2；材料 `loop/study/10-rounds/04-bug-squash.md`。
 
 ## 5. Onsite · Integration（60 min）
 
@@ -84,6 +93,9 @@
 - **形式**：与电面同类但更长、更多 part，常"从 JSON/测试数据出发按逐步加码的需求实现"，有时先 clone repo；CoderPad/本地 IDE/HackerRank 都有；"Stripe usually wants two parts"（L2）。[Blind x7beaq87、cnhknchr、8grkgwt1]
 - **题型**：订阅通知调度、支付账本类 + 追问、账户调度/LRU、限流 4-part、规则引擎、滑窗可疑用户、清账。追问方向固定：部分退款/去重/时间范围/持久化/并发/海量。
 - **AI Programming Exercise（2026）**：HackerRank 内嵌 AI；30 min；题为 transactions + rules（关键词 → AND/OR）；评"能否指挥/验证/调试 AI 输出而不关掉脑子"——让 AI 读 README 出计划、生成代码，**自己写测试**、抓过度工程与漏边界。[interviewdb AI guide]
+  - **2026-06-13 一手长文已确认细节**（r/leetcode，正文 1989 字 + 23 评论）：HackerRank 内嵌**类 Cursor 的 AI 对话框**；题目是 transactions + rules（每条规则 accept/block + 一个 if 条件），**前面 part 是关键词/字符串匹配，后面 part 加 AND/OR 布尔逻辑并叠加前面的成果**；README 很长，**读规格的速度本身是考点**；真正编码只有约 30 分钟，"trying to hand-code everything yourself may not be realistic"。
+    有效打法：让 AI 读完整 README → 让它总结需求 → 要实现计划**并真的 review** → 让它写 →**自己加测试和边界** → 跑、调。**本仓库 `cd07_transactions_rules_ai` 与此高度吻合。**
+  - **范围可能比这更广（仍存疑）**：一位 Senior+ 候选人（2026-08-25）说自己"Two phone screens, coding with AI"——两轮电面都是 AI 辅助编码，而非只有一轮独立 AI Exercise。另有候选人形容该轮"自己手写 80% 概率写不完，主要依赖 AI"。**单一来源 medium，未改写上面的正文，下一轮需交叉验证。**[prachub ie1；assign-reviewers-from-changed-files]
 - **反馈实录**：两 part 完成但第二 part 有 bug 未修 = 拒因之一；"output has some extra commas"；面试官要求改变量名可读性。
 - **备考动作**：类设计先写接口签名再填；每个方法先写 3 个 assert；追问清单预演（见各题 REPORT "面试官会怎么追问"）。
 - **练习**：cd01–cd07（`loop/rounds/06_coding_onsite/`）+ OA 的 q07 q13 q32 q23；材料 `loop/study/10-rounds/06-coding.md`、卡片 `20-cards/patterns.md`。
@@ -109,8 +121,8 @@
 ## 9. Offer / 定级 / 薪酬（速查）
 
 - 定级在面试后决定；integration 没做完 Part 3 → L3 降 L2；Staff 讲不清业务影响会降级。
-- 美国 L1 TC ≈ $210K（base ~$147K + stock ~$40K/yr + bonus）；L2 ~$278K；班加罗尔 L1 ≈ 59L（base 29L + sign-on 4.4L + RSU 22L/yr）；实习无 RSU；股权 1 年 cliff、9 个月 refresh。[levels.fyi 2026；LC 7352963；Exponent]
-- Team match：committee 过但原团队拒会转其他团队；池里 2–6 周；HM 被鼓励共享好候选人。
+- 美国 TC 中位数（levels.fyi 2026-09-03 直抓复核）：**L1 $209,973 · L2 $289,675 · L3 $435,992**。L1 与旧记录一致；**L2 比旧记录的 ~$278K 高约 4.2%**；L3 是本次新增。班加罗尔 L1 ≈ 59L（base 29L + sign-on 4.4L + RSU 22L/yr）**本轮未能复核**（levels.fyi 该地区细分页返回空模板）。实习无 RSU；股权 1 年 cliff、9 个月 refresh。[levels.fyi 2026-09-03；LC 7352963；Exponent]
+- Team match：committee 过但原团队拒会转其他团队；池里 2–6 周；HM 被鼓励共享好候选人。**但存在数月级长尾**：有 L3 London 候选人 onsite 通过后等了 4 个多月仍无 match（"there have been only 2 open roles in the last 3-4 months"），欧洲团队 headcount 紧张时尤甚。[teamblind stripe-l3-team-match-swe-passed-onsite-2ov4b8tc，单一来源 medium]
 
 ## 10. 备考顺序（4 周，Python，校招/L1–L2）
 

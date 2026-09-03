@@ -3,3 +3,5 @@ __pycache__/
 .drill.json
 .pytest_cache/
 loop/work/
+# 每台机器自己的刷题记录（drill.py status / mock.py status 读它）
+progress.jsonl
