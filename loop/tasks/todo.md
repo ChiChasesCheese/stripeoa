@@ -69,7 +69,36 @@
 
 ## Phase 4 · integration 后半 + bug squash 后半 + SD + 非编码轮 + study 前半（5 并行）
 - [x] T15 int03 ✓ · **int04 ✓（2026-09-03 收尾）**：补齐 starter.py / test_int04.py（34 测试）/ REPORT.md；测试在 tmp_path 里真起 git 仓库造 A/M/D/R 变更，无 git 时 skip；solution.py 未改动；lint 绿
-- [ ] T17 bs03 mini_yaml_csv · bs04 config_manager_concurrency · bs05 asyncio_fetch_race
+- [x] T17 bs02 mini_http_client · bs03 mini_yaml_csv · bs04 config_manager_concurrency · bs05 asyncio_fetch_race
+  （T12 里 bs02 原被误勾为已完成，实际从未建过，本轮一并补齐并更正记录）
+
+### Bug Squash 五题实测（2026-09-03）
+
+| 题 | 注入的两个 bug | 补丁前 | 打补丁后 |
+|---|---|---|---|
+| bs01 minimako | 少 `visit_IncludeNode` · 路径穿越校验漏 | 2 红 15 绿 | 17 绿 |
+| bs02 minihttp | 测完长度没 seek 回原位 · `slice_length=None` 未判空 | 2 红 23 绿 | 25 绿 |
+| bs03 miniyaml | `"- "` 占两列却按一列算 · 复用 Parser 没重置 `pos` | 2 红 23 绿 | 25 绿 |
+| bs04 confmgr | check-then-act 拆成两段独立加锁 · `reload()` 没清缓存 | 2 红 29 绿 | 31 绿 |
+| bs05 fetchrace | `release()` 不在 `try/finally` · 异常项被计入成功 | 2 红 14 绿 | 16 绿 |
+
+并发两题（bs04/bs05）**确定性已验**：各连跑 20 次输出完全一致，再在 4 核满载下复跑仍一致。
+"flake 不是根因"这条规矩要成立，题本身就不能是 flaky 的。
+
+**注释纪律**（用户要求"注释告诉我代码在讲什么"与"自己找 bug"的平衡）：
+`src/` 注释用英文白话讲**机制**（模块职责、数据流、信号量语义、什么受哪把锁保护），
+但**没有一个字指向注入行**，注入行的注释密度与文件其余部分一致；根因只在 `solution/NOTES.md` 与 `REPORT.md`。
+五题的 bug 都做成"**docstring 写对了契约、代码在下面违约**"这一型——读已经给你的那段文档就能找到。
+每题另配中文 `CODE_GUIDE.md` 逐模块导读（开头即声明不会说 bug 在哪，第二遍起别读）。
+调试入门见 `loop/rounds/04_bug_squash/DEBUG_101.md`（命令与 pdb 实录均在 bs01 上真跑）。
+
+- [x] C27 Bitfont 三版本各建一题（用户指示"几个版本都来一份"）：
+  `cd08_bitmap_ascii_render`（**真实复原**——完整题面藏在 PracHub 页面的 RSC 数据块里，
+  上一轮误判为被锁）· `cd09_bitfont_binary_frames`（重建题，唯一来源无法核实）·
+  `cd10_bitfont_render_compress_invert`（重建题，仅标题级证据）。
+  三题 problem.md 互相交叉引用，说明"不确定的是整个家族，不是某一道"。
+  cd09 的 REPORT 建议新增 **S25 二进制帧解码**（字节序 · MSB-first 取位 · RLE 游程），
+  现有 S01–S24 / A01–A16 覆盖不到——**仅为建议，未改 `skills_matrix.md`**。
 - [ ] T18 sd01–sd06：每题 `prompt.md`（一段业务描述 ≥ 300 字，不给结构）、`rubric.md`（五维 + 主线，可打分 1–4）、`model_answer.md`（≥ 150 行，含 API 契约/数据模型/失败模式/对账/可观测）、`followups.md`（≥ 8 条追问 + 期望要点）；复用 `raw/system_design.md` §4
   - 验证：每题 4 文件；`check_tree.py` 路径通过
 - [ ] T19 `loop/rounds/01_recruiter/`、`02_hm/`、`08_behavioral/`：`questions.md`（去重题库，标来源与频次）、`stories.md`（STAR-L 6 故事表模板 + Operating Principles 覆盖矩阵）、`rubric.md`（自评）、`bank.json`（供 mock.py bq 抽题：`{round, q, principle, source}`）
