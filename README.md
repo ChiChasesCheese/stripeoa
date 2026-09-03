@@ -12,6 +12,7 @@ skills_matrix.md    test targets / knowledge / experience  ↔  problems  ↔  S
 reports/            OVERALL_REPORT.md (+ per-problem REPORT.md lives next to each problem)
 drill.py            60-minute drill runner (+ `status`: cross-problem progress board)
 progress.jsonl      append-only log, one line per `test` run — feeds `drill.py status`
+                    (git-ignored: it is per-machine state, like .drill.json)
 conftest.py         shared fixtures (`impl`, `run_script` with time+RSS measurement)
 ```
 
