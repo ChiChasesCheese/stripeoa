@@ -229,9 +229,28 @@ def cmd_sweep(a) -> None:
                 if h["id"] and h["id"] not in seen:
                     seen[h["id"]] = h
             time.sleep(a.delay)
-    print(f"搜索去重后 {len(seen)} 帖，开始取全文…")
-    posts = []
-    for i, (pid, meta) in enumerate(sorted(seen.items()), 1):
+    stamp = time.strftime("%Y-%m-%d")
+    path = out / f"reddit_{stamp}.json"
+    # 搜索结果先落盘：取全文要几十分钟，中途被杀不能把这一步的成果一起赔进去。
+    (out / f"reddit_{stamp}_index.json").write_text(
+        json.dumps(sorted(seen.values(), key=lambda h: h["published"], reverse=True), ensure_ascii=False, indent=1),
+        encoding="utf-8",
+    )
+    print(f"搜索去重后 {len(seen)} 帖（索引已落盘），开始取全文…")
+
+    # 断点续跑：已经取过的帖子不重复请求。
+    posts: list[dict] = []
+    done: set[str] = set()
+    if path.exists():
+        try:
+            posts = json.loads(path.read_text(encoding="utf-8"))
+            done = {p["id"] for p in posts}
+            print(f"  发现上次的 {len(done)} 帖，跳过它们继续")
+        except ValueError:
+            posts, done = [], set()
+
+    todo = [(pid, m) for pid, m in sorted(seen.items()) if pid not in done]
+    for i, (pid, meta) in enumerate(todo, 1):
         try:
             p = reddit_post(meta["sub"], pid)
         except Exception as exc:  # noqa: BLE001 - 单帖失败不该中断整轮收割
@@ -240,11 +259,12 @@ def cmd_sweep(a) -> None:
         p["published"] = meta["published"]
         p["query"] = meta["query"]
         posts.append(p)
-        if i % 10 == 0:
-            print(f"  …{i}/{len(seen)}")
+        # 每 5 帖存一次盘。usage limit / 超时 / 429 连环失败都可能随时终止进程，
+        # 攒到最后一次性写文件等于把几十分钟的抓取押在"能跑完"上。
+        if i % 5 == 0 or i == len(todo):
+            path.write_text(json.dumps(posts, ensure_ascii=False, indent=1), encoding="utf-8")
+            print(f"  …{i}/{len(todo)}（已存 {len(posts)} 帖）")
         time.sleep(a.delay)
-    stamp = time.strftime("%Y-%m-%d")
-    path = out / f"reddit_{stamp}.json"
     path.write_text(json.dumps(posts, ensure_ascii=False, indent=1), encoding="utf-8")
     substantive = [p for p in posts if len(p["body"]) > 200]
     print(f"\n写入 {path.relative_to(ROOT)}")
@@ -259,9 +279,9 @@ def cmd_sweep(a) -> None:
                     if r["id"] not in seen_hn:
                         seen_hn.add(r["id"])
                         hn_rows.append(r)
+                hn_path = out / f"hn_{stamp}.json"
+                hn_path.write_text(json.dumps(hn_rows, ensure_ascii=False, indent=1), encoding="utf-8")
                 time.sleep(a.delay)
-        hn_path = out / f"hn_{stamp}.json"
-        hn_path.write_text(json.dumps(hn_rows, ensure_ascii=False, indent=1), encoding="utf-8")
         meaty = [r for r in hn_rows if len(r["text"]) > 200]
         print(f"写入 {hn_path.relative_to(ROOT)}")
         print(f"  {len(hn_rows)} 条 · 其中正文 >200 字的 {len(meaty)} 条")
