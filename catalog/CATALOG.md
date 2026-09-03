@@ -115,7 +115,7 @@ Tag frequencies: **S** = snehasishroy 2026-07-12 snapshot (`all / >6mo / 6mo`), 
 | C5 | Fraud Reports | PS | https://www.interviewdb.io/question/stripe | probably A4 or A33 |
 | C6 | User Roles · RBAC Role Resolver | PS / onsite | https://www.interviewdb.io/question/stripe ; 1p3a 题库 | **2026-09 二轮：部分线索**。PracHub《Resolve user roles across account hierarchy》(Phone, 2026-05-12) 概述为「算账户层级链上的有效权限」；已证伪 interviewdb 上并无独立「RBAC Role Resolver」词条。已建重建题 `ps10_rbac_role_resolver` |
 | C7 | Matching Contacts (by email domain and preferences; "reading speed is the main constraint") | PS (last asked 2026-06-10) | 1p3a 题库 ; https://www.interviewdb.io/question/stripe | **2026-09 二轮：已复原，置信度 high**。PracHub 两次独立报告给出完整三 part 规则与权重 name .2/email .5/company .3，与 en_forums §24 转述数值完全一致。已建 `ps09_matching_contacts` |
-| C8 | Review Assignment via Git Diff + CSV Owners · "Assign Reviewers from Changed Files" | OA/OJ (SWE-AI, 2026-04-29) | 1p3a OJ title ; prachub.com/companies/stripe | title only |
+| C8 | Review Assignment via Git Diff + CSV Owners · "Assign Reviewers from Changed Files" | OA/OJ (SWE-AI, 2026-04-29) | 1p3a OJ title ; prachub.com/companies/stripe | **2026-09-03 三轮：已复原，置信度 high**。prachub `assign-reviewers-from-changed-files` 有候选人原始转载：Integration 轮用 **JGit** 比两分支 diff → 按 CSV 的 file→owner 映射统计谁改动文件最多 → 返回该 owner（自动分配 reviewer）。同场还报了 Bug Squash 的 SnakeYAML 两个 bug 与 AI Coding 轮细节。本仓库已建 `loop/rounds/05_integration/int04_review_assignment_gitdiff`（用 `git` 命令行替代 JGit，见该题 Variants 节）。**建议下轮把 C8 移出 Table C，升级为 Table A 行。** |
 | C9 | Incident Monitor | OA/OJ | 1p3a OJ title | **2026-09 二轮：部分线索**。PracHub《Detect Trigger and Resolve Events》含候选人第一人称报告（2026-01-15）：(merchant,status_code) 滑窗计数 → TRIGGER/RESOLVE；**标题不同，无法确认同题**。已建部分重建题 `ps13_incident_monitor` |
 | C10 | Calculate Service Fees | OA/OJ | 1p3a OJ title | title only (cf. A26) |
 | C11 | Transaction Fee with Status- and Type-specific Rates | OA/OJ | 1p3a OJ title | = A26 `rate_bps` variant, statement not public |
@@ -159,6 +159,38 @@ Tag frequencies: **S** = snehasishroy 2026-07-12 snapshot (`all / >6mo / 6mo`), 
 | **仍然只有标题** | C1 Observability · C13 Beta Invite · C27 Bitfont（是家族，多版本互相矛盾） |
 | **拿到原文（低信息量那一组）** | C19（LeetCode GraphQL 取到帖子全文）· C21（teamblind 取到原帖 + OP 评论） |
 | **仍不可达** | C13、C20（1point3acres / reddit 全站被拦） |
+
+### 2026-09-03 第三轮（全渠道尽调）增量
+
+完整报告在 `catalog/discovery/2026-09-03b/`：`aggregators_sweep.md` · `chinese_sites.md` ·
+`reddit_harvest.md` · `mirror/README.md`。
+
+**最大解锁：1point3acres 的可读镜像。** 全站被 Cloudflare 挡死三轮，这次绕开了——GitHub 上
+`divyavenn/coding_problems` 的 `stripe/` 目录有 **168 条**它的题目转录，每条带原始 UUID。
+全量副本已存 `catalog/raw/mirror_1p3a_stripe/`，工具 `tools/mirror.py`。
+**进去的方式**：`api.github.com` 403、`github.com` HTML 403，但 **`git clone` 走 smart-HTTP 通**。
+
+镜像内容分三档：**FULL 10 条**（有完整题面，但转录者自陈是重构，非逐字）· **SUMM 121 条**
+（摘要 + 章节小标题）· **TITLE 37 条**（只有题名）。
+
+| 渠道 | 结果 |
+|---|---|
+| **1p3a 镜像** | 168 条；C11 拿到题面；2 道全新题；C6 真实四阶段确认（**我们 ps10 的 part 3/4 编错了**） |
+| **Reddit（RSS）** | 此前误判为"全站 403"，实为可用。`.rss` 连评论全文都给。工具 `tools/harvest.py` |
+| **Hacker News** | Algolia 接口全开放，"stripe interview" 1636 条命中，评论可搜。全新渠道 |
+| **prachub** | 6 页翻到底，119 条唯一 slug；**C8 从"仅标题"升级为完整复原** |
+| **GitHub code search** | 高产。挖到 `stripe/application-id-parser`（长度前缀 ID 解析 + 白名单过滤） |
+| **牛客** | 可达但只有 1 条相关帖，无题面，**新题 0** |
+| **小红书** | **搜索这条路是死的**：站内搜索需登录、搜索引擎不索引、RSSHub 需 cookie。正文能取但要人提供链接 |
+| **CSDN** | 可达，但混有明显 AI 内容农场（日期造假），需逐条辨伪 |
+| **知乎 / 脉脉 / 博客园 / V2EX / 1024bbs** | 403 或不可达 |
+
+**新发现的赛道**：Data Scientist / DA 岗的 SQL/建模面试线（6 条，含完整 onsite 报告）——
+本题库此前完全按 SWE 组织，这条线没有覆盖。
+
+**覆盖率（有分母，但只是子集）**：以 prachub 可穷举的 60 道 SWE 编码题为分母，**49 道（82%）**
+已对应到 catalog 现有编号。**这是单站点标题级覆盖率的下限参考，不是总体撞题概率**——
+1p3a、reddit、medium 仍是结构性盲区。
 
 ### 冻结日（2026-08-25）之后的新东西
 
