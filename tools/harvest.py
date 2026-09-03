@@ -59,26 +59,12 @@ MOBILE_UA = (
 # 宁滥勿缺：先全量收，去重和筛选留到最后一步。多搜一个组合的成本是一次 HTTP 请求，
 # 漏掉一个组合的成本是一道没见过的题。
 SUBS = [
+    # 只留真的会返回结果的。2026-09-03 实测：这两个各返回 25 条，
+    # 而 csMajors / ExperiencedDevs / developersIndia / InterviewPrep 等一律返回 0 条——
+    # 它们要么关了搜索，要么没有 Stripe 内容。对着 0 结果的板块穷举只会白吃 429，
+    # 把真正有货的两个板块也拖慢。宁滥勿缺不等于对着空井打水。
     "leetcode",
     "cscareerquestions",
-    "csMajors",
-    "ExperiencedDevs",
-    "developersIndia",
-    "cscareerquestionsEU",
-    "cscareerquestionsuk",
-    "InterviewPrep",
-    "ITCareerQuestions",
-    "SoftwareEngineering",
-    "learnprogramming",
-    "recruitinghell",
-    "dataengineering",
-    "FinancialCareers",
-    "fintech",
-    "stripe",
-    "Python",
-    "webdev",
-    "leetcode_meta",
-    "compsci",
 ]
 QUERIES = [
     "stripe interview",
@@ -223,12 +209,19 @@ def cmd_sweep(a) -> None:
     out = Path(a.out or OUT_DEFAULT)
     out.mkdir(parents=True, exist_ok=True)
     seen: dict[str, dict] = {}
+    stamp0 = time.strftime("%Y-%m-%d")
+    idx_path = out / f"reddit_{stamp0}_index.json"
     for sub in SUBS:
         for q in QUERIES:
             for h in reddit_search(sub, q):
                 if h["id"] and h["id"] not in seen:
                     seen[h["id"]] = h
             time.sleep(a.delay)
+        # 每搜完一个板块就落盘，别把整轮搜索押在"能跑完"上
+        idx_path.write_text(
+            json.dumps(sorted(seen.values(), key=lambda h: h["published"], reverse=True),
+                       ensure_ascii=False, indent=1), encoding="utf-8")
+        print(f"  r/{sub} 搜完，累计 {len(seen)} 帖（索引已落盘）")
     stamp = time.strftime("%Y-%m-%d")
     path = out / f"reddit_{stamp}.json"
     # 搜索结果先落盘：取全文要几十分钟，中途被杀不能把这一步的成果一起赔进去。
