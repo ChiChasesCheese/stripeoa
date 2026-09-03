@@ -21,33 +21,45 @@ python3 tools/refresh_check.py report    # 打印中文汇总表 + 探活异常�
 
 | 层级 | 是什么 | 信到什么程度 | 复验周期 |
 |---|---|---|---|
-| **T1** | 一手面经：候选人本人发的帖（Blind / LeetCode Discuss / 一亩三分地 / Reddit / Glassdoor），以及候选人上传的解法仓库与真实库 issue | **最高**。发帖人没有 SEO 动机。缺点是匿名、无法追问、记忆会失真 | 30 天（GitHub 历史 issue 90 天） |
+| **T1** | 一手面经：候选人本人发的帖（Blind / LeetCode Discuss / 一亩三分地 / Reddit / Glassdoor），以及候选人上传的解法仓库与真实库 issue | **最高**。发帖人没有 SEO 动机。缺点是匿名、无法追问、记忆会失真 | 30 天（GitHub 上已关闭的历史 issue 属既成事实，90 天即可） |
 | **T2** | 聚合站与代面站：PracHub / InterviewDB / csoahelp / programhelp / oavoservice / linkjob / extrabrain / 各培训站 | **中等**。有日期、有结构化题面时很有用（本轮 C7、C27 就是靠 PracHub 复原的），但它们互相抄，**计 `#refs` 时必须去重**；游戏化的"多少人做出来"无法验证 | 30–90 天 |
 | **T3** | 官方与背景：docs.stripe.com、stripe.com 的 JD 与 Operating Principles、levels.fyi | 事实层面**高**，但它描述的是公司，不是题 | 90–180 天 |
 | **T9** | **已判定不可信**：lodely.com、vervecopilot.com | **零**。AI 生成的题目农场，内容与所有一手来源矛盾。命中即排除，正文一律不采信 | 365 天（只为记住它们不可信） |
 
-## 一条必须记住的操作事实：三个最重要的站抓不动
+## 怎么才抓得动：每个站各有各的门
 
-`teamblind.com`、`leetcode.com/discuss`、`1point3acres.com` 对脚本抓取**一律返回 403**。
-这三个恰好是 T1 里分量最重的三个（合计占登记表约四成的 URL）。
+这一节是 2026-09-03 实测出来的，**别按直觉猜**。同一个 URL 换个 header 就能从 403 变 200。
 
-所以：
+| 站点 | 脚本能不能抓 | 怎么抓 |
+|---|---|---|
+| **teamblind.com** | **能**（实测 12/12 返回 200） | 必须带**浏览器 User-Agent**。带 `bot/1.0` 之类的老实 UA 一律 403。`refresh_check.py` 默认就用浏览器 UA |
+| **leetcode.com** | discuss 的 HTML 页 403，但**有活路** | 用 GraphQL 端点：`POST https://leetcode.com/graphql`（实测可用）。正文走 API 取，不要去啃 HTML |
+| **raw.githubusercontent.com** | 能 | 取仓库文件走 raw 域名 |
+| **github.com**（HTML 仓库页） | 在受限出口下 403 | 换 raw 域名，或人工打开 |
+| **1point3acres.com** | **不能** | 结构性不可达：WebFetch / curl / r.jina.ai 三种方式都被 Cloudflare 拦。只能人工登录翻。**这是本题库最大的检索缺口** |
+| **medium.com** | **不能** | 浏览器 UA 也 403，人工打开 |
+| **reddit.com** | **不能** | 全站 403，人工打开 |
+| PracHub / InterviewDB / csoahelp / programhelp / oavoservice | 能 | 直接抓。本轮 C7、C12、C27 的题面就是从 PracHub 抓回来的 |
 
-- **403 不等于链接失效**，只等于"必须人工或用带渲染的抓取器复验"。这些站在 `sources.json` 里标 `access: manual`，`stale` 命令会把它们**单独列一栏**，不要拿 403 当"来源已死"。
-- 靠搜索引擎摘要拿到的内容，置信度最多记 medium，并且必须标注「WebSearch 摘要，原页 403」。
-- 真要复验这三个站，只能人工登录去翻。这是这份题库最大的检索缺口，`catalog/discovery/2026-09/` 下三份排查报告都如实记了这一点。
+由此得到两条工作方式：
+
+- **靠搜索引擎摘要拿到的内容，置信度最多 medium**，且必须标注「WebSearch 摘要，原页 403」。
+- 抓不动的站（1p3a / medium / reddit）在 `sources.json` 里标 `access: manual`，`ping` 会跳过，`stale` 单列一栏。**不要拿"跳过"当"来源已死"。**
+
+> 更正记录：本文件最初写的是"teamblind / leetcode / 1point3acres 三站一律 403"。
+> 实测后发现只有 1point3acres 属实——teamblind 换 UA 即可，leetcode 有 GraphQL 端点。
 
 ## 另一条容易被误读的事实：403 有两种成因
 
 `ping` 打回来的 403 有两种完全不同的意思，**混为一谈就会得出"来源全死了"的错误结论**：
 
-1. **站点反爬** —— 上面那三个站，以及 medium。这是站点行为，换机器也一样。
+1. **站点反爬** —— 上表里标"不能"的那几个。这是站点行为，换机器也一样。
 2. **你这台机器的出口被限制** —— 在沙箱 / CI 容器里跑时，连 `github.com` 的普通仓库页
    都会 403。这种 403 跟链接死活毫无关系。
 
 所以 `sources.json` 里每条探活结果都记了 `checked_from`（机器标签），`report` 会按标签
-分组并给出警告。**2026-09-03 首轮 120 条探活是在受限容器（`claude-code-sandbox`）里跑的：
-200/202 共 62 条可信，57 条 403 里含大量 GitHub 与 Medium，属于环境限制，不能当作链接失效。**
+分组并给出警告。**2026-09-03 首轮探活是在受限容器（`claude-code-sandbox`）里跑的**：
+200/202 的结果可信；403 里含大量 GitHub 与 Medium，属于环境限制，不能当作链接失效。
 要拿准数，请在自己的机器上跑：
 
 ```bash

@@ -4,12 +4,12 @@
   "leetcode.com": {
    "tier": 1,
    "kind": "一手面经（Discuss 帖）",
-   "access": "manual",
+   "access": "api",
    "cadence_days": 30,
-   "last_verified": null,
+   "last_verified": "2026-09-03",
    "note": "",
    "url_count": 59,
-   "recheck": "leetcode.com/discuss 搜 Stripe，按 Newest 排序；帖子页对脚本 403，只能靠 WebSearch 摘要"
+   "recheck": "discuss 的 HTML 页 403，但 **GraphQL 端点 https://leetcode.com/graphql 可用**（已实测 200），正文走 API 取"
   },
   "linkjob.ai": {
    "tier": 2,
@@ -54,32 +54,32 @@
   "medium.com": {
    "tier": 2,
    "kind": "个人面经文章",
-   "access": "auto",
+   "access": "manual",
    "cadence_days": 90,
-   "last_verified": null,
+   "last_verified": "2026-09-03",
    "note": "",
    "url_count": 11,
-   "recheck": ""
+   "recheck": "对脚本 403（浏览器 UA 也 403），需人工打开"
   },
   "github.com": {
    "tier": 1,
    "kind": "候选人解法仓库 / 真实库 issue",
-   "access": "auto",
+   "access": "manual",
    "cadence_days": 90,
    "last_verified": "2026-09-03",
    "note": "",
    "url_count": 76,
-   "recheck": "搜 stripe interview / stripe oa；真实库 issue 属历史事实，不需高频复验"
+   "recheck": "HTML 仓库页在受限出口下 403；raw.githubusercontent.com 可用，取文件走 raw 域名"
   },
   "teamblind.com": {
    "tier": 1,
    "kind": "一手面经（匿名发帖）",
-   "access": "manual",
+   "access": "auto",
    "cadence_days": 30,
-   "last_verified": null,
+   "last_verified": "2026-09-03",
    "note": "",
    "url_count": 115,
-   "recheck": "搜 site:teamblind.com stripe interview，按最新排序；脚本抓取一律 403，需人工或带渲染的抓取器"
+   "recheck": "浏览器 UA 可直接 curl 到 200（机器人 UA 会 403）；搜 site:teamblind.com stripe interview 按最新排序"
   },
   "codinginterview.com": {
    "tier": 2,
@@ -96,10 +96,10 @@
    "kind": "一手面经 + 题库",
    "access": "manual",
    "cadence_days": 30,
-   "last_verified": null,
+   "last_verified": "2026-09-03",
    "note": "",
    "url_count": 27,
-   "recheck": "题库页 company/stripe；全站对脚本 403，需登录人工查"
+   "recheck": "全站结构性不可达：WebFetch / curl / r.jina.ai 三种方式均被 Cloudflare 拦截，只能人工登录翻"
   },
   "interviewfox.ai": {
    "tier": 2,
@@ -154,20 +154,20 @@
    "kind": "候选人解法原文",
    "access": "auto",
    "cadence_days": 90,
-   "last_verified": null,
+   "last_verified": "2026-09-03",
    "note": "",
    "url_count": 5,
-   "recheck": ""
+   "recheck": "可用，是绕开 github.com HTML 403 的正路"
   },
   "reddit.com": {
    "tier": 1,
    "kind": "一手面经",
-   "access": "auto",
+   "access": "manual",
    "cadence_days": 60,
-   "last_verified": null,
+   "last_verified": "2026-09-03",
    "note": "",
    "url_count": 2,
-   "recheck": "r/leetcode 搜 stripe oa / stripe onsite"
+   "recheck": "全站 403，需人工打开"
   },
   "glassdoor.com": {
    "tier": 1,
@@ -1015,15 +1015,16 @@
   },
   "https://www.teamblind.com/post/my-stripe-interview-gdmiywlu": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md",
     "catalog/raw/en_forums.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://www.codinginterview.com/guide/stripe-interview-questions/": {
    "first_seen": "2026-09-03",
@@ -1125,15 +1126,16 @@
   },
   "https://www.teamblind.com/post/what-does-stripe-hackerrank-test-have-ijfwtgl0": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/en_forums.md",
     "catalog/raw/process_and_jd.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://programhelp.net/en/stripe-oa-question-stripe-sde/": {
    "first_seen": "2026-09-03",
@@ -1608,26 +1610,28 @@
   },
   "https://www.teamblind.com/post/stripe-onsite-interview-vwunpzkn": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md",
     "loop/raw/en_forums.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://www.teamblind.com/post/stripe-interview-experience-sa3i71d8": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://leetcode.com/discuss/post/7307271/": {
    "first_seen": "2026-09-03",
@@ -1675,26 +1679,28 @@
   },
   "https://www.teamblind.com/post/stripe-phone-screen-interview-jcnxxpsh": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md",
     "loop/raw/en_forums.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://www.teamblind.com/post/stripe-phone-screen-8r8jb1c6": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://leetcode.com/discuss/post/5740522/": {
    "first_seen": "2026-09-03",
@@ -1758,15 +1764,16 @@
   },
   "https://www.teamblind.com/post/how-to-approach-the-stripe-on-site-coding-challenges-qb0yu0tx": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md",
     "catalog/raw/process_and_jd.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://leetcode.com/discuss/post/3102019/": {
    "first_seen": "2026-09-03",
@@ -1803,14 +1810,15 @@
   },
   "https://www.teamblind.com/post/stripe-swe-l3-interview-feedback-timeline-outcome-rbkumngu": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://github.com/sumansaurav91/stripe-interview-prep": {
    "first_seen": "2026-09-03",
@@ -2149,26 +2157,28 @@
   },
   "https://www.teamblind.com/post/can-someone-whos-ever-interviewed-at-stripe-for-mid-level-tell-me-what-to-expect-for-phone-screen-d4f50dzn": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://www.teamblind.com/post/stripe-phone-screen-march-2025-oqru2jvw": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md",
     "catalog/raw/process_and_jd.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://www.1point3acres.com/interview/problems/25b1c004-aefc-4fc7-bdd5-d6b7dc7afcca": {
    "first_seen": "2026-09-03",
@@ -2216,14 +2226,15 @@
   },
   "https://www.teamblind.com/post/stripe-phone-screen-5titeaec": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://github.com/sahaia1/Stripe_Pyhton_libraries/blob/main/graph_currency.py": {
    "first_seen": "2026-09-03",
@@ -2262,14 +2273,15 @@
   },
   "https://www.teamblind.com/post/stripe-phone-screen-ohnoejc2": {
    "first_seen": "2026-09-03",
-   "last_verified": null,
-   "http": null,
-   "checked": null,
+   "last_verified": "2026-09-03",
+   "http": 200,
+   "checked": "2026-09-03",
    "domain": "teamblind.com",
    "cited_by": [
     "catalog/CATALOG.md",
     "catalog/raw/algo_questions.md"
-   ]
+   ],
+   "checked_from": "claude-code-sandbox"
   },
   "https://www.teamblind.com/post/stripe-phone-screen-interview-b34ftqso": {
    "first_seen": "2026-09-03",

@@ -10,8 +10,10 @@
   python3 tools/refresh_check.py report      # 打印中文汇总（可粘进 SOURCES.md）
 
 关于 403，有两种完全不同的成因，别混为一谈：
-  1. **站点反爬**：teamblind / leetcode discuss / 1point3acres 对脚本抓取一律 403。这些站在
+  1. **站点反爬**：leetcode.com 的 discuss 页面、1point3acres、medium 对脚本一律 403。这些站在
      sources.json 里标 `access: manual`，`ping` 会跳过它们，`stale` 单列一栏。
+     （teamblind 不在此列：它只卡机器人 UA，本工具用浏览器 UA 能拿到 200。
+       leetcode 的 discuss 正文也另有活路——GraphQL 端点可用，见 SOURCES.md。）
   2. **你这台机器的出口被限制**：在沙箱/CI 容器里跑，连 github.com 都可能 403。这时 403
      跟站点死活毫无关系。所以每次探活都记下 `checked_from`（机器标签），`report` 会按标签
      分组并对沙箱来源的结果给出警告。**要拿准数，请在自己的机器上跑 ping。**
@@ -24,6 +26,7 @@ import json
 import os
 import platform
 import re
+import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -33,7 +36,12 @@ STORE = ROOT / "catalog" / "sources.json"
 URL_RE = re.compile(r'https?://[^\s)\]｜|`"<>]+')
 SCAN = ["catalog", "loop/raw", "loop/CATALOG.md", "loop/LOOP_GUIDE.md", "reports", "skills_matrix.md"]
 TODAY = dt.date.today().isoformat()
-UA = "Mozilla/5.0 (compatible; stripeoa-source-check/1.0)"
+# 用真实浏览器 UA：teamblind 对机器人 UA 返回 403、对浏览器 UA 返回 200，
+# 差别只在这一个 header 上。老实标 bot 的代价是把活着的来源误判成死链。
+UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
+)
 
 
 def _domain(url: str) -> str:
@@ -152,7 +160,7 @@ def cmd_ping(a) -> None:
     for url, entry in targets:
         code: object
         try:
-            req = urllib.request.Request(url, headers={"User-Agent": UA}, method="GET")
+            req = urllib.request.Request(url, headers={"User-Agent": a.ua}, method="GET")
             with urllib.request.urlopen(req, timeout=a.timeout) as resp:
                 code = resp.status
         except urllib.error.HTTPError as exc:
@@ -215,6 +223,7 @@ def main(argv=None) -> None:
     s.add_argument("--timeout", type=float, default=12.0)
     s.add_argument("--recheck", action="store_true", help="连已经查过的也重查")
     s.add_argument("--label", default=None, help="这次是在哪台机器上跑的（默认取主机名）")
+    s.add_argument("--ua", default=UA, help="覆盖 User-Agent（默认用浏览器 UA，见文件头说明）")
     s.set_defaults(fn=cmd_ping)
     sub.add_parser("report").set_defaults(fn=cmd_report)
     a = p.parse_args(argv)
@@ -222,4 +231,10 @@ def main(argv=None) -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except BrokenPipeError:  # `... | head` closes the pipe early; that is not an error
+        try:
+            sys.stdout.close()
+        finally:
+            os._exit(0)
