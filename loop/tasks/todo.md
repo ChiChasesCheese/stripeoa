@@ -105,13 +105,25 @@
 - [x] **Table C 二轮排查**：`catalog/discovery/2026-09/` 三份报告；结论已写回 CATALOG.md Table C 的 Note 列 + 新增「2026-09-03 二轮排查增量」节
 - [x] **LOOP_GUIDE §4** 吸收 bug squash 新证据（2–3 个 bug · 5 步流程 · 4 类典型 bug · 明确禁用 AI）
 
-进行中（代理产出，未验收前不合并）：
+本轮新建的题与轮次（全部已验收合并：参考解全绿 · starter 绝大多数红 · lint 通过）：
 
-- [ ] ps09 matching_contacts（真实复原）· ps10 rbac_role_resolver（重建）
-- [ ] ps11 factory_cost（重建）· q41 observability_metrics（重建）
-- [ ] ps12 hierarchical_task_csv（真实复原）· ps13 incident_monitor（部分重建）
-- [ ] T18 sd01–sd06
-- [ ] T19 01_recruiter / 02_hm / 08_behavioral
+| 目录 | 来源等级 | 测试 | starter |
+|---|---|---|---|
+| `ps09_matching_contacts` | 真实复原（high） | 22 | 16红/6绿 |
+| `ps12_hierarchical_task_csv` | 真实复原（high） | 24 | 22红/2绿 |
+| `ps13_incident_monitor` | 部分重建（Part 1 有实证） | 29 | 22红/7绿 |
+| `ps10_rbac_role_resolver` | 重建题 | 28 | 21红/7绿 |
+| `ps11_factory_cost` | 重建题 | 29 | 28红/1绿 |
+| `problems/q41_observability_metrics` | 重建题 | 25 | 24红/1绿 |
+
+- [x] T18 sd01–sd06（每题 4 文件；prompt.md 是无结构业务白话，不给需求清单）
+- [x] T19 01_recruiter(14) / 02_hm(30) / 08_behavioral(50)，去重 66 题，`mock.py bq` 可用
+
+**全量回归（2026-09-03，容器内）**：`problems` 1033 绿 / 1 红 · `loop`（除 bug squash）661 绿 / 4 红。
+四条红分两类，**都不是本轮引入的**：
+
+1. `loop/study/00-prereq/exercises/test_ex02.py` 3 条 —— `ex02_structure.py` 是**留给用户填的作答文件**（满篇 `# TODO`），红是它的正常状态，跟 starter.py 一个道理。
+2. perf 预算：`cd06::test_perf_1m_rows` **单独跑是绿的**（3.23s），只在全量并跑时被 CPU 争用挤超时；`q07::test_perf_100k` 单独跑也红（3.40s vs 2.0s 预算），且**本轮开工前就是红的**（改动前实测 3.21s）。本容器 4 核，CPU 基准比开发机慢。**没有放宽预算去掩盖**——预算按用户开发机定的，就该按那个标准。
 
 仍在 BACKLOG：
 
