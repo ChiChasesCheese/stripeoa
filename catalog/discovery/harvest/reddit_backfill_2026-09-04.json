@@ -197,5 +197,44 @@
   ],
   "url": "https://www.reddit.com/r/leetcode/comments/1s9ln3f/",
   "published": "2026-04-01T14:08:58+00:00"
+ },
+ {
+  "id": "1ps3akr",
+  "sub": "leetcode",
+  "title": "Need help for the upcoming Stripe Bug Bash round in JS",
+  "body": "Hey everyone, I wanted to know what I should prepare exactly for Stripe's Bug Bash round. I have chosen JavaScript as the language for the interview. Is there any mock questions which I can try out?  What are the difficulty of bugs in this round? Are they simple null or undefined checks or a function implementation? Also, what are the repos which are probable for this round in JS?    submitted by    /u/RichJuggernaut3616   [link]   [comments]",
+  "comments": [
+   "Stripe Bug Bash is about reading code and fixing real bugs. In JS, expect logic errors, edge cases, async/await or promise issues, wrong conditions, and small broken implementations. It’s more than just null checks, but not very complex.. Practice debugging small JS functions, fixing failing tests, and understanding async code. There are no official mocks, so try small open-source JS repos and focus on clean, correct fixes..",
+   "Have you already been a part of the process?",
+   "Yes, I went through a similar Bug Bash round recently. The experience I shared is based on that.. .",
+   "Can you choose your language? Isn’t it optima to choose Python?",
+   "what I’ve seen, the language is fixed for the round. If it’s a JS Bug Bash, you’ll be working in JavaScript, not choosing another language like Python.",
+   "Hi Could you please share your experience? I generally have seen experiences in Java or Python"
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1ps3akr/",
+  "published": "2025-12-21T10:13:53+00:00"
+ },
+ {
+  "id": "1p5p8z7",
+  "sub": "leetcode",
+  "title": "Stripe Virtual Onsite interview prep",
+  "body": "I will have my stripe virtual onsite interview sometime these next few weeks. I was wondering if anyone would share their experience. From what I’ve read there will be 2 1-hours interviews. The first part will be very similar to the first two steps in the process(OA + very first interview). Here I was wondering if there is any difference in what I should know (should I prepare for anything in particular/ should I know leetcode-type DSA?). The second part (the one where you download a repo and integrate a feature) is what I am more worried about because I don’t know what to expect. If anyone has any advice it would be very helpful to me and everyone going through this process. Thanks in advance!    submitted by    /u/iheartecco   [link]   [comments]",
+  "comments": [
+   "On your Stripe virtual onsite, yeah I’d prep LC style DSA for the first hour, mostly mediums on arrays, strings, hash maps, and a simple graph or two, and be ready to talk tradeoffs while coding. Keep explanations tight around 90 seconds per step. For the repo exercise, what helped me was a quick 5 minute scan of README and tests, then a small plan in plain English before touching code. Run tests early, add logs to trace data flow, and write one tiny happy path first, then edge cases like idempotency or pagination. I did timed mocks with Beyz coding assistant using prompts from the IQB interview question bank, and practiced narrating git commits out loud. Ask clarifying questions fast, leave clear TODOs if time is short.",
+   "hey ive dmed you",
+   "What part was the narrating git commits for? Did they ask you to commit?",
+   "maybe the repo they were debugging was git?"
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1p5p8z7/",
+  "published": "2025-11-24T18:40:04+00:00"
+ },
+ {
+  "id": "1ox2n7y",
+  "sub": "cscareerquestions",
+  "title": "Integration Engineer process at Stripe",
+  "body": "Hi everyone, recently applied for an Integration Engineer role at Stripe and got past the recruiter screen. Next steps are a Hiring Manager interview followed by a technical/coding assessment.  I’ve been in consulting/delivery focused roles for the last couple of years so I need to prep hard for the technical assessment.  Looking for any advice/guidance on:  What kind of questions to expect for the technical assessment/what I should focus on studying  Things to expect from the hiring manager interview   Tried to get more info from the recruiter who reached out but they are not super responsive.  Thank you in advance!    submitted by    /u/jumbotrondave   [link]   [comments]",
+  "comments": [],
+  "url": "https://www.reddit.com/r/cscareerquestions/comments/1ox2n7y/",
+  "published": "2025-11-14T17:22:22+00:00"
  }
 ]
