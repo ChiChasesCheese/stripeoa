@@ -30,34 +30,25 @@ def part2(
 
 
 def part3(
-    accounts: list[dict],
-    roles: list[dict],
-    assignments: list[dict],
-    user_id: str,
-    account_id: str,
-    permission: str,
-) -> bool:
-    """Same hierarchy + validation as part2, but a role's permissions may now include wildcards
-    ('*' matches anything, 'ns:*' matches any 'ns:...' permission) and explicit denies (a
-    permission prefixed with '!'). Return whether user_id effectively has `permission` at
-    account_id: an explicit deny ANYWHERE in the chain wins over a grant from any level
-    (deny-overrides-allow globally, not "nearest level wins")."""
+    accounts: list[dict], roles: list[dict], assignments: list[dict], account_id: str, permission: str
+) -> list[str]:
+    """Reverse of part2: given account_id and a permission string, return the sorted list of every
+    user_id who effectively has that permission at account_id (their own direct role there, or a
+    role inherited from their own assignment at any ancestor of account_id -- same union rule as
+    part2, exact string equality, no wildcards). Only a user's OWN assignment on account_id's chain
+    makes them a candidate. Same validation/cycle detection as part2, applied to account_id's
+    chain. A permission nobody grants is not an error -- just []."""
     # TODO
-    return False
+    return []
 
 
-def part4(
-    accounts: list[dict],
-    roles: list[dict],
-    assignments: list[dict],
-    queries: list[tuple[str, str, str]],
-) -> list[bool]:
-    """queries: (user_id, account_id, permission) tuples, possibly repeating the same
-    (user_id, account_id) pair. Same rules as part3. Return one bool per query, same order.
-    Must not re-walk the same account's ancestor chain, nor re-aggregate the same
-    (user_id, account_id) pair's grants/denies, once per query -- cache both."""
+def part4(accounts: list[dict], roles: list[dict], assignments: list[dict], role_id: str) -> list[str]:
+    """Return the sorted list of every user_id DIRECTLY assigned role_id, at any account
+    (direct-only -- see problem.md for why this is provably the same set you'd get if you tried to
+    count inheritance too). role_id unknown to the system (not in roles) -> ValueError; a valid
+    role_id nobody holds -> []."""
     # TODO
-    return [False for _ in queries]
+    return []
 
 
 # ---------------------------------------------------------------- I/O
@@ -135,16 +126,13 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
         perms = fn(accounts, roles, assignments, user_id, account_id)
         stdout.write((",".join(perms) if perms else "NONE") + "\n")
     elif part_num == 3:
-        user_id, account_id, permission = (p.strip() for p in query_lines[0].split(","))
-        result = part3(accounts, roles, assignments, user_id, account_id, permission)
-        stdout.write(("True" if result else "False") + "\n")
+        account_id, permission = (p.strip() for p in query_lines[0].split(","))
+        result = part3(accounts, roles, assignments, account_id, permission)
+        stdout.write((",".join(result) if result else "NONE") + "\n")
     elif part_num == 4:
-        queries = []
-        for ln in query_lines:
-            user_id, account_id, permission = (p.strip() for p in ln.split(","))
-            queries.append((user_id, account_id, permission))
-        results = part4(accounts, roles, assignments, queries)
-        stdout.write("\n".join("True" if r else "False" for r in results) + "\n")
+        role_id = query_lines[0].strip()
+        result = part4(accounts, roles, assignments, role_id)
+        stdout.write((",".join(result) if result else "NONE") + "\n")
     else:
         raise ValueError(f"unknown header: {header!r}")
 

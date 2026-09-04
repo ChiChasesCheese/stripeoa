@@ -3,20 +3,18 @@
 RECONSTRUCTED problem (see problem.md's warning block) — Stripe-style account hierarchy
 (platform -> connected account -> ... -> user) where a user's *effective* permission at some
 account is resolved by walking that account's ancestor chain and combining every role the user
-holds along the way. Each part deliberately breaks the previous part's data structure:
+holds along the way. Each part deliberately breaks the previous part's data structure or flips the
+direction of the query:
 
   Part 1 - flat lookup, no hierarchy at all (a linear scan is fine).
   Part 2 - hierarchy is introduced: a flat scan can no longer answer "does this user have any
             role *anywhere in the chain*" -- needs an indexed graph walk, with cycle protection.
-  Part 3 - wildcards ("ns:*", "*") and explicit denies ("!perm") are introduced. Part 2's
-            "resolve to a flat, enumerable permission list" representation stops working -- a
-            wildcard cannot be expanded into concrete permissions without knowing the full
-            universe of permission strings, so from here on we keep raw grant/deny *patterns* and
-            match a single queried permission against them on demand instead of materializing a
-            list.
-  Part 4 - batch efficiency: resolving many (user, account, permission) queries must not re-walk
-            the same account's ancestor chain, nor re-aggregate the same (user, account) pair's
-            grants/denies, once per query.
+  Part 3 - the query direction reverses: "account + permission -> users" instead of "user +
+            account -> permissions". Reusing Part 2 once per user is O(U x D); a reverse index
+            (assignments grouped by account_id) answers it in O(D + matches) instead.
+  Part 4 - the query direction reverses again ("role -> users"), but this time there is no
+            hierarchy to walk at all -- a role's identity is direct-only (see problem.md). A
+            role-keyed reverse index over `assignments`, built once, answers every query in O(1).
 """
 
 from __future__ import annotations
@@ -39,9 +37,21 @@ def part1(
 
 # ------------------------------------------------------------------ shared indexing (Part 2+)
 def _index(accounts: list[dict], roles: list[dict], assignments: list[dict]):
-    """Build lookup structures and validate structural integrity. Raises ValueError on: a
-    duplicate account_id or role_id, an assignment referencing an unknown account or role, or two
-    assignments for the same (user_id, account_id) pair (ambiguous -- which role applies?)."""
+    """Build every lookup structure Parts 2-4 need, and validate structural integrity, in one
+    pass over the input. Raises ValueError on: a duplicate account_id or role_id, an assignment
+    referencing an unknown account or role, or two assignments for the same (user_id, account_id)
+    pair (ambiguous -- which role applies?).
+
+    Returns (accounts_by_id, roles_by_id, assignment_by_user_account, assignments_by_account,
+    assignments_by_role):
+      - assignment_by_user_account: (user_id, account_id) -> role_id -- Part 2/3's per-user,
+        per-level lookup while walking an ancestor chain.
+      - assignments_by_account: account_id -> list of (user_id, role_id) assigned there -- Part
+        3's reverse index: "who is assigned anything at this one account level", so a chain walk
+        only ever touches the accounts actually on the chain, never every user in the system.
+      - assignments_by_role: role_id -> set of user_id directly holding it anywhere -- Part 4's
+        reverse index, built once and reused for O(1) lookups.
+    """
     accounts_by_id: dict[str, dict] = {}
     for acc in accounts:
         aid = acc["account_id"]
@@ -57,6 +67,8 @@ def _index(accounts: list[dict], roles: list[dict], assignments: list[dict]):
         roles_by_id[rid] = role
 
     assignment_by_user_account: dict[tuple[str, str], str] = {}
+    assignments_by_account: dict[str, list[tuple[str, str]]] = {}
+    assignments_by_role: dict[str, set[str]] = {}
     for a in assignments:
         key = (a["user_id"], a["account_id"])
         if key in assignment_by_user_account:
@@ -66,18 +78,26 @@ def _index(accounts: list[dict], roles: list[dict], assignments: list[dict]):
         if a["role_id"] not in roles_by_id:
             raise ValueError(f"assignment references unknown role: {a['role_id']!r}")
         assignment_by_user_account[key] = a["role_id"]
+        assignments_by_account.setdefault(a["account_id"], []).append((a["user_id"], a["role_id"]))
+        assignments_by_role.setdefault(a["role_id"], set()).add(a["user_id"])
 
-    return accounts_by_id, roles_by_id, assignment_by_user_account
+    return (
+        accounts_by_id,
+        roles_by_id,
+        assignment_by_user_account,
+        assignments_by_account,
+        assignments_by_role,
+    )
 
 
 def _ancestor_chain(
     accounts_by_id: dict[str, dict], account_id: str, cache: dict[str, list[str]]
 ) -> list[str]:
     """Root-first list of account ids from the topmost ancestor down to account_id (inclusive).
-    Memoized in `cache` (shared across a whole batch in Part 4, fresh per call in Parts 2-3), so
-    an account whose chain was already resolved is O(1) on every later lookup. Raises ValueError
-    on an unknown account_id anywhere in the chain, or a parent_id cycle (including a
-    self-referencing account_id == parent_id)."""
+    Memoized in `cache` (shared across a whole batch, fresh per call otherwise), so an account
+    whose chain was already resolved is O(1) on every later lookup. Raises ValueError on an
+    unknown account_id anywhere in the chain, or a parent_id cycle (including a self-referencing
+    account_id == parent_id)."""
     if account_id in cache:
         return cache[account_id]
     path: list[str] = []
@@ -102,114 +122,71 @@ def _ancestor_chain(
     return full
 
 
-def _grants_denies_for_pair(
+def _effective_permissions(
     accounts_by_id: dict[str, dict],
     roles_by_id: dict[str, dict],
     assignment_by_user_account: dict[tuple[str, str], str],
     chain_cache: dict[str, list[str]],
     user_id: str,
     account_id: str,
-) -> tuple[set[str], set[str]]:
-    """Union of grant patterns and deny patterns (the '!' stripped off) from every role the user
-    holds anywhere along account_id's ancestor chain. A level where the user has no assignment
-    simply contributes nothing (not an error -- most users have a role at only one or two levels
-    of a deep chain)."""
+) -> set[str]:
+    """Union of literal permissions from every role the user holds anywhere along account_id's
+    ancestor chain (their own assignments only -- another user's role never contributes). A level
+    where the user has no assignment simply contributes nothing."""
     chain = _ancestor_chain(accounts_by_id, account_id, chain_cache)
-    grants: set[str] = set()
-    denies: set[str] = set()
+    perms: set[str] = set()
     for level in chain:
         role_id = assignment_by_user_account.get((user_id, level))
-        if role_id is None:
-            continue
-        for perm in roles_by_id[role_id]["permissions"]:
-            if perm.startswith("!"):
-                denies.add(perm[1:])
-            else:
-                grants.add(perm)
-    return grants, denies
+        if role_id is not None:
+            perms.update(roles_by_id[role_id]["permissions"])
+    return perms
 
 
-# ------------------------------------------------------------------ Part 2: hierarchy, no wildcards yet
+# ------------------------------------------------------------------ Part 2: hierarchy (union)
 def part2(
     accounts: list[dict], roles: list[dict], assignments: list[dict], user_id: str, account_id: str
 ) -> list[str]:
     """Effective permissions at account_id, inheriting (union, not override) every role the user
-    holds at any ancestor level, root down to account_id itself. No wildcards/denies expected in
-    this part's data -- every permission string in `roles` is a plain, literal permission name."""
-    accounts_by_id, roles_by_id, assignment_by_user_account = _index(accounts, roles, assignments)
-    grants, _denies = _grants_denies_for_pair(
+    holds at any ancestor level, root down to account_id itself."""
+    accounts_by_id, roles_by_id, assignment_by_user_account, _by_acct, _by_role = _index(
+        accounts, roles, assignments
+    )
+    perms = _effective_permissions(
         accounts_by_id, roles_by_id, assignment_by_user_account, {}, user_id, account_id
     )
-    return sorted(grants)
+    return sorted(perms)
 
 
-# ------------------------------------------------------------------ Part 3: wildcards + deny-overrides-allow
-def _matches(pattern: str, permission: str) -> bool:
-    """'*' matches anything. 'ns:*' matches any 'ns:...' permission (but not the bare 'ns' with
-    nothing after the colon). Anything else must match `permission` exactly."""
-    if pattern == "*" or pattern == permission:
-        return True
-    if pattern.endswith(":*"):
-        prefix = pattern[:-1]  # e.g. 'charges:'
-        return permission.startswith(prefix) and len(permission) > len(prefix)
-    return False
-
-
-def _has_permission(grants: set[str], denies: set[str], permission: str) -> bool:
-    """Deny-overrides-allow, globally: an explicit deny anywhere in the chain wins over a grant
-    from ANY level (including a more specific grant at a closer level) -- this repo's own decided
-    rule (see problem.md), not derived from any source."""
-    if any(_matches(p, permission) for p in denies):
-        return False
-    return any(_matches(p, permission) for p in grants)
-
-
+# ------------------------------------------------------------------ Part 3: reverse -- permission -> users
 def part3(
-    accounts: list[dict],
-    roles: list[dict],
-    assignments: list[dict],
-    user_id: str,
-    account_id: str,
-    permission: str,
-) -> bool:
-    """Does user_id effectively have `permission` at account_id, accounting for wildcard grants
-    and explicit ('!'-prefixed) denies anywhere in the ancestor chain? Same chain-walk as Part 2,
-    but denies now block grants regardless of which level produced either one, and a wildcard
-    pattern can grant a permission it never spells out literally."""
-    accounts_by_id, roles_by_id, assignment_by_user_account = _index(accounts, roles, assignments)
-    grants, denies = _grants_denies_for_pair(
-        accounts_by_id, roles_by_id, assignment_by_user_account, {}, user_id, account_id
+    accounts: list[dict], roles: list[dict], assignments: list[dict], account_id: str, permission: str
+) -> list[str]:
+    """Every user_id who effectively has `permission` at account_id (their own direct role there,
+    or a role inherited from their own assignment at any ancestor -- Part 2's rule, run in
+    reverse). Walks account_id's ancestor chain once (O(D)); at each level, looks up ONLY the
+    assignments recorded at that one account (assignments_by_account), never every user in the
+    system -- see problem.md's "why the obvious approach doesn't scale"."""
+    accounts_by_id, roles_by_id, _by_pair, assignments_by_account, _by_role = _index(
+        accounts, roles, assignments
     )
-    return _has_permission(grants, denies, permission)
+    chain = _ancestor_chain(accounts_by_id, account_id, {})
+    holders: set[str] = set()
+    for level in chain:
+        for user_id, role_id in assignments_by_account.get(level, ()):
+            if permission in roles_by_id[role_id]["permissions"]:
+                holders.add(user_id)
+    return sorted(holders)
 
 
-# ------------------------------------------------------------------ Part 4: batch efficiency
-def part4(
-    accounts: list[dict],
-    roles: list[dict],
-    assignments: list[dict],
-    queries: list[tuple[str, str, str]],
-) -> list[bool]:
-    """queries: (user_id, account_id, permission) tuples, in any order, possibly repeating the
-    same (user_id, account_id) pair with different permissions. Returns one bool per query, same
-    order as input. Two caches make this sub-quadratic in the number of queries: `chain_cache`
-    (ancestor chain per account_id, shared across every user that ever queries that account) and
-    `pair_cache` (aggregated grants/denies per (user_id, account_id), shared across every
-    permission checked for that same pair) -- neither is rebuilt once it has been computed once
-    for the whole batch."""
-    accounts_by_id, roles_by_id, assignment_by_user_account = _index(accounts, roles, assignments)
-    chain_cache: dict[str, list[str]] = {}
-    pair_cache: dict[tuple[str, str], tuple[set[str], set[str]]] = {}
-    out: list[bool] = []
-    for user_id, account_id, permission in queries:
-        key = (user_id, account_id)
-        if key not in pair_cache:
-            pair_cache[key] = _grants_denies_for_pair(
-                accounts_by_id, roles_by_id, assignment_by_user_account, chain_cache, user_id, account_id
-            )
-        grants, denies = pair_cache[key]
-        out.append(_has_permission(grants, denies, permission))
-    return out
+# ------------------------------------------------------------------ Part 4: reverse -- role -> users
+def part4(accounts: list[dict], roles: list[dict], assignments: list[dict], role_id: str) -> list[str]:
+    """Every user_id directly assigned role_id, at any account (see problem.md for why
+    direct-only is not just simpler but provably the same set as "counting inheritance" would
+    be). O(1) after _index's one-time O(assignments) build of assignments_by_role."""
+    _by_id, roles_by_id, _by_pair, _by_acct, assignments_by_role = _index(accounts, roles, assignments)
+    if role_id not in roles_by_id:
+        raise ValueError(f"unknown role: {role_id!r}")
+    return sorted(assignments_by_role.get(role_id, ()))
 
 
 # ------------------------------------------------------------------ I/O
@@ -275,17 +252,17 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
         account_id,parent_id
         ...
         ROLES
-        role_id,permissions          <- ';'-joined, may include '!deny' / 'ns:*' from Part 3 on
+        role_id,permissions          <- ';'-joined literal permission strings
         ...
         ASSIGNMENTS
         user_id,account_id,role_id
         ...
         QUERY
-        user_id,account_id[,permission]
-        ...                           <- Part 4 only: more than one query line
-    Part 1/2 output: one line, the sorted permissions comma-joined, or 'NONE' if empty.
-    Part 3 output: one line, 'True' or 'False'.
-    Part 4 output: one 'True'/'False' line per query line, same order.
+        <header row, ignored>
+        <one query row -- shape depends on n, see below>
+    Part 1/2 query row: "user_id,account_id"        -> output: sorted perms, ',' joined, or 'NONE'
+    Part 3    query row: "account_id,permission"     -> output: sorted user ids, ',' joined, or 'NONE'
+    Part 4    query row: "role_id"                   -> output: sorted user ids, ',' joined, or 'NONE'
     """
     lines = stdin.read().splitlines()
     if not lines:
@@ -307,16 +284,13 @@ def main(stdin=sys.stdin, stdout=sys.stdout) -> None:
         perms = fn(accounts, roles, assignments, user_id, account_id)
         stdout.write((",".join(perms) if perms else "NONE") + "\n")
     elif part_num == 3:
-        user_id, account_id, permission = (p.strip() for p in query_lines[0].split(","))
-        result = part3(accounts, roles, assignments, user_id, account_id, permission)
-        stdout.write(("True" if result else "False") + "\n")
+        account_id, permission = (p.strip() for p in query_lines[0].split(","))
+        result = part3(accounts, roles, assignments, account_id, permission)
+        stdout.write((",".join(result) if result else "NONE") + "\n")
     elif part_num == 4:
-        queries = []
-        for ln in query_lines:
-            user_id, account_id, permission = (p.strip() for p in ln.split(","))
-            queries.append((user_id, account_id, permission))
-        results = part4(accounts, roles, assignments, queries)
-        stdout.write("\n".join("True" if r else "False" for r in results) + "\n")
+        role_id = query_lines[0].strip()
+        result = part4(accounts, roles, assignments, role_id)
+        stdout.write((",".join(result) if result else "NONE") + "\n")
     else:
         raise ValueError(f"unknown header: {header!r}")
 
