@@ -56,5 +56,146 @@
   ],
   "url": "https://www.reddit.com/r/leetcode/comments/1vbpool/",
   "published": "2026-07-31T12:33:59+00:00"
+ },
+ {
+  "id": "1u8c305",
+  "sub": "leetcode",
+  "title": "Stripe Interviews",
+  "body": "What is expected from the integration round? From the doc I understood that we will be expected to integrate with an external API - but I’m unable to understand if there will be a repo that has the basic web client setup present, or everything is expected from scratch? Because with spring frameworks the http clients work differently not sure how much can be setup in local IDE. Please help 🙏    submitted by    /u/Internal-Tip-4636   [link]   [comments]",
+  "comments": [
+   "My experience for integration is to make an api call to fetch some data, then work with the data. Multiple steps.",
+   "But how are we supposed to make that api call? Like do we need to create http client, uri etc? Or is there a repo that we clone which has all this setup and the main problem becomes working with the data? Thanks a lot for your reply",
+   "Depends on language, I used js which has “fetch” api call already. You should set up your dev env already, no? You don’t need anything fancy, just basic stuff, you need be able to make a POST call, need to deal with non-json response, and also, familiar with file system, how to write to file(png image)",
+   "I used java. They had some http client already added to the dependency. You just need to check example code/docs and see how you can use that http client to make API calls.",
+   "I've done it before few years ago. I believe it is a repo, yes."
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1u8c305/",
+  "published": "2026-06-17T14:40:57+00:00"
+ },
+ {
+  "id": "1u0mgyy",
+  "sub": "leetcode",
+  "title": "STRIPE Interview Experience: Android",
+  "body": "OA rounds experience here. After the OA, I was told there will be an initial screening round. This round can be in any language of your preference(C++), but if moved forward those rounds have to be in Kotlin/Java. HR suggested to choose between these, because if I choose to do in other language it will raise suspicion about you skills in android development with HM. Before rounds they provide a descriptive doc, which helps you to how and what to prep. Screening round(45 min coding +15 min buffer) : Basic string parsing and doing operations on it and returning result in a specific format. For this round my interviewer had prior TCs to check the code success. Round has multiple parts to solve, starting from scratch writing for 1st part and then building over that for subsequent parts(later parts were hidden, and only made visible after success with prev part). Was able to solve 3 parts completely and discussed the logic for 4th. (Code quality, TCs) > (Speed).  Got the call from HR, moving forward in the interview process, shared the docs along with other details. Scheduled 4 rounds in two days. Programming exercise(45+15) : Same as Screening Round, this time I had to think of TCs, Unit TCs, and edge cases for every part. Discuss with the interviewer and move forward if satisfied. Was able to solve 2 Parts completely, discussed the solution for 3rd.  Integration Round (45+15): 5 mins for intro, 5 mins for setting up environment, git cloning etc. 45 mins coding and 5 mins to ask questions. This was very android specific, given an app with basic functionality, had to implement integration to a different class/library, so that functionality in UI works as expected. Be in constant discussion with interviewer what you are thinking and your approach. It is more of a co-development, than interviewer acting as a judge. Suggested IDE was Android Studio, because emulator was used. Speed is important along with understanding how to integrate in a perfect way.Understanding of Retrofit was suggested me in the doc, but didn't found any usage in the interview. I personally spent too much time on getting right syntax, so was not able to move to next part. But was able to completely solve 1st part. Bug Squash (45+15): 5 min for intro, 5 min for env check and cloning, 45 mins coding and 5 mins to ask questions. Android Studio IDE(suggested). Given a unseen repo code, and issues in git repo. Task was to see the issue, understand it and get the failing TC write. For my reference a passing TC was also given in same issue. You have to quickly go through the TC, see what's failing and move to that function and find the exact problem. I was able to understand the code, it took me a while, was able to isolate what was causing error, but struggled to trace the TC call to main code and actual bug. Got some hint and help from the interviewer and was able to locate and fix it. But I think I could have done better in this. Use all the debugging tolls available in IDE, these all things are reviewed and noted. Hiring Manager (45 mins): 40 mins of grinding on the resume, majorly on one complex project, going deep on it details(not technical but more of a logistical and behavioural). Along with some AI focused behavioural questions. Last 5 mins was my time to ask some questions. Over all experience was great, all interviews were, coding and development in very collaborative way. Practise more for bug squash and integration rounds, as these are rounds are unconventional and check your real world working and handling of issues.  Feedback for all rounds were good except bug bash, as I expected because it didn't go as well as it should have. Be fast in finding bugs and moving around in the repo.    submitted by    /u/Aforapple03   [link]   [comments]",
+  "comments": [
+   "Did you get an offer?",
+   "nope",
+   "Had a similar experience. All rounds went good apart from the integration round",
+   "My recruiter told me for android roles had a very bad passing rate for integration round",
+   "What's your location?",
+   "US",
+   "hi, which level was this for?",
+   "mid level",
+   "Also is this programming exercise an AI assisted round?",
+   "No, not for me, as android role But my HR said, they are slowly adding these type of interviews for other roles.",
+   "what were the AI focused behavioral questions about?",
+   "Basic, about day to day use of AI in your life.",
+   "like in the repo questions , what type of questions were they like dsa type or what? and in which language",
+   "Can you give interview in IntelliJ?",
+   "Yes, you can you have the liberty. But there is recommended ide for every round"
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1u0mgyy/",
+  "published": "2026-06-08T22:09:34+00:00"
+ },
+ {
+  "id": "1tkb1iw",
+  "sub": "leetcode",
+  "title": "Stripe New Grad Interview Experience",
+  "body": "Recently, I had the opportunity to interview for a New Grad Software Engineer role at Stripe, and it was one of the most challenging and insightful interview processes I’ve been part of so far. The journey looked like this:  Online Assessment:- One coding question to kick things off. Phone Screening:- A multi-part problem-solving round. I was able to solve 4 parts within 45 minutes, followed by a 15-minute discussion related to stripe and some questions.  Clearing this round felt really motivating and pushed me forward to the Virtual Onsite.  Virtual Onsite:- Stripe allows you to choose your preferred language — I went with Java.  Round 1: Advanced Programming:- Multi-part problems; I solved two parts along with follow-up questions on edge cases (45 minutes). This round went fairly well. Round 2: Bug Squash (Most Challenging):- This round stood out. I was given a large, complex codebase and asked to identify and fix bugs. While I managed to find and fix the issue with the interviewer’s guidance, I realized I wasn’t as strong as I wanted to be in advanced Java and deep debugging. I truly felt I could’ve done better here. Final Round: Managerial Discussion:- Focused on teamwork, past work , ownership, and how I approach problems. A few days later, I heard back from the recruiter that they wouldn’t be moving forward with my application. Of course, it was disappointing — especially knowing exactly where I could have performed better. But more than anything, this experience gave me clarity: on my gaps, on what real-world debugging looks like, and on how high the bar truly is. Every interview teaches something. This one taught me a lot. Back to learning. Back to building. Onwards. Have any questions? We can connect on LinkedIn and can discuss:- https://www.linkedin.com/in/abhishek-kumawat-0390ab27a/    submitted by    /u/OneAbbreviations3921   [link]   [comments]",
+  "comments": [
+   "[deleted]",
+   "We can use any language in online assessment, just make sure that choose the best one in which you are confident.(Mainly in interview)",
+   "I used to give all my coding interviews in C++ since uni. I failed stripe phone screen for L2 2 years back as it was very time consuming to code the problems they give in C++. I have been working with Java for a few years now. So, I decided to give my coding interviews in Java this time for L3 and I would say it did help a bit. Python would have been the best for stripe interviews though.",
+   "Is it for India or outside india ?",
+   "This one was for india.",
+   "Can you share what kind of a bug was there in bug bash round and what concept of Java you struggled with",
+   "We can chat to discuss",
+   "Thanks, asked you",
+   "Dmed you, we can discuss",
+   "I dmed as well, Thanks",
+   "Did they give you details on why they rejected and growth areas?",
+   "They didn't give any details or feedback, but i feel that Bug squash round was the one in which growth needs.",
+   "Feel free to reach out and request it from them. There’s no guarantee but then again they might be willing to help",
+   "Yeah , will do this.",
+   "Hi OP - I am also interested to know what Java concept you steuggled with in the debugging round- please let me know, thanks!",
+   "Sure, let's discuss in chat.",
+   "Hi, can you share your difficulties with the bug round? DMed you",
+   "Same story for me",
+   "[deleted]",
+   "Exactly, and I’ve already started working on improving my debugging skills.",
+   "what were points on which your resume got shortlisted ?",
+   "How many days did recruiter took to reach out regarding VO feedback ?",
+   "After how long did you hear back from phone screening?",
+   "2 days"
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1tkb1iw/",
+  "published": "2026-05-22T06:53:56+00:00"
+ },
+ {
+  "id": "1t0v98p",
+  "sub": "leetcode",
+  "title": "Stripe Ireland Interview – Language Choice + Scheduling Advice",
+  "body": "I had an intro call with Stripe (Ireland) and need some quick advice. Interview process:  Stage 1: 1 programming round (3 parts) Stage 2: Programming + Integration + Bug squash + Hiring manager  Questions:  Language choice: I use JavaScript for development and Python/C++ for DSA. Which one should I pick for the interview? Also, when do we select the language, and is it the same across all rounds? Scheduling: My work hours are 11 AM – 8 PM . Better to schedule interviews early morning or late night?  Would really appreciate any recent Stripe interview experiences or tips. Thanks!    submitted by    /u/Shot-Thought-4867   [link]   [comments]",
+  "comments": [
+   "[deleted]",
+   "Yeah thank you",
+   "U mean dev coding without knowing js or ts or python.....btw I am c++ guy"
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1t0v98p/",
+  "published": "2026-05-01T14:37:26+00:00"
+ },
+ {
+  "id": "1snjn0e",
+  "sub": "leetcode",
+  "title": "How to prep for the debugging round? (DoorDash, Stripe, etc.)",
+  "body": "Hey everyone, I have an upcoming interview where the format is a bit different from the usual LeetCode-style DSA rounds. They said that I’ll be given an existing codebase during the interview and asked to debug it live. The recruiter mentioned that they’re looking for me to communicate my thought process while identifying and fixing bugs. It sounds \"easy\" but I feel like there’s probably more to it in terms of what they’re actually evaluating. If anyone here has gone through the debugging round with DoorDash, Stripe, etc.:  What are interviewers really looking for in this format? Is there a structured approach or strategy you follow when debugging under pressure? Are there good ways to practice this kind of interview (specific platforms, repos, or exercises)? PLEASE   Would really appreciate any advice, experiences, or prep resources (especially). Thanks in advance!    submitted by    /u/regularxguy1   [link]   [comments]",
+  "comments": [
+   "[deleted]",
+   "Thank you ! I’ll probably try using Claude or ChatGPT as well to generate some thanks again",
+   "[deleted]",
+   "Thank you can you share the IQB question bank with me? I don’t know what that is",
+   "[deleted]",
+   "Your comment has been removed. We do not allow DM farming. All of the conversation must happen within the post itself. Subsequent violations of this rule will result in a permanent ban. I am a bot, and this action was performed automatically. Please contact the moderators of this subreddit if you have any questions or concerns.",
+   "Is this a phone-screen round?",
+   "No , got past that. Now I’m in the final loop",
+   "Is this for mobile development?",
+   "No, backend",
+   "Is this for DoorDash ?",
+   "Stripe",
+   "Ask ChatGPT to make you a python project folder with a bug in it and then debug it. Do like 20 of these and you should be golden.",
+   "Whats ur current company OP?",
+   "Is this a new Grad position?",
+   "did you do it? I'm going through the same process and I would really appreciate some advice."
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1snjn0e/",
+  "published": "2026-04-16T23:11:09+00:00"
+ },
+ {
+  "id": "1sdw8ux",
+  "sub": "leetcode",
+  "title": "Anyone giving interviews for backend IC 2 at stripe?",
+  "body": "Hi everyone, I got a call from a recruiter for scheduling a machine coding round in Stripe, I have competed the hackerrank assessment which included a data processing question. I want to know about the machine coding round in stripe a bit more, I am being told an inerviwever will already be present in the call, what sort of question i can expect, Please note that I am aware about Machine codind rounds in flipkart, meesho, But if anyone has already given this round, appreciate any tips or pointers    submitted by    /u/nmole_   [link]   [comments]",
+  "comments": [
+   "Yoe?",
+   "4.6",
+   "Are u currently working in faang?",
+   "Nope",
+   "Can you share the type of question asked in hackerrank assessment ? Were you able to complete the assessment ?",
+   "Yes. It was a data processing question"
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1sdw8ux/",
+  "published": "2026-04-06T11:31:39+00:00"
+ },
+ {
+  "id": "1s9ln3f",
+  "sub": "leetcode",
+  "title": "Stripe New Grad - Integration + Threat Modeling Interviews - What to Expect?",
+  "body": "Hi everyone, I recently cleared the first round at Stripe for a new grad Security Engineer role and have my upcoming virtual onsite which includes the Integration and Threat Modeling rounds. I wanted to understand from people who have gone through these: • What level of difficulty should I expect for the Integration round? • Is it more like working with APIs/libraries or more system design heavy? • For the Threat Modeling round, how deep into security concepts do they expect you to go? • Do they expect knowledge of frameworks like STRIDE/OWASP, or is it more about general reasoning? • Any specific preparation tips that helped you?  I do not have a strong security background, so any guidance on how to approach the threat modeling interview would be really helpful. Thanks in advance, really appreciate any insights!    submitted by    /u/todu_boi   [link]   [comments]",
+  "comments": [
+   "Heyy can ik if it was on campus or off campus and how was ur resume .",
+   "Off campus. I cannot narrow down on what got me the interview. But I had interned in the financial crime department of a company as an SDE. Maybe that."
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1s9ln3f/",
+  "published": "2026-04-01T14:08:58+00:00"
  }
 ]
