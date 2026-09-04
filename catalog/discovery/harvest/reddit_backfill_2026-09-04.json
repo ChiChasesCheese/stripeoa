@@ -1,0 +1,60 @@
+[
+ {
+  "id": "1vhpsgz",
+  "sub": "leetcode",
+  "title": "Stripe newgrad virtual onsite",
+  "body": "Anyone know what I can expect for the AI Coding, Integration or Bug Squash round? I've never done these types of interviews before, so just wondering what they're looking for and what kind of questions I can expect, thanks so much!    submitted by    /u/Fun-Contribution-968   [link]   [comments]",
+  "comments": [
+   "I have been using this site to practice, its been pretty helpful to me: aicodingprep.com",
+   "You will need to solve task by using AI."
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1vhpsgz/",
+  "published": "2026-08-07T03:47:28+00:00"
+ },
+ {
+  "id": "1vbpool",
+  "sub": "leetcode",
+  "title": "Stripe and Meta new AI interview experience",
+  "body": "Just had stripe's new AI interview, and had Meta's AI interview earlier this year. Also heard similar tech companies start doing these kind of AI interviews. It felt completely different from doing leetcode, and actually felt more like testing your competencies when doing your work (considering our work heavily uses AI now). For context, its the interview round where you are allowed to use AI models provided within hackerrank to solve a more challenging problem I'd like to know other people's perspective: 1. Do you think this AI interview will replace leetcode? 2. Does anyone know of websites that allows you to practice? 3. Any technical recruiters can provide insights on if their company is currently looking into doing something similar? For someone who hates doing leetcode, I really hope the industry starts to move away from it    submitted by    /u/xxxconcatenate   [link]   [comments]",
+  "comments": [
+   "I’ve done a similar interview situation. “Here’s a PR and the feature requirements. Provide a feedback summary of the engineer’s code. You can use the provided AI to help.”  The thing that tripped me up was, I would just ask AI to solve it for me in the real world. I wouldn’t tip toe around it. But I can’t do that in an interview obviously even though I have 10 YOE.  So I think companies are still figuring this out.",
+   "Why can’t you do that in an interview? I’ve done many now that are 3h onsite blocks with a very large open problem. You have unlimited AI usage without restrictions. They test how far you get. In those blocks I never held back and I used it just like actual job. Real example for a company doing voice AI in health: “create a voice AI assistant that takes patient calls and schedules them based on the availability of the practice’s doctors”. Nothing was provided and I had to do a live demo of me talking to it with a real backend, and figuring out what voice provider to use etc",
+   "Instructions candidates are given for the Meta AI interview literally tell them to not just ask the AI for a complete solution. In fact, their LLM's are specifically trained not to spit one out. Meta at least expects you to use it to nudge you in the direction of a solution, like translating error messages or something. Like the commenter above said, this is a flawed way of assessing candidates since in the real world, people would just plainly ask the AI for the solution.",
+   "So I think companies are still figuring this out.  Always have been. It's amusing to realize the degree to which these massively profitable companies really have no idea what they're doing and can't even come up with a sensible evaluation for roles they themselves are hiring for. The world is truly run by cosplayers.",
+   "I find the AI they provided largely useless, it’s still down to your actual problem solving skills",
+   "I gave OA of Amazon last month they had similar scenerio where I was given a full fledged production code and AI assistant to solve a bug , was more fun than coding question tbh , didn't got selected though.",
+   "I've participated in an AI interview at a FAANG company. It's not what you think. You'd probably expect to receive some tasks and use the given AI to solve them, just like you would in real life. And your \"AI skills\" would be evaluated. It's nothing like that! You receive a code repo and a readme.md file with the project description and some tasks. And your job is to fix the tasks yourself, not with AI (like devs do in real life).",
+   "> a reader A what? > like you devs do in real life What does that mean? There’s no one way or even a standard way to use a harness. Infact depending on what model and harness you’re using, how you use it is very different depending on task.  I’d waste the slot just figuring out what the harness can do before answering the question.  This seems destined to fail on its face.",
+   "Apologies. Sometimes auto-complete fails.  I've corrected the sentences. I hope they're much clearer now.",
+   "Can you explain a little bit more",
+   "I had about 1 hour to fix 4 bugs. But I had to do it the classic way. i.e. put breakpoints and see where the code fails. The AI only gives information about the repo and \"meta\"-advice (e.g. How to run the unit tests).  However, you can't tell it \"i have this bug. Scan the repo and fix it\". That's what I'd normally do in real life. That's how people use AI. But you can't do that during the interview. Which makes this type of \"AI interview\" pointless IMO.",
+   "Can i get syntax related help from the ai?",
+   "I think so, although I haven't tried it myself. You can just ask \"are you allowed to ... ?\" and it will tell you.",
+   "This AI round is less about replacing LeetCode and more about testing how you use actual work tools. Meta's round is 60 minutes: fix a bug, build a feature with AI, then optimize. Grading focuses on your judgment using the AI, not just the code. Pasting code you can't explain is a common failure. HackerRank has a mock AI interviewer to practice. It won't fully replace LeetCode for screening, but it's a better signal for later rounds. Runable's been helpful for tracking which patterns I'm actually improving on versus just grinding through.",
+   "Do we think the AI interview will replace LC? Isn't that what you just said already happened at Stripe/Meta?",
+   "Stripe hasn’t had LC style questions for years",
+   "Stripe never asked LC questions. Even when I interviewed in 2018.",
+   "Yeah I was not sure about “never” part",
+   "what is their interview pattern? what do they mostly focus on then if it’s not LC style",
+   "Coding, but more like day to day tasks rather than algorithms you never use in your daily work. Also sys design and behaviour.",
+   "I gave a recent interview at DigitalOcean, they asked me to build a backend service using ai, deploy it as well. It was a different experience.",
+   "Could you please share more details? Thank you!",
+   "Is there anyway to practice for these?",
+   "[deleted]",
+   "I had this in the OA of amazon, they gave choices to pick from 2 kinds of stacks. One was MERN and other was python, flask etc  So I chose the MERN option and I had to implement 2 features and I could use AI's help in that sandboxed environment but the explicitly told that you can't ask ai to solve the problem for you so I figured this out;  Obviously they will monitor the prompts I input. Along with that, the quality of those prompts will also be crucial.   So I asked important questions like: 1. Summarise the issue for me. 2. Tell me what the developer has already implemented so I can know what already exists there And a few more",
+   "could you pls give me more insights on the prompting? any other examples that you yourself used or would recommend we use for the AI assisted assessment part? i’ll be taking my amazon OA soon that’s why needed some pointers :)",
+   "See majorly my approach was to gain as much context as possible about what code is already there in the files they provided. This shouldn't take too long because frankly the codebase which they give isn't that big and it's fairly easy as well. Then after that I clearly specified what I need to implement, this part is already given in the question ofcourse but I asked the ai to combine the context of code already given and the requirements to have a better picture because I remember the requirements weren't that much clear in question. But I hope it won't be the case for you and they will be much clearer  Then I did the implementation and if there were errors so I pasted those in the chat to ask the assistant to guide me that: 1. What broke. 2. Is it a logical issue, a syntax issue or something else. Basically used the AI to guide me in the right direction to know exactly what went wrong because you can't just ask the AI to correct it(at least not in the test even though in reality I would definitely ask AI to correct it if it is something I think AI won't fuck up 😂) And also don't stress too much it wasn't that difficult not the requirements were too long to implement so you'll do just fine. Just chat with the AI while keeping in mind that someone will look at this shit and my conversation is a signature to how much I understand conversing with an AI model how good I am In giving context and writing what I need clearly etc I hope this advice doesn't confuse you, I tried to be as descriptive as possible so you won't have any doubts or any stress. Chill out and best of luck",
+   "appreciate it so much! apologies for asking but were you able to clear the OA for the next round?",
+   "Yup I did clear it and now I'm waiting for the interview loop to start Don't know why they're taking too long I gave this OA in May I think and then in 2nd week of July I received a form from Amazon asking if I'm still available for the role or not. After that nothing else happened I want to know why the hell they are taking this long...I'm not a very patient guy heh",
+   "lol fairs and congrats! are you expecting the in person loop in seattle?",
+   "Naah bro....it's going to be in India for me",
+   "gotcha, well good luck!",
+   "Thanks man, you too Hope to see you in future in the company 😂✌🏻",
+   "Asking Op, I have 13 Yoe, mobile and backend, Msc was ML, do I still have a chance to jump on AI/ML interviews?",
+   "Can we download the repo zip file something??do anyone have of Amazon sde1 intern??",
+   "Hey I have a similar interview at Stripe, could you please tell what kind of question was it? It would be great if you could tell your stripe process in detail"
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1vbpool/",
+  "published": "2026-07-31T12:33:59+00:00"
+ }
+]
