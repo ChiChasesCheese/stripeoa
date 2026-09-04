@@ -18,6 +18,8 @@ conftest.py         shared fixtures (`impl`, `run_script` with time+RSS measurem
 
 ## Start here
 
+- **`CLAUDE.md`** — 长期规矩：赛道（只做 SWE backend）· 记账纪律 · 目录地图 · 协作约定 · 已知的红
+- **`HANDOFF.md`** — 当前断点：做到哪、下一步、站点可达性台账
 - `study/README.md` — **中文**题解 53 篇 + 通用精华（解题框架 · 核心考点 · 语法速查 · 陷阱清单 · 算法模式 · 调试 · 沟通）
 - `reports/OVERALL_REPORT.md` — what the OA is, drill order, quality gates, caveats
 - `catalog/CATALOG.md` — every problem found online with #independent refs + source URLs (Tables A/B/C)
