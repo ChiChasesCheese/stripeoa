@@ -123,5 +123,6 @@ int01 **完整跑通两遍**。第一遍你会花时间在"怎么发请求"上�
 - 题目：`loop/rounds/05_integration/int01`–`int04`
 - 卡片：`loop/study/20-cards/http_json.md`、`stripe_api.md`
 - 前置：`loop/study/00-prereq/06-HTTP与API`
+- **模板**：`loop/study/00-prereq/07-模板-常用模式.md` + `templates/`
 - mockserver：`loop/mockserver/`（分页 / 429 / 幂等 / 签名都实现了，可以对着读）
 - 事实与来源：`loop/LOOP_GUIDE.md` §5

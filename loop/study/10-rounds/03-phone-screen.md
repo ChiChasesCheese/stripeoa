@@ -103,4 +103,5 @@ python3 loop/mock.py start ps12 -m 45   # CSV 建树 + 文件树输出（真实�
 - 题目：`loop/rounds/03_phone_screen/ps01`–`ps13`；OA 库里的电面高频 `q19 q21 q22 q25 q20 q08 q18`
 - 卡片：`loop/study/20-cards/patterns.md`（跨题模式）
 - 前置：`loop/study/00-prereq/04-字符串与解析`、`05-csv与json`
+- **模板**：`loop/study/00-prereq/07-模板-常用模式.md` + `templates/`——多 part 骨架和九个高频模式，做题前先把骨架敲熟
 - 事实与来源：`loop/LOOP_GUIDE.md` §3

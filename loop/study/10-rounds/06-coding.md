@@ -97,5 +97,6 @@ OA 库里也有 VO 常考的：`q07 q13 q32 q23`。
 
 - 题目：`loop/rounds/06_coding_onsite/cd01`–`cd10`；OA 的 `q07 q13 q32 q23`
 - 卡片：`loop/study/20-cards/patterns.md`
+- **模板**：`loop/study/00-prereq/templates/skeleton.py`——VO coding 尤其要先写接口签名，骨架就是签名
 - 文章：`loop/study/30-articles/cd*.md`
 - 事实与来源：`loop/LOOP_GUIDE.md` §6
