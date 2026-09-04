@@ -24,6 +24,17 @@
 
 多数候选人 60 分钟内做不完 5 个 part。**Part 1–2 的实现质量、代码整洁度比"做完几个 part"更被看重。**
 
+## ⚠️ 先说一件比时间表更重要的事：60 分钟可能只有 35 分钟写代码
+
+2026-04 一位 4 YOE 候选人的一手复盘（他因此只做完 2/4 part）：
+
+> "interviewer gave me **35 minutes only**, told he would use **10 minutes in the end for discussion,
+> 10 minutes in starting for setting up my IDE and github account** for integration round.
+> (Also the interviewer kind of **arrived late 4-5 minutes**)"
+
+开场那 10 分钟是**唯一你能自己拿回来的**。进场前必须已经就绪并跑过一次：
+**IDE · GitHub 登录 · SSH key · clone 目录 · 语言 runtime · 一个能跑的 hello world**。
+
 ## 60 分钟怎么分
 
 | 时间 | 做什么 |
@@ -35,7 +46,26 @@
 | 48–55 | 清理（命名、拆函数、删调试代码） |
 | 55–60 | 总结：做到哪、剩下的会怎么做 |
 
+**保守版（实测更接近这个）**：装环境 0–10（提前做掉就是白赚 10 分钟）· 读题 + happy path 10–30 ·
+错误处理 30–42 · 清理 42–48 · 讨论 48–60。
+
 **5–15 这一段是最容易失控的。** 环境跑不起来能吃掉 20 分钟。提前拿 recruiter 发的 sample repo 演练一次。
+
+## ⭐ 真实的四段式结构（2025-08 Dublin senior 一手，逐字）
+
+> "there's **4 sub-rounds**. To begin with, you're given a **hello world boiler plate code** and you're expected to
+> **call an API and print the response**. The request parameters are expected to be **read from a file — so file
+> parsing is essential**. In the second one, you're asked to **parse the response and use it to call yet another
+> API**. The subsequent rounds follows suit by increasing complexity in terms of forming the request and parsing
+> the response. Use of an ide is permitted. The challenge here is **time** since **requirements change across
+> sub-rounds** and thus **if the code is modular enough from the beginning, it helps**."
+
+三条直接可操作的：
+
+1. **part 1 就拆成三个函数**：`build_request()` / `call()` / `parse()`。别写成一个 `main`。
+   需求每个 sub-round 都变，不拆就是每轮重写——这是他原话里唯一给出的"打法"。
+2. **请求参数是从文件里读的**，不是硬编码 URL。文件解析在 part 1 就要用上。
+3. **part 数不固定**：这位是 4 段，London 那位是 5 part，Dublin 另一位只有 3 part。别按固定数排时间。
 
 ## 八个挂点（extrabrain 整理）
 

@@ -40,7 +40,8 @@
 
 **贯穿所有技术轮的评分主线（据 Stripe 员工与一手反馈）**：① 代码质量 > 最优复杂度（"Time and space complexity carry little weight"）② 速度：多 part 必须推进 ③ 从一大段文字里抽出干净的问题 ④ 自己构造输入、自己写测试（**没有自动测例**）⑤ 边写边说 ⑥ 独立性：求助 ≥3 次被记负面 ⑦ 谦逊 ⑧ 别"太熟练"——2024 起题库加速轮换，面试官警惕背题。
 **语言结论**：Python/JS。Java/C++ 样板在 coding/integration 反复被报道"做不完"；电面 Python 通过线约 3/4 part、Java 2/4。
-**三条 2026 增补**：① **整个 loop 只能选一门语言**，在 recruiter 处一次性选定，**bug squash 的 repo 就是这门语言**；
+**三条 2026 增补**：① **onsite 各轮必须同一门语言**，在 recruiter 处一次性选定，**bug squash 的 repo 就是这门语言**；
+**但电面可以与 onsite 用不同语言**（单一来源，中等置信）；**Go 也在可选清单里**（单一来源，低置信）；
 ② 官方语言清单里**只有 JavaScript，没有 TypeScript**（一位选 TS 的候选人被排成 JS 场次）；
 ③ 一位亲历者给"C++ 刷题 / JS 开发"的人的建议是**选 JS**，理由是"there would be rounds which require
 **real API calling, and some json parsing**. And you wouldn't have done any of this in c++"——
@@ -78,7 +79,9 @@
 > **校招流程里这一轮官方叫 "team screen"**（2025-09/10 三位 new grad 独立复述）。
 > 和 offer 之后的 team match 是两回事，recruiter 说 team screen 时指的是这一轮。[Reddit 1nudha0、1oe0ct2]
 
-- **形式**：Zoom + CoderPad 或自己 IDE 共享屏幕（可选）；语言任意；一题 3–4 part，做完一 part 才给下一 part；**无自动测例**——自己造输入、自己验证；面试官常在 part 2 后停下转 Q&A。[Blind nqzaykah、mdtk4bmj、jcnxxpsh；LC 6696304]
+- **形式**：Zoom + CoderPad 或自己 IDE 共享屏幕（可选）；语言任意；一题 3–4 part，做完一 part 才给下一 part；**你这边没有自动测例**——自己造输入、自己验证
+（⚠️ 但**面试官那边可能有**：一条一手说 "my interviewer had prior TCs to check the code success"。
+所以"没有测例"指的是"你看不到"，不是"没人在判"）；面试官常在 part 2 后停下转 Q&A。[Blind nqzaykah、mdtk4bmj、jcnxxpsh；LC 6696304]
 - **⚠️ 平台可能就是 HackerRank，不是 CoderPad**：2025-12 一位候选人读 recruiter 发的 information packet 原文是
   "expect **screen sharing and hackerrank**, a programming exercise, no leetcode and **strictly no ai**"。
   同一份材料还说明 **loop 在此前 9 个月内改过**（"it is not the same interview loop from 9 months ago which had leetcode"）。[Reddit 1pddxxc，一手]
@@ -89,6 +92,13 @@
   for it **even though they say so**"、"you should expect to code in the **whiteboard kind of a scenario**,
   i.e. without any assistance at all"。
   **对策：按裸写、无补全、无外部库准备；面试官要求换什么就换什么，一句 sure 结束，不要引 prep guide 反驳。**
+  - **这大概率是平台约束，不是面试官脾气**（所以别指望争论能赢）：那位面试官给的理由就是
+    "do not use Lombok as **it will not [work] on hackerrank**"；2024-05 另有两条同向说法——
+    "I've seen people post trying to use **Gson that doesn't work in hackerrank IDE**"、
+    "**Hackerrank has always dictated how API calls should be done per language. Usually it is using the
+    standard library**... A similar oddity existed for JavaScript"。
+    ⚠️ 后两条**都不是一手**（一条是"我看到有人发帖"，一条是社区判断），所以写成"大概率"而非事实。
+    **实际含义对 Python 是明确的：练 `urllib.request`，不要练 `requests`。**[Reddit 1cu77pw 正文 + #2]
   （与 §1 的"口头许可被事后追责"是同一类风险的两个方向：**书面宽松条款同样不可依赖**。）[Reddit 1o4c5kp，一手 + 已知结果]
 - **AI 政策的执行方式**：用 Cursor/Windsurf 类 AI 编辑器不自动出局，但要**主动当场演示 AI 已关闭**
   （新建空文件、打字、展示无补全）——一位这么做的候选人通过了该轮。[Reddit 1o4c5kp#10，一手]
@@ -121,18 +131,40 @@
 ## 4. Onsite · Bug Squash（45–60 min）
 
 - **形式**：真实开源项目的 fork（私有 repo，pin 版本）+ Stripe 加的一个失败单测或 issue 描述；在**自己 IDE** 里 clone → 跑测试 → 定位 → 修；"everything else is real"（Stripe 员工）。[Blind hkzsddkz、bekekkqf；Coditioning]
-- **几个 bug：按 3 个准备。** 老证据说"1 个主 bug + follow-up，senior 2–4 个"；2026 的三份材料说"2–3 个"，
-  但其中两份只是搜索摘要。**2025-10 一条完整可读的一手校招证据把这件事定住了**：Dublin new grad VO
-  "only resolved **1/3 bugs** in the bug squash round"（同一人 4 天后复述一致）——**校招也是 3 个**。
-  另一条 2026-04 London 一手描述形态："there will be **some unit test failures**. You then start debugging
-  those failures **one by one**"。[`catalog/discovery/2026-09/rounds_material.md` §1.2；Reddit 1oagvvw、1oe0ct2、1srvx7m#14]
+- **几个 bug：不定，1–5 都有一手报告。按"逐个跑、逐个修，修不完是常态"准备，不要背一个数字。**
+  证据谱系（本日补抓后重排）：老证据"1 个主 bug + follow-up，senior 2–4 个"；2026 三份材料说"2–3 个"
+  （其中两份只是搜索摘要）；**2025-10 Dublin new grad 一手"only resolved 1/3 bugs"**；
+  **2025-08 Dublin senior 一手"There'd be 4-5 unit tests failing"**；India 校招一手报 1 个。
+  ⚠️ 注意"**失败的单测数 ≠ 不同的 bug 数**"——一个 bug 可以让多个测试红。原文说的是 unit tests。
+  **2026-09-04 更正**：本文件当天早些时候曾据单条证据写成"按 3 个准备"，补抓到的两条一手把它推翻了。
+  [`catalog/discovery/2026-09/rounds_material.md` §1.2；Reddit 1oagvvw、1oe0ct2、1srvx7m#14、**1mgcc99**]
 - **形态（2026-04 London 一手全文）**：给一个**私有** GitHub repo → 本地 clone → build → 跑出若干失败单测 →
   在面试官引导下逐个调。**repo 的语言就是你在 loop 开始时一次性选定的那门语言。**[Reddit 1srvx7m#14/#15/#16/#19]
-- **明确禁用 AI**：这一轮（以及除 AI Programming Exercise 外的所有轮）禁止使用 AI 编码助手。[leonstaff 2026-08-13]
+- **明确禁用 AI**：这一轮（以及除 AI Programming Exercise 外的所有轮）禁止使用 AI 编码助手，
+  **一手证据明确到"含 IDE 自动补全"**（不只是聊天框）。用 Cursor/Windsurf 类编辑器要**当场演示已关闭**。
+  [leonstaff 2026-08-13；Reddit 1mgcc99#11、1o4c5kp#10（均一手）]
+- **⭐ 用不用 IDE / debugger 本身是显式评分项**（不是"允许"而已）：一手原文
+  "**Use of an IDE is permitted and is actually one of the evaluation parameters**"。
+  两条独立一手同向。[Reddit 1mgcc99 正文、1u0mgyy 正文]
+- **issue 里若同时给了一个通过的测例和一个失败的测例**：**先 diff 这两个测试的输入**，
+  差异处就是 bug 的触发条件——比从头读库快得多。[Reddit 1u0mgyy 正文，一手（Android 岗，但方法通用）]
 - **库按语言分流**：Python `requests` / `Mako`；Java `SnakeYAML` / `Moshi` / `Jackson`；JS `Express` / `Day.js` / React 组件竞态；Ruby `Sass`。Python 版通过率 "<10%"（Stripe 员工 2022）。
+  - ⭐ **2025-08 Dublin senior 一手，逐字**："you're given the **entire repository of a built-in library**,
+    for instance, **for python, it could be either \"requests\" or \"mako\"**. There'd be **4-5 unit tests failing**
+    and you'll be expected to **run the tests one by one and make them pass by fixing the actual code**.
+    The challenge here is again **time** since, **if it is an unfamiliar library like mako, it is quite challenging
+    to figure out what it does in the first place**."
+    → **本仓库 `bs01_mini_template_engine`(minimako) 与 `bs02_mini_http_client`(minihttp) 正好是这两个库的缩微版**，
+    这是我们对 bug squash 轮最直接的一次外部确证。**那句"不熟的库先搞懂它在干什么最难"就是 `CODE_GUIDE.md` 存在的理由**
+    （所以第二遍起别读它——真实面试里没有导读）。[Reddit 1mgcc99 正文，一手]
+  - **bug 的来源**：问"是招聘团队注入的还是该库 GitHub 上真实报过的"→ 一手答"**Could be either.**"[Reddit 1mgcc99#6]
+  - **JS / Java 场次的库仍然零证据**：帖里被问了 5 次，全部转私信。**不要以为上面这份清单是完整的。**
 - **一场 SnakeYAML 的真实 bug 对**（候选人原文）：① `flag: on` 解析不出来（YAML 1.1 把 `on` 当布尔）② CSV 解析结果漏掉引号。两个都属"逻辑错误"类。[prachub assign-reviewers-from-changed-files]
 - **评什么**："solving the bug isn't the primary objective"——独立调试能力、方法论、沟通；强表现范文："read the entry point before touching code, set a breakpoint early, formed a hypothesis, verified it, applied a targeted fix"。[Blind bxonqpkp、gyamarmf；Leon]
-- **挂点 top5**：① 只用 print、不会 debugger（多例）② 盯栈顶、想读懂整个库 ③ 不读 README/文档（Google 候选人主因）④ 环境（JDK/Python 2 vs 3/import）吃掉 10 min ⑤ 大范围重写而非最小修复。
+- **挂点 top6**：① 只用 print、不会 debugger（多例）② 盯栈顶、想读懂整个库 ③ 不读 README/文档（Google 候选人主因）④ 环境（JDK/Python 2 vs 3/import）吃掉 10 min ⑤ 大范围重写而非最小修复
+  ⑥ **修复层级选错**——2025-10 一手："[面试官] told me to implement the fix in some **other function,
+  higher up in the stack trace** rather than the function I was fixing"。
+  **定位到根因之后，先问自己"这个 fix 该落在栈的哪一层"，再动手。**[Reddit 1ohkp31 正文，一手]
 - **四类典型 bug（背下来，进场先按这四类猜）**：逻辑错误 · off-by-one · 符号反转 · **跨调用残留的状态**（该重置没重置）· 排序里用错 comparator。[leonstaff 2026-08-13]
 - **备考动作**：用 recruiter 发的 sample repo 提前跑通 IDE + debugger + 测试；自己 clone 热门库注入 bug 计时 ≥4 次（其中 1 次不用 debugger）；流程固定：跑失败测试 → 读 README 30 s → 从失败断言向上追数据 → 假设 → 断点验证 → 最小修复 → 加回归测试 → 讲根因与副作用。
 - **5 步硬流程（面试官在看你做没做这几步，不只看你修没修好）**：① **先跑失败测试**把错误亲眼确认一遍——"跳过这步直接读代码，是有经验的工程师不会犯的错" ② 读入口点、追数据流，再动代码 ③ **把假设说出来**（"我怀疑在 X，因为 Y"）④ 用**断点**验证，不要靠 print ⑤ 写生产级修复，不是能过测试就行的补丁。[leonstaff 2026-08-13]
@@ -148,6 +180,16 @@
 ## 5. Onsite · Integration（60 min）
 
 - **形式**："open-book"：私有 repo（README、boilerplate、示例数据、API 文档）→ 本地跑起来 → 4–5 个递进 part；**可联网查文档，禁 AI**；语言与 bug squash 通常相同；不要求单测；需求有时写在 GitHub issue 里且**不可复制**。[Medium diyaag；Blind vwunpzkn；learncswithus]
+- **⭐ 四段式结构（2025-08 Dublin senior 一手，逐字）**："there's **4 sub-rounds**. To begin with, you're given a
+  **hello world boiler plate code** and you're expected to **call an API and print the response**. The request
+  parameters are expected to be **read from a file — so file parsing is essential**. In the second one, you're asked
+  to **parse the response and use it to call yet another API**. The subsequent rounds follows suit by increasing
+  complexity in terms of forming the request and parsing the response. **Use of an ide is permitted.** The challenge
+  here is **time** since **requirements change across sub-rounds** and thus **if the code is modular enough from
+  the beginning, it helps**."
+  → **可操作：part 1 就把 `build_request()` / `call()` / `parse()` 三件事拆成三个函数**，别写成一个 main。
+  需求每个 sub-round 都变，不拆分就是每轮重写。**"请求参数从文件里读"这条也要练**——不是硬编码 URL。
+  [Reddit 1mgcc99 正文，一手]
 - **题库**：BikeMap 最高频但"不总是 bikemap"（Stripe 员工）；其余：调 API 存 DB、多 JSON ETL、文件抽字段 → 外部 API → 合并、request replayer、git diff + owners。校招 Simplify 转述"reconciliation script：分页、限流、幂等"。
 - **评什么**：正确性优先、快速推进、按文档用 API、错误处理、代码组织；"very easy api calling but easy for everyone so you have to be perfect"。[Blind 1j2ckbta；Exponent；Leon]
 - **通过线**：2/5、2.5/5 with hints、3/5、3.9/5 都有人过；共识"integration 没做完 **或** bug squash 差，二选一还能过；两个都弱必拒"；没做 Part 3 从 L3 降到 L2 的案例。[Blind ncjsazmm、vvjmavis]
@@ -172,11 +214,19 @@
 - **形式**：与电面同类但更长、更多 part，常"从 JSON/测试数据出发按逐步加码的需求实现"，有时先 clone repo；CoderPad/本地 IDE/HackerRank 都有；"Stripe usually wants two parts"（L2）。[Blind x7beaq87、cnhknchr、8grkgwt1]
 - **题型**：订阅通知调度、支付账本类 + 追问、账户调度/LRU、限流 4-part、规则引擎、滑窗可疑用户、清账。追问方向固定：部分退款/去重/时间范围/持久化/并发/海量。
 - **AI Programming Exercise（2026）**：HackerRank 内嵌 AI；30 min；题为 transactions + rules（关键词 → AND/OR）；评"能否指挥/验证/调试 AI 输出而不关掉脑子"——让 AI 读 README 出计划、生成代码，**自己写测试**、抓过度工程与漏边界。[interviewdb AI guide]
-  - **⚠️ 证据等级更正（2026-09-04）：这一条不是一手。** 本指南此前把它记成"一手长文已确认细节"，
+  - **✅ 2026-09-04 补抓后能确认的（一手）**：① **平台确实是 HackerRank 内嵌的 AI**——亲历者原文
+    "its the interview round where you are **allowed to use AI models provided within hackerrank** to solve a
+    **more challenging problem**"；② **这一轮已经进了校招 VO**——2026-08-07 一位 new grad 把
+    "**AI Coding, Integration or Bug Squash**" 并列为自己 VO 的三轮。
+    ❌ **仍然拿不到的**：题目内容。那位亲历者关于 Stripe 这轮只写了两句，帖子里 36 条评论中所有详细的 AI 轮
+    描述**全都是别的公司**（Meta / Amazon / DigitalOcean），有人专门追问 Stripe 细节——**无人回答**。
+    [Reddit 1vbpool 正文（一手）、1vhpsgz 正文（一手）]
+  - **⚠️ 证据等级更正（2026-09-04）：题面那一条不是一手。** 本指南此前把它记成"一手长文已确认细节"，
     **错了**。原帖正文第二句自述 "**Sharing what I've gathered from a few candidates** who went through it
     recently"，发帖账号 `/u/interviewdb` 是做众包题库的网站（评论 1 当场质疑其商业动机），
     **23 条评论里没有任何一条是亲历者出面确认**（还有人在问 "Has anyone actually gone through this?"）。
-    **正确等级：二手汇总 · 商业来源 · 未经亲历者交叉验证。** 下面的细节内容**保留不删**——
+    **正确等级：二手汇总 · 商业来源 · 未经亲历者交叉验证。**（补抓 33 帖后**依然没有**亲历者一手题面
+    可以替换它——`cd07` 的题面来源仍旧只有这一个二手帖。）下面的细节内容**保留不删**——
     它与本仓库 `cd07` 吻合、也与 2026 年其他材料同向，但**不能当作已证实的事实**去背。
   - **细节（按上面的等级读）**（r/leetcode 1u51q4w，正文 1989 字 + 23 评论）：HackerRank 内嵌**类 Cursor 的 AI 对话框**；题目是 transactions + rules（每条规则 accept/block + 一个 if 条件），**前面 part 是关键词/字符串匹配，后面 part 加 AND/OR 布尔逻辑并叠加前面的成果**；README 很长，**读规格的速度本身是考点**；真正编码只有约 30 分钟，"trying to hand-code everything yourself may not be realistic"。
     有效打法：让 AI 读完整 README → 让它总结需求 → 要实现计划**并真的 review** → 让它写 →**自己加测试和边界** → 跑、调。**本仓库 `cd07_transactions_rules_ai` 与此高度吻合。**
@@ -256,6 +306,16 @@
 | §5 | 4–5 个 part | part 数不固定（3 / 5 各有一手） | 两条一手 |
 | §6 | AI Exercise"一手长文已确认" | **降级为二手 · 商业来源** | 见下 |
 | §9 | team match 长尾"单一来源 medium" | 升级为多源 | 两条 Reddit 一手 |
+| §4 | bug 数"按 3 个准备"（当天早些时候刚写的） | **1–5 不定** | 补抓拿到 1 个 / 4–5 个两条新一手，**推翻了我们当天的结论** |
+| §4 | 库清单无一手来源 | Python `requests`/`mako` 有一手背书 | 直接对上 `bs02` / `bs01` |
+| §4 | 挂点 top5 | top6，加"**修复层级选错**" | 面试官明确要求在栈上层修 |
+| §4 | "允许用 IDE" | **用不用 debugger 是显式评分项** | 两条一手同向 |
+| §4 | 禁 AI | 明确到**含 IDE 自动补全** | 一手 |
+| §5 | 只有题库列表 | 加**四段式 sub-round 结构** + "part 1 就拆三个函数" | Dublin senior 一手全文 |
+| §3 | 无自动测例 | "**你看不到**测例"≠"没人在判" | 一手：面试官侧有 TC |
+| §3 | Lombok 案例像面试官脾气 | **大概率是 HackerRank 平台约束**（标了非一手） | 2024-05 两条同向 + 面试官自陈理由 |
+| §6 | AI 轮全部靠二手 | **平台与难度升为一手**；**已进校招 VO**；题面仍无一手 | 两条一手 |
+| §0 | loop 单一语言 | onsite 同一门，**电面可不同**；Go 也可选 | 单一来源，已标置信度 |
 
 ### ⚠️ 一条我们自己的记账错误（保留在此，不删）
 §6 曾把 2026-06-13 那篇 AI Programming Exercise 的帖子标为"**一手长文已确认细节**"。
@@ -273,6 +333,13 @@
   那是通过者的上限样本，不是通过线，**不构成矛盾**。
 - **"不是 LeetCode"**：一条 2026-05 匿名评论说 OA 里有 LC hard。单一来源、零细节，**只在 §3 记了一笔，没改结论**。
 
+### 补抓的 33 帖（2026-09-04 当天发现并补齐）
+`HANDOFF.md` 原记"盲区期还有 4 篇因 429 没取到"。拿 418 帖 index 与已抓正文做差集后发现
+**标题含 stripe 的 83 帖里有 33 帖只有标题、从未取过正文**——原来的 4 是低估（只比对了盲区期）。
+33 帖全部补齐（506 条评论），落盘 `catalog/discovery/harvest/reddit_backfill_2026-09-04.json`，
+分析见 `catalog/discovery/2026-09-04/reddit_backfill_*.md`。**又是 0 道新题**，但拿到了两条最硬的确证
+（bug squash 的库、integration 的四段式结构），以及一条推翻我们当天早些时候结论的证据（bug 数量）。
+
 ### 这一轮的题库增量
 **新题 0 道。** 三片合计只找到 3 条"库里没有的形态"，且全部是 TITLE/SUMM 级、没有可重建的题面：
 ① 给现成代码 → 增量加功能 → **面试官主动要求写测试** → 再加更难功能（既不是 bug squash 也不是从零写类）；
@@ -285,7 +352,18 @@ with capacity" 三点全中），并附带三条增量：约 20 个测例、**di
 （同帖一条高赞的"不写 kd-tree 必挂"被通过者当场证伪）、题主是 Canada senior remote 岗。
 `q17` 的 Part 4 `RELEASE` 该候选人未提及，**"reconstructed"标注保持不变**。
 
+### ⭐ 两条最硬的外部确证（补抓批）
+1. **bug squash 的库**：一手原文说 Python 场次"could be either **requests** or **mako**"——
+   本仓库的 `bs02_mini_http_client` 和 `bs01_mini_template_engine` 正是这两个库的缩微版。
+   **这是我们对 bug squash 轮设计的第一次外部确证。**
+2. **integration 的四段式**：hello-world 骨架 → 调 API 打印（**参数从文件读**）→ 解析响应再调下一个 API →
+   逐段加复杂度，且"requirements change across sub-rounds"。→ §5 已据此加了"part 1 就拆三个函数"的动作。
+
 ### 一条方法论结论
-r/leetcode 的 Stripe 帖是**求助场**，不是交付场：题面被问了至少 12 次、**一次都没被回答**。
+r/leetcode 的 Stripe 帖是**求助场**，不是交付场：**五片累计追问具体题面 ≥28 次，零次得到回答**。
+一个直接原因被抓到了：给答案的人在引流，AutoMod 因 "DM farming" 删评
+（"We do not allow DM farming. All of the conversation must happen within the post itself."），
+**剩在公开区的就只有泛泛之谈**。
 三片里最有价值的产出全部是**流程事实和挂经**，不是题。
 **题面证据的主产地是 1point3acres 镜像与 Blind，后续抓取预算应该往那边倾斜，而不是继续扫 Reddit。**
+（r/cscareerquestions 的 2017–2022 存量帖也已挖完，单位信息密度远低于 2025–2026 帖，不必再回去。）
