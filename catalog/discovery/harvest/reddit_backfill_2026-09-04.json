@@ -236,5 +236,51 @@
   "comments": [],
   "url": "https://www.reddit.com/r/cscareerquestions/comments/1ox2n7y/",
   "published": "2025-11-14T17:22:22+00:00"
+ },
+ {
+  "id": "1ownvu4",
+  "sub": "leetcode",
+  "title": "Stripe technical screening rejection [new grad software]",
+  "body": "Me being an international student in US, stripe is the first company that sent a test assessment after applying to a role after few days of applied date, and I was happy that my resume has some worth, then I written the test it was pretty easy. Then after few days I got link to choose a date for technical screening, and I chose it today and after completing it I thought I rocked the interview, I enjoyed it despite being my first interview, it had two parts to solve a string based problem and I written the code in a good way too, I felt I explained it well, the approach, code modularity and all, at the end I thought I'll at least make it to next round, but just after 6 hours I got a rejection email, I couldn't able to digest the news. I still couldn't able to understand what went wrong, just 2 days back I felt depressed that I couldn't able solve one single problem in citadel OA despite solving around 600 LC problems, and today this interview rejection, its feeling very depressed and a lot of tension because at least before leaving US (because sponsorship is nowhere favorable to us despite being having 3 more years of valid visa), I wanted to have some work experience from here. what do you suggest guys?    submitted by    /u/ChoiceAd165   [link]   [comments]",
+  "comments": [
+   "Keep trying stop crying",
+   "There are questions that have 4 parts as well. We aren't supposed to tell you how many parts are needed to clear the round. Did the interviewer ask nudge to complete the 2 section faster?",
+   "No it was just a 2 part question, she mentioned it. And also I still have time left after completing both parts.",
+   "Totally get how this feels — Stripe screens can look simple but one tiny parsing/logic detail can change the outcome, and a lot of strong candidates get surprised by it. This doesn’t say anything about your ability. If it helps, I’ve been collecting some recent Stripe screen patterns + common mistakes people ran into. Happy to share — it helped me understand what they actually look for. You’re really not alone in this.",
+   "Hi, would you be open to sharing the patterns and mistakes that people run into, with me? I have my interview next week.",
+   "Replied",
+   "Haven’t received it, I DMed you.",
+   "Replied, please check the message",
+   "Hi, I Dmed you.",
+   "Replied",
+   "Hey can you please send"
+  ],
+  "url": "https://www.reddit.com/r/leetcode/comments/1ownvu4/",
+  "published": "2025-11-14T05:15:46+00:00"
+ },
+ {
+  "id": "1oogutn",
+  "sub": "cscareerquestions",
+  "title": "Stripe vs Bloomberg (Dublin internship)",
+  "body": "I have internship offers from Stripe and Bloomberg in Dublin, I would appreciate any advice from people who have worked at these companies / know anyone who has worked at these companies. Here's a comparison of the two from what I know so far: Stripe Compensation: €4,400 base + €1,820 (or corporate housing) + €167 travel = €6,387 / month Type of work: Not sure until team matching in February Return offers: Fairly volatile, can't rely on getting one Grad salary: from levels.fyi, €110k (of which 27k is stock) Hours: 9 am to 6 pm Bloomberg Compensation: €3,750 base + €3,000 relocation bonus = €6,750 / month Type of work: Bloomberg in Dublin mostly works with data systems, so afaik I'd be working with Kafka, Java, Flink, databases etc. I'm not particularly interested in working in data engineering long term Return offer: From what I've heard Bloomberg is very likely to give out return offers. Grad salary: no data for Dublin, but in London it's 100k all cash (levels.fyi) Hours: 8 am to 6 pm What's the culture like at these companies? Which would you pick if you had to make the same decision? Which is better CV value considering I want to go into high frequency trading in the future?    submitted by    /u/Own_Lake_276   [link]   [comments]",
+  "comments": [
+   "Stripe 100%",
+   "[deleted]",
+   "Sorry, you do not meet the minimum sitewide comment karma requirement of 10 to post a comment. This is comment karma exclusively, not post or overall karma nor karma on this subreddit alone. Please try again after you have acquired more karma. Please look at the rules page for more information. I am a bot, and this action was performed automatically. Please contact the moderators of this subreddit if you have any questions or concerns.",
+   "sent you a dm :)",
+   "Bloomberg -> internal transfer to NYC -> HFT if you're really dead set on it. Nothing Stripe does resembles HFT in the slightest.",
+   "Are internal transfers even possible anymore with the new H1B visas?",
+   "Idk there's quite a few transferring from London office though",
+   "Stripe 100%",
+   "Stripe",
+   "Start out with Stripe, aim to get a return offer, work there as long as you can and then go to Bloomberg. I work at Stripe. If you’re an ambitious and talented dev who wants to learn and grow it’s honestly a great place. Bloomberg is slower and more bureaucratic but they still do value engineering, and they famously have great WLB and “don’t do lay offs”. Honestly it’s one of my top choices for where I want to go next now that I have young children.",
+   "Thanks for your advice. Do you know what the internal mobility is like at Stripe? E.g is it possible to go from EU to US?",
+   "It’s definitely possible, but easiest when done when joining the company (e.g as a returning new grad) To do it as an internal transfer you’d have to find a “business need” which would normally mean an internal transfer to a new team that has headcount in the U.S. You’d have to be there at least a year and in good performance standing for that, but honestly it’d be a bit hard as an L1, would realistically take a couple years. Stripe did relocate me from Canada to the U.S. but I did it while joining.",
+   "Thanks, I'd like to not live in Dublin for the rest of my life lol.",
+   "What kind of tech/code questions did they ask in your Bloomberg interview?",
+   "round 1 had 1 LC medium, round 2 had 2 LC mediums, round 3 was a system design Q, round 4 was HR and round 5 engineering manager"
+  ],
+  "url": "https://www.reddit.com/r/cscareerquestions/comments/1oogutn/",
+  "published": "2025-11-04T19:32:34+00:00"
  }
 ]
